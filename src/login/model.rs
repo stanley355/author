@@ -1,7 +1,9 @@
 use super::req::LoginReq;
+use super::res::LoginRes;
 use crate::db::PgPool;
 use crate::schema::users;
-use actix_web::web;
+
+use actix_web::{web, HttpResponse};
 use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -27,7 +29,7 @@ impl LoginUser {
         hasher.update(data_str);
         format!("{:x}", hasher.finalize())
     }
-    
+
     pub fn add(pool: web::Data<PgPool>, body: web::Json<LoginReq>) -> QueryResult<LoginUser> {
         let conn = &pool.get().unwrap();
         let data = (
@@ -40,5 +42,11 @@ impl LoginUser {
         diesel::insert_into(users::table)
             .values(data)
             .get_result(conn)
+    }
+
+    pub fn send_token_response(user: LoginUser) -> HttpResponse {
+        let token = Self::hash_user_data(user);
+        let res = LoginRes::new(token);
+        HttpResponse::Ok().json(res)
     }
 }

@@ -1,25 +1,24 @@
 use super::model::LoginUser;
 use super::req::LoginReq;
-use super::res::LoginRes;
 use crate::db::PgPool;
-use actix_web::{get, post, put, web, HttpResponse};
+use actix_web::{post, web, HttpResponse};
 
-#[post("/")]
-async fn login(pool: web::Data<PgPool>, body: web::Json<LoginReq>) -> HttpResponse {
-    let login_user = LoginUser::check_user(pool, body.email.clone());
+#[post("/gmail/")]
+async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<LoginReq>) -> HttpResponse {
+    let login_user = LoginUser::check_user(pool.clone(), body.email.clone());
 
     match login_user {
-        Ok(res) => {
-            let token = LoginUser::hash_user_data(res);
-            let res = LoginRes::new(token);
-            HttpResponse::Ok().json(res)
-        }
-        Err(err) => {
-            HttpResponse::BadRequest().body(format!("Missing Parameter: code, year {}", err))
+        Ok(user) => LoginUser::send_token_response(user),
+        Err(_) => {
+            let add_user = LoginUser::add(pool, body);
+            match add_user {
+                Ok(user) => LoginUser::send_token_response(user),
+                Err(err) => HttpResponse::InternalServerError().body(format!("Error: {:?}", err)),
+            }
         }
     }
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(login);
+    config.service(gmail_login);
 }
