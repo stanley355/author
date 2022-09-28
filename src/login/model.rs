@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
-pub struct LoginUser {
+pub struct User {
     pub id: uuid::Uuid,
     pub fullname: String,
     pub email: String,
@@ -17,20 +17,20 @@ pub struct LoginUser {
     pub phone_number: Option<String>,
 }
 
-impl LoginUser {
-    pub fn check_user(pool: web::Data<PgPool>, email: String) -> QueryResult<LoginUser> {
+impl User {
+    pub fn check_user(pool: web::Data<PgPool>, email: String) -> QueryResult<User> {
         let conn = &pool.get().unwrap();
         users::table.filter(users::email.eq(email)).get_result(conn)
     }
 
-    pub fn hash_user_data(data: LoginUser) -> String {
+    pub fn hash_user_data(data: User) -> String {
         let data_str = format!("{:?}", data);
         let mut hasher = Sha256::new();
         hasher.update(data_str);
         format!("{:x}", hasher.finalize())
     }
 
-    pub fn add(pool: web::Data<PgPool>, body: web::Json<LoginReq>) -> QueryResult<LoginUser> {
+    pub fn add(pool: web::Data<PgPool>, body: web::Json<LoginReq>) -> QueryResult<User> {
         let conn = &pool.get().unwrap();
         let data = (
             (users::fullname.eq(&body.fullname)),
@@ -44,7 +44,7 @@ impl LoginUser {
             .get_result(conn)
     }
 
-    pub fn send_token_response(user: LoginUser) -> HttpResponse {
+    pub fn send_token_response(user: User) -> HttpResponse {
         let token = Self::hash_user_data(user);
         let res = LoginRes::new(token);
         HttpResponse::Ok().json(res)
