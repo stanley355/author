@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct LoginRes {
+pub struct LoginTokenRes {
     pub token: String,
 }
 
-impl LoginRes {
+impl LoginTokenRes {
     pub fn new(token: String) -> Self {
-        LoginRes { token }
+        LoginTokenRes { token }
     }
 }
