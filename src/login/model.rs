@@ -5,8 +5,10 @@ use crate::schema::users;
 
 use actix_web::{web, HttpResponse};
 use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
+use jsonwebtokens as jwt;
+use jwt::{encode, Algorithm, AlgorithmID};
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
+use serde_json::json;
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct User {
@@ -24,10 +26,10 @@ impl User {
     }
 
     pub fn hash_user_data(data: User) -> String {
-        let data_str = format!("{:?}", data);
-        let mut hasher = Sha256::new();
-        hasher.update(data_str);
-        format!("{:x}", hasher.finalize())
+        let alg = Algorithm::new_hmac(AlgorithmID::HS256, "secret").unwrap();
+        let header = json!({ "alg": alg.name() });
+        let body = json!(data);
+        encode(&header, &body, &alg).unwrap()
     }
 
     pub fn add(pool: web::Data<PgPool>, body: web::Json<LoginReq>) -> QueryResult<User> {
