@@ -10,7 +10,7 @@ async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<LoginReq>) -> Http
     match login_user {
         Ok(user) => User::send_token_response(user),
         Err(_) => {
-            let add_user = User::add(pool, body);
+            let add_user = User::create(pool, body);
             match add_user {
                 Ok(user) => User::send_token_response(user),
                 Err(err) => HttpResponse::InternalServerError().body(format!("Error: {:?}", err)),

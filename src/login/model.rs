@@ -40,7 +40,7 @@ impl User {
         encode(&header, &body, &alg).unwrap()
     }
 
-    pub fn add(pool: web::Data<PgPool>, body: web::Json<LoginReq>) -> QueryResult<User> {
+    pub fn create(pool: web::Data<PgPool>, body: web::Json<LoginReq>) -> QueryResult<User> {
         let conn = &pool.get().unwrap();
         let data = (
             (users::fullname.eq(&body.fullname)),
