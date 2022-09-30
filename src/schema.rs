@@ -7,5 +7,6 @@ diesel::table! {
         email -> Varchar,
         password -> Nullable<Varchar>,
         phone_number -> Nullable<Varchar>,
+        has_channel -> Bool,
     }
 }

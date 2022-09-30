@@ -17,6 +17,7 @@ pub struct User {
     pub email: String,
     pub password: Option<String>,
     pub phone_number: Option<String>,
+    pub has_channel: bool,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -25,6 +26,7 @@ pub struct UserInsensitiveData {
     pub fullname: String,
     pub email: String,
     pub phone_number: Option<String>,
+    pub has_channel: bool,
 }
 
 impl User {
@@ -45,8 +47,6 @@ impl User {
         let data = (
             (users::fullname.eq(&body.fullname)),
             (users::email.eq(&body.email)),
-            (users::password.eq(&body.password)),
-            (users::phone_number.eq(&body.phone_number)),
         );
 
         diesel::insert_into(users::table)
@@ -60,6 +60,7 @@ impl User {
             fullname: user.fullname,
             email: user.email,
             phone_number: user.phone_number,
+            has_channel: user.has_channel
         }
     }
 

@@ -3,7 +3,7 @@ use super::req::LoginReq;
 use crate::db::PgPool;
 use actix_web::{post, web, HttpResponse};
 
-#[post("/gmail/")]
+#[post("/login/gmail/")]
 async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<LoginReq>) -> HttpResponse {
     let login_user = User::check_user(pool.clone(), body.email.clone());
 
