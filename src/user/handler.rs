@@ -1,7 +1,7 @@
-use super::model::User;
 use super::req::LoginReq;
+use super::{model::User, req::UpdateUserReq};
 use crate::db::PgPool;
-use actix_web::{post, web, HttpResponse};
+use actix_web::{post, put, web, HttpResponse};
 
 #[post("/login/gmail/")]
 async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<LoginReq>) -> HttpResponse {
@@ -16,6 +16,19 @@ async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<LoginReq>) -> Http
                 Err(err) => HttpResponse::InternalServerError().body(format!("Error: {:?}", err)),
             }
         }
+    }
+}
+
+#[put("/")]
+async fn update_user(pool: web::Data<PgPool>, body: web::Json<UpdateUserReq>) -> HttpResponse {
+    let update_user = User::update(pool, body);
+
+    match update_user {
+        Ok(user) => {
+            let insensitive_data = User::remove_sensitive_data(user);
+            HttpResponse::Ok().json(insensitive_data)
+        }
+        Err(err) => HttpResponse::InternalServerError().body(format!("Error: {:?}", err)),
     }
 }
 

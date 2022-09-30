@@ -1,10 +1,10 @@
-use super::req::LoginReq;
+use super::req::{LoginReq, UpdateUserReq};
 use super::res::LoginTokenRes;
 use crate::db::PgPool;
 use crate::schema::users;
 
 use actix_web::{web, HttpResponse};
-use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
+use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 use jsonwebtokens as jwt;
 use jwt::{encode, Algorithm, AlgorithmID};
 use serde::{Deserialize, Serialize};
@@ -60,7 +60,7 @@ impl User {
             fullname: user.fullname,
             email: user.email,
             phone_number: user.phone_number,
-            has_channel: user.has_channel
+            has_channel: user.has_channel,
         }
     }
 
@@ -69,5 +69,17 @@ impl User {
         let token = Self::hash_user_data(insensitive_data);
         let res = LoginTokenRes::new(token);
         HttpResponse::Ok().json(res)
+    }
+
+    pub fn update(pool: web::Data<PgPool>, body: web::Json<UpdateUserReq>) -> QueryResult<User> {
+        let conn = &pool.get().unwrap();
+        diesel::update(users::table)
+            .filter(
+                users::fullname
+                    .eq(&body.fullname)
+                    .and(users::email.eq(&body.email)),
+            )
+            .set(users::has_channel.eq(&body.has_channel.unwrap()))
+            .get_result::<User>(conn)
     }
 }
