@@ -24,10 +24,7 @@ async fn update_user(pool: web::Data<PgPool>, body: web::Json<UpdateUserReq>) ->
     let update_user = User::update(pool, body);
 
     match update_user {
-        Ok(user) => {
-            let insensitive_data = User::remove_sensitive_data(user);
-            HttpResponse::Ok().json(insensitive_data)
-        }
+        Ok(user) => User::send_token_response(user),
         Err(err) => HttpResponse::InternalServerError().body(format!("Error: {:?}", err)),
     }
 }
