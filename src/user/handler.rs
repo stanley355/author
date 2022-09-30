@@ -33,5 +33,5 @@ async fn update_user(pool: web::Data<PgPool>, body: web::Json<UpdateUserReq>) ->
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(gmail_login);
+    config.service(gmail_login).service(update_user);
 }
