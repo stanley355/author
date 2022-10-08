@@ -7,8 +7,9 @@ edition = "2021"
 
 [dependencies]
 actix-web = { version = "4", features = ["openssl"] }
+chrono = { version ="0.4.22", features= ["serde"] }
 dotenv = "0.15"
-diesel = { version = "1.4.4", features = ["postgres", "uuidv07", "r2d2"] }
+diesel = { version = "1.4.4", features = ["postgres", "uuidv07", "r2d2", "chrono"] }
 openssl = "0.10"
 r2d2 = "0.8.9"
 serde = { version = "1.0", features = ["derive"] }

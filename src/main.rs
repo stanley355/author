@@ -8,6 +8,7 @@ use std::env;
 mod db;
 mod user;
 mod schema;
+mod subscription;
 
 async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
     HttpServer::new(move || {
