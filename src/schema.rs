@@ -8,9 +8,8 @@ diesel::table! {
         channels_slug -> Varchar,
         created_at -> Timestamp,
         expired_at -> Nullable<Timestamp>,
-        monthly_price -> Int4,
-        total_price -> Int4,
-        status -> Varchar,
+        paid -> Bool,
+        duration -> Int4,
     }
 }
 
