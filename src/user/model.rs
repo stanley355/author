@@ -1,5 +1,5 @@
 use super::req::{LoginReq, UpdateUserReq};
-use super::res::{LoginTokenRes, UserTokenData};
+use super::res::LoginTokenRes;
 use crate::db::PgPool;
 use crate::schema::users;
 
@@ -19,7 +19,6 @@ pub struct User {
     pub phone_number: Option<String>,
     pub has_channel: bool,
 }
-
 
 impl User {
     pub fn check_user(pool: web::Data<PgPool>, email: String) -> QueryResult<User> {
@@ -46,7 +45,6 @@ impl User {
             .get_result(conn)
     }
 
-
     pub fn send_token_response(user: User) -> HttpResponse {
         let insensitive_data = UserTokenData::new(user);
         let token = Self::hash_user_data(insensitive_data);
@@ -64,5 +62,26 @@ impl User {
             )
             .set(users::has_channel.eq(&body.has_channel.unwrap()))
             .get_result::<User>(conn)
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UserTokenData {
+    pub id: uuid::Uuid,
+    pub fullname: String,
+    pub email: String,
+    pub phone_number: Option<String>,
+    pub has_channel: bool,
+}
+
+impl UserTokenData {
+    pub fn new(user: User) -> UserTokenData {
+        UserTokenData {
+            id: user.id,
+            fullname: user.fullname,
+            email: user.email,
+            phone_number: user.phone_number,
+            has_channel: user.has_channel,
+        }
     }
 }
