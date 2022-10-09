@@ -1,5 +1,5 @@
+use crate::db::PgPool;
 use crate::schema::subscriptions;
-use crate::{db::PgPool, schema::subscriptions::total_price};
 use actix_web::web;
 use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl};
 use serde::{Deserialize, Serialize};
@@ -27,14 +27,14 @@ impl Subscription {
         let conn = &pool.get().unwrap();
 
         let user_uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
-        let total_prices = &body.monthly_price * &body.duration;
+        let total_price = &body.monthly_price * &body.duration;
 
         let data = (
             (subscriptions::user_id.eq(user_uuid)),
             (subscriptions::channels_id.eq(&body.channels_id)),
             (subscriptions::channels_slug.eq(&body.channels_slug)),
             (subscriptions::monthly_price.eq(&body.monthly_price)),
-            (subscriptions::total_price.eq(total_prices)),
+            (subscriptions::total_price.eq(total_price)),
         );
 
         diesel::insert_into(subscriptions::table)
