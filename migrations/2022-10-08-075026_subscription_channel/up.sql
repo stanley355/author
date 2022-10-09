@@ -8,6 +8,6 @@ CREATE TABLE subscriptions (
   expired_at TIMESTAMP,
   monthly_price INTEGER NOT NULL,
   total_price INTEGER NOT NULL,
-  status VARCHAR NOT NULL,
+  status VARCHAR NOT NULL DEFAULT 'Pending',
   FOREIGN KEY (user_id) REFERENCES users (id)
 );
