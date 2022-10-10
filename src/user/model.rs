@@ -20,22 +20,13 @@ pub struct User {
     pub has_channel: bool,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct UserInsensitiveData {
-    pub id: uuid::Uuid,
-    pub fullname: String,
-    pub email: String,
-    pub phone_number: Option<String>,
-    pub has_channel: bool,
-}
-
 impl User {
     pub fn check_user(pool: web::Data<PgPool>, email: String) -> QueryResult<User> {
         let conn = &pool.get().unwrap();
         users::table.filter(users::email.eq(email)).get_result(conn)
     }
 
-    pub fn hash_user_data(data: UserInsensitiveData) -> String {
+    pub fn hash_user_data(data: UserTokenData) -> String {
         let alg = Algorithm::new_hmac(AlgorithmID::HS256, "secret").unwrap();
         let header = json!({ "alg": alg.name() });
         let body = json!(data);
@@ -54,18 +45,8 @@ impl User {
             .get_result(conn)
     }
 
-    pub fn remove_sensitive_data(user: User) -> UserInsensitiveData {
-        UserInsensitiveData {
-            id: user.id,
-            fullname: user.fullname,
-            email: user.email,
-            phone_number: user.phone_number,
-            has_channel: user.has_channel,
-        }
-    }
-
     pub fn send_token_response(user: User) -> HttpResponse {
-        let insensitive_data = Self::remove_sensitive_data(user);
+        let insensitive_data = UserTokenData::new(user);
         let token = Self::hash_user_data(insensitive_data);
         let res = LoginTokenRes::new(token);
         HttpResponse::Ok().json(res)
@@ -81,5 +62,26 @@ impl User {
             )
             .set(users::has_channel.eq(&body.has_channel.unwrap()))
             .get_result::<User>(conn)
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UserTokenData {
+    pub id: uuid::Uuid,
+    pub fullname: String,
+    pub email: String,
+    pub phone_number: Option<String>,
+    pub has_channel: bool,
+}
+
+impl UserTokenData {
+    pub fn new(user: User) -> UserTokenData {
+        UserTokenData {
+            id: user.id,
+            fullname: user.fullname,
+            email: user.email,
+            phone_number: user.phone_number,
+            has_channel: user.has_channel,
+        }
     }
 }

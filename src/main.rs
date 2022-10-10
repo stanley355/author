@@ -6,14 +6,16 @@ use dotenv::dotenv;
 use std::env;
 
 mod db;
-mod user;
 mod schema;
+mod subscription;
+mod user;
 
 async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(pool.clone()))
             .service(web::scope("/v1/users").configure(user::handler::route))
+            .service(web::scope("/v1/subscriptions").configure(subscription::handler::route))
     })
     .bind(address)?
     .run()
