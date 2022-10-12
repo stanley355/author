@@ -10,6 +10,7 @@ diesel::table! {
         expired_at -> Nullable<Timestamp>,
         paid -> Bool,
         duration -> Int4,
+        invoice_id -> Varchar,
     }
 }
 

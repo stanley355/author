@@ -7,4 +7,5 @@ pub struct CreateSubscriptionPayload {
     pub channels_id: i32,
     pub channels_slug: String,
     pub duration: i32,
+    pub invoice_id: String,
 }

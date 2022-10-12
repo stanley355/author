@@ -18,6 +18,7 @@ pub struct Subscription {
     expired_at: Option<chrono::NaiveDateTime>,
     paid: bool,
     duration: i32,
+    invoice_id: String
 }
 
 impl Subscription {
@@ -34,6 +35,7 @@ impl Subscription {
             (subscriptions::channels_id.eq(&body.channels_id)),
             (subscriptions::channels_slug.eq(&body.channels_slug)),
             (subscriptions::duration.eq(&body.duration)),
+            (subscriptions::invoice_id.eq(&body.invoice_id)),
         );
 
         diesel::insert_into(subscriptions::table)
