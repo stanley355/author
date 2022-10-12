@@ -1,9 +1,7 @@
 use crate::db::PgPool;
 use crate::schema::subscriptions;
 use actix_web::web;
-use diesel::{
-    query_dsl::methods::FilterDsl, ExpressionMethods, QueryResult, Queryable, RunQueryDsl,
-};
+use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl};
 use serde::{Deserialize, Serialize};
 
 use super::req::CreateSubscriptionPayload;
@@ -39,16 +37,5 @@ impl Subscription {
         diesel::insert_into(subscriptions::table)
             .values(data)
             .get_result::<Subscription>(conn)
-    }
-
-    pub fn view_user_subscriptions(
-        pool: web::Data<PgPool>,
-        user_id: uuid::Uuid,
-    ) -> QueryResult<Vec<Subscription>> {
-        let conn = &pool.get().unwrap();
-
-        subscriptions::table
-            .filter(subscriptions::user_id.eq(user_id))
-            .get_results::<Subscription>(conn)
     }
 }

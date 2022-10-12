@@ -1,8 +1,7 @@
 use super::req::{LoginReq, UpdateUserReq};
 use super::res::LoginTokenRes;
 use crate::db::PgPool;
-use crate::schema::{users};
-use crate::subscription::model::Subscription;
+use crate::schema::users;
 
 use actix_web::{web, HttpResponse};
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
@@ -46,9 +45,9 @@ impl User {
             .get_result(conn)
     }
 
-    pub fn send_token_response(user: User, subscriptions: Vec<Subscription>  ) -> HttpResponse {
-        let token_data = UserTokenData::new(user, subscriptions);
-        let token = Self::hash_user_data(token_data);
+    pub fn send_token_response(user: User) -> HttpResponse {
+        let insensitive_data = UserTokenData::new(user);
+        let token = Self::hash_user_data(insensitive_data);
         let res = LoginTokenRes::new(token);
         HttpResponse::Ok().json(res)
     }
@@ -73,18 +72,16 @@ pub struct UserTokenData {
     pub email: String,
     pub phone_number: Option<String>,
     pub has_channel: bool,
-    pub subscriptions: Vec<Subscription>,
 }
 
 impl UserTokenData {
-    pub fn new(user: User, subscriptions: Vec<Subscription>) -> UserTokenData {
+    pub fn new(user: User) -> UserTokenData {
         UserTokenData {
             id: user.id,
             fullname: user.fullname,
             email: user.email,
             phone_number: user.phone_number,
             has_channel: user.has_channel,
-            subscriptions: subscriptions,
         }
     }
 }
