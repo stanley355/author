@@ -53,14 +53,23 @@ impl Subscription {
 
         let user_uuid = uuid::Uuid::parse_str(&query.user_id).unwrap();
 
-        subscriptions::table
-            .filter(
-                subscriptions::user_id
-                    .eq(user_uuid)
-                    .and(subscriptions::channels_id.eq(&query.channels_id))
-                    .and(subscriptions::invoice_id.eq(&query.invoice_id)),
-            )
-            .get_result::<Subscription>(conn)
+        match query.invoice_id.clone() {
+            Some(id) => subscriptions::table
+                .filter(
+                    subscriptions::user_id
+                        .eq(user_uuid)
+                        .and(subscriptions::channels_id.eq(&query.channels_id))
+                        .and(subscriptions::invoice_id.eq(id)),
+                )
+                .get_result::<Subscription>(conn),
+            None => subscriptions::table
+                .filter(
+                    subscriptions::user_id
+                        .eq(user_uuid)
+                        .and(subscriptions::channels_id.eq(&query.channels_id)),
+                )
+                .get_result::<Subscription>(conn),
+        }
     }
 
     pub fn update_paid_subscription(

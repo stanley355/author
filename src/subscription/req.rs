@@ -14,5 +14,5 @@ pub struct CreateSubscriptionPayload {
 pub struct ViewSubscriptionPayload {
     pub user_id: String,
     pub channels_id: i32,
-    pub invoice_id: String,
+    pub invoice_id: Option<String>,
 }
