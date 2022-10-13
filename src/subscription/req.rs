@@ -11,7 +11,8 @@ pub struct CreateSubscriptionPayload {
 }
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
-pub struct ViewSubscriptionQuery {
+pub struct ViewSubscriptionPayload {
     pub user_id: String,
     pub channels_id: i32,
+    pub invoice_id: String,
 }
