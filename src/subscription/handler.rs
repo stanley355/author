@@ -1,9 +1,9 @@
 use super::model::Subscription;
-use super::req::CreateSubscriptionPayload;
+use super::req::{CreateSubscriptionPayload, ViewSubscriptionQuery};
 use crate::db::PgPool;
 use actix_web::{
-    post,
-    web::{self, Json},
+    get, post,
+    web::{self, Query},
     HttpResponse,
 };
 
@@ -12,7 +12,11 @@ async fn create_subscription(
     pool: web::Data<PgPool>,
     body: web::Json<CreateSubscriptionPayload>,
 ) -> HttpResponse {
-    let existing_subscription = Subscription::check_subscription(pool.clone(), Json(body.clone()));
+    let query = ViewSubscriptionQuery {
+        user_id: body.user_id.clone(),
+        channels_id: body.channels_id.clone(),
+    };
+    let existing_subscription = Subscription::check_subscription(pool.clone(), Query(query));
 
     match existing_subscription {
         Ok(subscription) => HttpResponse::Ok().json(subscription),
@@ -27,6 +31,20 @@ async fn create_subscription(
     }
 }
 
+#[get("/")]
+async fn view_subscription(
+    pool: web::Data<PgPool>,
+    query: web::Query<ViewSubscriptionQuery>,
+) -> HttpResponse {
+    let existing_subscription = Subscription::check_subscription(pool.clone(), query);
+    match existing_subscription {
+        Ok(subscription) => HttpResponse::Ok().json(subscription),
+        Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
+    }
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(create_subscription);
+    config
+        .service(create_subscription)
+        .service(view_subscription);
 }

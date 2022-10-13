@@ -6,7 +6,7 @@ use diesel::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::req::CreateSubscriptionPayload;
+use super::req::{CreateSubscriptionPayload, ViewSubscriptionQuery};
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct Subscription {
@@ -45,17 +45,17 @@ impl Subscription {
 
     pub fn check_subscription(
         pool: web::Data<PgPool>,
-        body: web::Json<CreateSubscriptionPayload>,
+        query: web::Query<ViewSubscriptionQuery>,
     ) -> QueryResult<Subscription> {
         let conn = &pool.get().unwrap();
 
-        let user_uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
+        let user_uuid = uuid::Uuid::parse_str(&query.user_id).unwrap();
 
         subscriptions::table
             .filter(
                 subscriptions::user_id
                     .eq(user_uuid)
-                    .and(subscriptions::channels_id.eq(&body.channels_id)),
+                    .and(subscriptions::channels_id.eq(&query.channels_id)),
             )
             .get_result::<Subscription>(conn)
     }
