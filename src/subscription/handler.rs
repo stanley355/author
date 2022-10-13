@@ -1,6 +1,7 @@
 use super::model::Subscription;
 use super::req::{CreateSubscriptionPayload, ViewSubscriptionPayload};
 use crate::db::PgPool;
+
 use actix_web::{
     get, post, put,
     web::{self, Query},
@@ -40,7 +41,7 @@ async fn update_subscription(
     let query = ViewSubscriptionPayload {
         user_id: body.user_id.clone(),
         channels_id: body.channels_id.clone(),
-        invoice_id: body.invoice_id.clone()
+        invoice_id: body.invoice_id.clone(),
     };
     let existing_subscription = Subscription::check_subscription(pool.clone(), Query(query));
 

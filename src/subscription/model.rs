@@ -1,15 +1,14 @@
-use std::ops::Add;
-
+use super::req::{CreateSubscriptionPayload, ViewSubscriptionPayload};
 use crate::db::PgPool;
 use crate::schema::subscriptions;
+
 use actix_web::web;
 use chrono::Duration;
 use diesel::{
     BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
 };
 use serde::{Deserialize, Serialize};
-
-use super::req::{CreateSubscriptionPayload, ViewSubscriptionPayload};
+use std::ops::Add;
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct Subscription {
