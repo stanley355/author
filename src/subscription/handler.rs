@@ -46,6 +46,7 @@ async fn view_subscription(
     }
 }
 
+// TODO: Update new function
 // #[put("/paid/")]
 // async fn update_subscription(
 //     pool: web::Data<PgPool>,
