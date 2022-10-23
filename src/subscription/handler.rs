@@ -26,10 +26,23 @@ async fn view_subscription(
     pool: web::Data<PgPool>,
     query: web::Query<ViewSubscriptionPayload>,
 ) -> HttpResponse {
-    let existing_subscriptions = Subscription::check_subscriptions(pool.clone(), query);
-    match existing_subscriptions {
-        Ok(subscriptions) => HttpResponse::Ok().json(subscriptions),
-        Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
+
+    match query.invoice_id.clone() {
+        Some(_) => {
+            let user_subscription = Subscription::check_subscription(pool.clone(), query);
+
+            match user_subscription {
+                Ok(subscription) => HttpResponse::Ok().json(subscription),
+                Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
+            }
+        },
+        None => {
+            let user_subscriptions = Subscription::check_subscriptions(pool.clone(), query);
+            match user_subscriptions {
+                Ok(subscriptions) => HttpResponse::Ok().json(subscriptions),
+                Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
+            }
+        }
     }
 }
 

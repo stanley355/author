@@ -52,30 +52,44 @@ impl Subscription {
         let conn = &pool.get().unwrap();
 
         let user_uuid = uuid::Uuid::parse_str(&query.user_id).unwrap();
-
-        if let (Some(channel_id), Some(invoice_id)) = (query.channels_id.clone(), query.invoice_id.clone()) {
-            subscriptions::table
-                .filter(
-                    subscriptions::user_id
-                        .eq(user_uuid)
-                        .and(subscriptions::channels_id.eq(&channel_id))
-                        .and(subscriptions::invoice_id.eq(&invoice_id)),
-                )
-                .get_results::<Subscription>(conn)
-        } 
-        else if let (Some(channel_id), None) = (query.channels_id.clone(), query.invoice_id.clone()) {
-            subscriptions::table
+        
+        match query.channels_id {
+            Some(channel_id) => {
+                subscriptions::table
                 .filter(
                     subscriptions::user_id
                         .eq(user_uuid)
                         .and(subscriptions::channels_id.eq(channel_id)),
                 )
                 .get_results::<Subscription>(conn)
-        } else {
-            subscriptions::table
+            },
+            None => {
+                subscriptions::table
                 .filter(subscriptions::user_id.eq(user_uuid))
                 .get_results::<Subscription>(conn)
+            }
         }
+    }
+
+    pub fn check_subscription(
+        pool: web::Data<PgPool>,
+        query: web::Query<ViewSubscriptionPayload>,
+    ) -> QueryResult<Subscription> {
+        let conn = &pool.get().unwrap();
+
+        let user_uuid = uuid::Uuid::parse_str(&query.user_id).unwrap();
+
+        let channel_id = query.channels_id.clone().unwrap();
+        let invoice_id = query.invoice_id.clone().unwrap();
+
+        subscriptions::table
+                .filter(
+                    subscriptions::user_id
+                        .eq(user_uuid)
+                        .and(subscriptions::channels_id.eq(&channel_id))
+                        .and(subscriptions::invoice_id.eq(&invoice_id)),
+                )
+                .get_result::<Subscription>(conn)
     }
 
     pub fn update_paid_subscription(
