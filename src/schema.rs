@@ -11,6 +11,7 @@ diesel::table! {
         paid -> Bool,
         duration -> Int4,
         invoice_id -> Varchar,
+        channels_name -> Varchar,
     }
 }
 

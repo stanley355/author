@@ -8,6 +8,7 @@ pub struct CreateSubscriptionPayload {
     pub channels_slug: String,
     pub duration: i32,
     pub invoice_id: String,
+    pub channels_name: String,
 }
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
