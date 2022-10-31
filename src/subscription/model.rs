@@ -100,7 +100,7 @@ impl Subscription {
     ) -> QueryResult<Subscription> {
         let conn = &pool.get().unwrap();
 
-        let expired_date = Self::get_expired_time(body.created_at, body.duration);
+        let expired_date = Self::calculate_expired_time(body.created_at, body.duration);
 
         let data = (
             (subscriptions::paid.eq(true)),
@@ -118,7 +118,7 @@ impl Subscription {
             .get_result(conn)
     }
 
-    pub fn get_expired_time(
+    pub fn calculate_expired_time(
         exp_time: chrono::NaiveDateTime,
         month_duration: i32,
     ) -> chrono::NaiveDateTime {
