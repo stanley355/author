@@ -52,7 +52,7 @@ impl User {
         HttpResponse::Ok().json(res)
     }
 
-    pub fn update(pool: web::Data<PgPool>, body: web::Json<UpdateUserReq>) -> QueryResult<User> {
+    pub fn update_has_channel(pool: web::Data<PgPool>, body: web::Json<UpdateUserReq>) -> QueryResult<User> {
         let conn = &pool.get().unwrap();
         diesel::update(users::table)
             .filter(

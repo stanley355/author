@@ -20,8 +20,8 @@ async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<LoginReq>) -> Http
 }
 
 #[put("/")]
-async fn update_user(pool: web::Data<PgPool>, body: web::Json<UpdateUserReq>) -> HttpResponse {
-    let update_user = User::update(pool, body);
+async fn update_has_channel(pool: web::Data<PgPool>, body: web::Json<UpdateUserReq>) -> HttpResponse {
+    let update_user = User::update_has_channel(pool, body);
 
     match update_user {
         Ok(user) => User::send_token_response(user),
@@ -30,5 +30,5 @@ async fn update_user(pool: web::Data<PgPool>, body: web::Json<UpdateUserReq>) ->
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(gmail_login).service(update_user);
+    config.service(gmail_login).service(update_has_channel);
 }
