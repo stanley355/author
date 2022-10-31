@@ -46,34 +46,28 @@ async fn view_subscription(
     }
 }
 
-// TODO: Update new function
-// #[put("/paid/")]
-// async fn update_subscription(
-//     pool: web::Data<PgPool>,
-//     body: web::Json<ViewSubscriptionPayload>,
-// ) -> HttpResponse {
-//     let query = ViewSubscriptionPayload {
-//         user_id: body.user_id.clone(),
-//         channels_id: body.channels_id.clone(),
-//         invoice_id: body.invoice_id.clone(),
-//     };
-//     let existing_subscription = Subscription::check_subscription(pool.clone(), Query(query));
+#[put("/paid/")]
+async fn update_paid_subscription(
+    pool: web::Data<PgPool>,
+    body: web::Json<ViewSubscriptionPayload>,
+) -> HttpResponse {
+    let existing_subscription = Subscription::check_subscription(pool.clone(), Query(body.into_inner()));
 
-//     match existing_subscription {
-//         Ok(subscription) => {
-//             let updated_subscription = Subscription::update_paid_subscription(pool, subscription);
-//             match updated_subscription {
-//                 Ok(update) => HttpResponse::Ok().json(update),
-//                 Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
-//             }
-//         }
-//         Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
-//     }
-// }
+    match existing_subscription {
+        Ok(subscription) => {
+            let updated_subscription = Subscription::update_paid_subscription(pool, subscription);
+            match updated_subscription {
+                Ok(update) => HttpResponse::Ok().json(update),
+                Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
+            }
+        }
+        Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
+    }
+}
 
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(create_subscription)
-        .service(view_subscription);
-        // .service(update_subscription);
+        .service(view_subscription)
+        .service(update_paid_subscription);
 }
