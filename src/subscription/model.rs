@@ -1,4 +1,6 @@
-use super::req::{CreateSubscriptionPayload, ViewSubscriptionPayload};
+use super::req::{
+    CreateSubscriptionPayload, UpdateSubscriptionChannelPayload, ViewSubscriptionPayload,
+};
 use crate::db::PgPool;
 use crate::schema::subscriptions;
 
@@ -39,7 +41,7 @@ impl Subscription {
             (subscriptions::channels_slug.eq(&body.channels_slug)),
             (subscriptions::duration.eq(&body.duration)),
             (subscriptions::invoice_id.eq(&body.invoice_id)),
-            (subscriptions::channels_name.eq(&body.channels_name))
+            (subscriptions::channels_name.eq(&body.channels_name)),
         );
 
         diesel::insert_into(subscriptions::table)
@@ -54,22 +56,18 @@ impl Subscription {
         let conn = &pool.get().unwrap();
 
         let user_uuid = uuid::Uuid::parse_str(&query.user_id).unwrap();
-        
+
         match query.channels_id {
-            Some(channel_id) => {
-                subscriptions::table
+            Some(channel_id) => subscriptions::table
                 .filter(
                     subscriptions::user_id
                         .eq(user_uuid)
                         .and(subscriptions::channels_id.eq(channel_id)),
                 )
-                .get_results::<Subscription>(conn)
-            },
-            None => {
-                subscriptions::table
+                .get_results::<Subscription>(conn),
+            None => subscriptions::table
                 .filter(subscriptions::user_id.eq(user_uuid))
-                .get_results::<Subscription>(conn)
-            }
+                .get_results::<Subscription>(conn),
         }
     }
 
@@ -85,13 +83,13 @@ impl Subscription {
         let invoice_id = query.invoice_id.clone().unwrap();
 
         subscriptions::table
-                .filter(
-                    subscriptions::user_id
-                        .eq(user_uuid)
-                        .and(subscriptions::channels_id.eq(&channel_id))
-                        .and(subscriptions::invoice_id.eq(&invoice_id)),
-                )
-                .get_result::<Subscription>(conn)
+            .filter(
+                subscriptions::user_id
+                    .eq(user_uuid)
+                    .and(subscriptions::channels_id.eq(&channel_id))
+                    .and(subscriptions::invoice_id.eq(&invoice_id)),
+            )
+            .get_result::<Subscription>(conn)
     }
 
     pub fn update_paid_subscription(
@@ -124,5 +122,20 @@ impl Subscription {
     ) -> chrono::NaiveDateTime {
         let duration_in_weeks = 4 * month_duration as i64;
         exp_time.add(Duration::weeks(duration_in_weeks))
+    }
+
+    pub fn update_subscription_channels(
+        pool: web::Data<PgPool>,
+        body: web::Json<UpdateSubscriptionChannelPayload>,
+    ) -> QueryResult<Vec<Subscription>> {
+        let conn = &pool.get().unwrap();
+
+        diesel::update(subscriptions::table)
+            .filter(subscriptions::channels_id.eq(&body.channels_id))
+            .set((
+                subscriptions::channels_name.eq(&body.channels_name),
+                subscriptions::channels_slug.eq(&body.channels_slug),
+            ))
+            .get_results(conn)
     }
 }

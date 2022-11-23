@@ -1,5 +1,7 @@
 use super::model::Subscription;
-use super::req::{CreateSubscriptionPayload, ViewSubscriptionPayload};
+use super::req::{
+    CreateSubscriptionPayload, UpdateSubscriptionChannelPayload, ViewSubscriptionPayload,
+};
 use crate::db::PgPool;
 
 use actix_web::{
@@ -26,7 +28,6 @@ async fn view_subscription(
     pool: web::Data<PgPool>,
     query: web::Query<ViewSubscriptionPayload>,
 ) -> HttpResponse {
-
     match query.invoice_id.clone() {
         Some(_) => {
             let user_subscription = Subscription::check_subscription(pool.clone(), query);
@@ -35,7 +36,7 @@ async fn view_subscription(
                 Ok(subscription) => HttpResponse::Ok().json(subscription),
                 Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
             }
-        },
+        }
         None => {
             let user_subscriptions = Subscription::check_subscriptions(pool.clone(), query);
             match user_subscriptions {
@@ -51,7 +52,8 @@ async fn update_paid_subscription(
     pool: web::Data<PgPool>,
     body: web::Json<ViewSubscriptionPayload>,
 ) -> HttpResponse {
-    let existing_subscription = Subscription::check_subscription(pool.clone(), Query(body.into_inner()));
+    let existing_subscription =
+        Subscription::check_subscription(pool.clone(), Query(body.into_inner()));
 
     match existing_subscription {
         Ok(subscription) => {
@@ -65,9 +67,23 @@ async fn update_paid_subscription(
     }
 }
 
+#[put("/channels/")]
+async fn update_subscription_channels_data(
+    pool: web::Data<PgPool>,
+    body: web::Json<UpdateSubscriptionChannelPayload>,
+) -> HttpResponse {
+    let subscriptions_update = Subscription::update_subscription_channels(pool, body);
+
+    match subscriptions_update {
+        Ok(subscriptions) => HttpResponse::Ok().json(subscriptions),
+        Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
+    }
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(create_subscription)
         .service(view_subscription)
-        .service(update_paid_subscription);
+        .service(update_paid_subscription)
+        .service(update_subscription_channels_data);
 }
