@@ -24,6 +24,7 @@ pub struct Subscription {
     duration: i32,
     invoice_id: String,
     channels_name: String,
+    merchant: String,
 }
 
 impl Subscription {
@@ -42,6 +43,7 @@ impl Subscription {
             (subscriptions::duration.eq(&body.duration)),
             (subscriptions::invoice_id.eq(&body.invoice_id)),
             (subscriptions::channels_name.eq(&body.channels_name)),
+            {subscriptions::merchant.eq(body.merchant.to_string())}
         );
 
         diesel::insert_into(subscriptions::table)
