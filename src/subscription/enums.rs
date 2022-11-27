@@ -4,14 +4,14 @@ use std::fmt;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub enum Merchant {
-    Duitku,
+    Midtrans,
     Kontenku,
 }
 
 impl fmt::Display for Merchant {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Merchant::Duitku => write!(f, "Duitku"),
+            Merchant::Midtrans => write!(f, "Midtrans"),
             Merchant::Kontenku => write!(f, "Kontenku"),
         }
     }
