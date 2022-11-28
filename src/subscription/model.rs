@@ -45,7 +45,7 @@ impl Subscription {
             .values(data)
             .get_result::<Subscription>(conn)
     }
-
+    
     pub fn check_subscriptions(
         pool: web::Data<PgPool>,
         query: web::Query<ViewSubscriptionPayload>,
