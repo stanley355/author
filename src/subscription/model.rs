@@ -22,6 +22,7 @@ pub struct Subscription {
     expired_at: Option<chrono::NaiveDateTime>,
     duration: i32,
     channels_name: String,
+    status: String,
 }
 
 impl Subscription {
@@ -41,11 +42,25 @@ impl Subscription {
             (subscriptions::channels_name.eq(&body.channels_name)),
         );
 
-        diesel::insert_into(subscriptions::table)
+        let insert_res = diesel::insert_into(subscriptions::table)
             .values(data)
-            .get_result::<Subscription>(conn)
+            .get_result::<Subscription>(conn);
+
+        match insert_res {
+            Ok(res) => {
+                let exp_date = Self::calculate_expired_time(res.created_at, res.duration);
+                diesel::update(subscriptions::table)
+                    .filter(subscriptions::id.eq(res.id))
+                    .set((
+                        subscriptions::expired_at.eq(exp_date),
+                        subscriptions::status.eq("ONGOING"),
+                    ))
+                    .get_result(conn)
+            }
+            Err(_) => insert_res,
+        }
     }
-    
+
     pub fn check_subscriptions(
         pool: web::Data<PgPool>,
         query: web::Query<ViewSubscriptionPayload>,

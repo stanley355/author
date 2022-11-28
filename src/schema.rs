@@ -10,6 +10,7 @@ diesel::table! {
         expired_at -> Nullable<Timestamp>,
         duration -> Int4,
         channels_name -> Varchar,
+        status -> Varchar,
     }
 }
 
