@@ -4,11 +4,7 @@ use super::req::{
 };
 use crate::db::PgPool;
 
-use actix_web::{
-    get, post, put,
-    web::{self, Query},
-    HttpResponse,
-};
+use actix_web::{get, post, put, web, HttpResponse};
 
 #[post("/")]
 async fn create_subscription(
@@ -28,41 +24,9 @@ async fn view_subscription(
     pool: web::Data<PgPool>,
     query: web::Query<ViewSubscriptionPayload>,
 ) -> HttpResponse {
-    match query.invoice_id.clone() {
-        Some(_) => {
-            let user_subscription = Subscription::check_subscription(pool.clone(), query);
-
-            match user_subscription {
-                Ok(subscription) => HttpResponse::Ok().json(subscription),
-                Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
-            }
-        }
-        None => {
-            let user_subscriptions = Subscription::check_subscriptions(pool.clone(), query);
-            match user_subscriptions {
-                Ok(subscriptions) => HttpResponse::Ok().json(subscriptions),
-                Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
-            }
-        }
-    }
-}
-
-#[put("/paid/")]
-async fn update_paid_subscription(
-    pool: web::Data<PgPool>,
-    body: web::Json<ViewSubscriptionPayload>,
-) -> HttpResponse {
-    let existing_subscription =
-        Subscription::check_subscription(pool.clone(), Query(body.into_inner()));
-
-    match existing_subscription {
-        Ok(subscription) => {
-            let updated_subscription = Subscription::update_paid_subscription(pool, subscription);
-            match updated_subscription {
-                Ok(update) => HttpResponse::Ok().json(update),
-                Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
-            }
-        }
+    let user_subscriptions = Subscription::check_subscriptions(pool.clone(), query);
+    match user_subscriptions {
+        Ok(subscriptions) => HttpResponse::Ok().json(subscriptions),
         Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
     }
 }
@@ -84,6 +48,5 @@ pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(create_subscription)
         .service(view_subscription)
-        .service(update_paid_subscription)
         .service(update_subscription_channels_data);
 }
