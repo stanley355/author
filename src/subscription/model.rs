@@ -1,6 +1,4 @@
-use super::req::{
-    CreateSubscriptionPayload, ViewSubscriptionPayload,
-};
+use super::req::{CreateSubscriptionPayload, ViewSubscriptionPayload};
 use crate::db::PgPool;
 use crate::schema::subscriptions;
 
@@ -31,28 +29,19 @@ impl Subscription {
 
         let user_uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
 
+        let current_time = chrono::Utc::now().naive_utc();
+        let exp_date = Self::calculate_expired_time(current_time, body.duration.clone());
+
         let data = (
             (subscriptions::user_id.eq(user_uuid)),
             (subscriptions::channels_id.eq(&body.channels_id)),
+            (subscriptions::expired_at.eq(&exp_date)),
             (subscriptions::duration.eq(&body.duration)),
         );
 
-        let insert_res = diesel::insert_into(subscriptions::table)
+        diesel::insert_into(subscriptions::table)
             .values(data)
-            .get_result::<Subscription>(conn);
-
-        match insert_res {
-            Ok(res) => {
-                let exp_date = Self::calculate_expired_time(res.created_at, res.duration);
-                diesel::update(subscriptions::table)
-                    .filter(subscriptions::id.eq(res.id))
-                    .set((
-                        subscriptions::expired_at.eq(exp_date),
-                    ))
-                    .get_result(conn)
-            }
-            Err(_) => insert_res,
-        }
+            .get_result::<Subscription>(conn)
     }
 
     pub fn check_subscriptions(

@@ -5,9 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct CreateSubscriptionPayload {
     pub user_id: String,
     pub channels_id: i32,
-    pub channels_slug: String,
     pub duration: i32,
-    pub channels_name: String,
 }
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
