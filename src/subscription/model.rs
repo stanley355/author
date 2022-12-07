@@ -1,12 +1,10 @@
-use super::req::{CreateSubscriptionPayload, ViewSubscriptionPayload};
+use super::req::CreateSubscriptionPayload;
 use crate::db::PgPool;
 use crate::schema::subscriptions;
 
 use actix_web::web;
 use chrono::Duration;
-use diesel::{
-    BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
-};
+use diesel::{ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl};
 use serde::{Deserialize, Serialize};
 use std::ops::Add;
 
@@ -44,26 +42,17 @@ impl Subscription {
             .get_result::<Subscription>(conn)
     }
 
-    pub fn check_subscriptions(
+    pub fn find_subscriptions(
         pool: web::Data<PgPool>,
-        query: web::Query<ViewSubscriptionPayload>,
+        user_id: String,
     ) -> QueryResult<Vec<Subscription>> {
         let conn = &pool.get().unwrap();
 
-        let user_uuid = uuid::Uuid::parse_str(&query.user_id).unwrap();
+        let user_uuid = uuid::Uuid::parse_str(&user_id).unwrap();
 
-        match query.channels_id {
-            Some(channel_id) => subscriptions::table
-                .filter(
-                    subscriptions::user_id
-                        .eq(user_uuid)
-                        .and(subscriptions::channels_id.eq(channel_id)),
-                )
-                .get_results::<Subscription>(conn),
-            None => subscriptions::table
-                .filter(subscriptions::user_id.eq(user_uuid))
-                .get_results::<Subscription>(conn),
-        }
+        subscriptions::table
+            .filter(subscriptions::user_id.eq(user_uuid))
+            .get_results::<Subscription>(conn)
     }
 
     pub fn calculate_expired_time(

@@ -1,7 +1,5 @@
 use super::model::Subscription;
-use super::req::{
-    CreateSubscriptionPayload, ViewSubscriptionPayload,
-};
+use super::req::{CreateSubscriptionPayload, FindSubscriptionQuery};
 use crate::db::PgPool;
 
 use actix_web::{get, post, web, HttpResponse};
@@ -20,11 +18,11 @@ async fn create_subscription(
 }
 
 #[get("/")]
-async fn view_subscription(
+async fn find_subscriptions(
     pool: web::Data<PgPool>,
-    query: web::Query<ViewSubscriptionPayload>,
+    query: web::Query<FindSubscriptionQuery>,
 ) -> HttpResponse {
-    let user_subscriptions = Subscription::check_subscriptions(pool.clone(), query);
+    let user_subscriptions = Subscription::find_subscriptions(pool.clone(), query.user_id.clone());
     match user_subscriptions {
         Ok(subscriptions) => HttpResponse::Ok().json(subscriptions),
         Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
@@ -34,5 +32,5 @@ async fn view_subscription(
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(create_subscription)
-        .service(view_subscription);
+        .service(find_subscriptions);
 }
