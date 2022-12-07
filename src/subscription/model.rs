@@ -1,5 +1,5 @@
 use super::req::{
-    CreateSubscriptionPayload, UpdateSubscriptionChannelPayload, ViewSubscriptionPayload,
+    CreateSubscriptionPayload, ViewSubscriptionPayload,
 };
 use crate::db::PgPool;
 use crate::schema::subscriptions;
@@ -17,12 +17,9 @@ pub struct Subscription {
     id: i32,
     user_id: uuid::Uuid,
     channels_id: i32,
-    channels_slug: String,
     created_at: chrono::NaiveDateTime,
     expired_at: Option<chrono::NaiveDateTime>,
     duration: i32,
-    channels_name: String,
-    status: String,
 }
 
 impl Subscription {
@@ -37,9 +34,7 @@ impl Subscription {
         let data = (
             (subscriptions::user_id.eq(user_uuid)),
             (subscriptions::channels_id.eq(&body.channels_id)),
-            (subscriptions::channels_slug.eq(&body.channels_slug)),
             (subscriptions::duration.eq(&body.duration)),
-            (subscriptions::channels_name.eq(&body.channels_name)),
         );
 
         let insert_res = diesel::insert_into(subscriptions::table)
@@ -53,7 +48,6 @@ impl Subscription {
                     .filter(subscriptions::id.eq(res.id))
                     .set((
                         subscriptions::expired_at.eq(exp_date),
-                        subscriptions::status.eq("ONGOING"),
                     ))
                     .get_result(conn)
             }
@@ -89,20 +83,5 @@ impl Subscription {
     ) -> chrono::NaiveDateTime {
         let duration_in_weeks = 4 * month_duration as i64;
         start_time.add(Duration::weeks(duration_in_weeks))
-    }
-
-    pub fn update_subscription_channels(
-        pool: web::Data<PgPool>,
-        body: web::Json<UpdateSubscriptionChannelPayload>,
-    ) -> QueryResult<Vec<Subscription>> {
-        let conn = &pool.get().unwrap();
-
-        diesel::update(subscriptions::table)
-            .filter(subscriptions::channels_id.eq(&body.channels_id))
-            .set((
-                subscriptions::channels_name.eq(&body.channels_name),
-                subscriptions::channels_slug.eq(&body.channels_slug),
-            ))
-            .get_results(conn)
     }
 }

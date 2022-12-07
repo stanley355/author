@@ -1,10 +1,10 @@
 use super::model::Subscription;
 use super::req::{
-    CreateSubscriptionPayload, UpdateSubscriptionChannelPayload, ViewSubscriptionPayload,
+    CreateSubscriptionPayload, ViewSubscriptionPayload,
 };
 use crate::db::PgPool;
 
-use actix_web::{get, post, put, web, HttpResponse};
+use actix_web::{get, post, web, HttpResponse};
 
 #[post("/")]
 async fn create_subscription(
@@ -31,22 +31,8 @@ async fn view_subscription(
     }
 }
 
-#[put("/channels/")]
-async fn update_subscription_channels_data(
-    pool: web::Data<PgPool>,
-    body: web::Json<UpdateSubscriptionChannelPayload>,
-) -> HttpResponse {
-    let subscriptions_update = Subscription::update_subscription_channels(pool, body);
-
-    match subscriptions_update {
-        Ok(subscriptions) => HttpResponse::Ok().json(subscriptions),
-        Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
-    }
-}
-
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(create_subscription)
-        .service(view_subscription)
-        .service(update_subscription_channels_data);
+        .service(view_subscription);
 }
