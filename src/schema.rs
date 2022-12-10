@@ -5,12 +5,9 @@ diesel::table! {
         id -> Int4,
         user_id -> Uuid,
         channels_id -> Int4,
-        channels_slug -> Varchar,
         created_at -> Timestamp,
         expired_at -> Nullable<Timestamp>,
         duration -> Int4,
-        channels_name -> Varchar,
-        status -> Varchar,
     }
 }
 

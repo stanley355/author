@@ -1,10 +1,8 @@
 use super::model::Subscription;
-use super::req::{
-    CreateSubscriptionPayload, UpdateSubscriptionChannelPayload, ViewSubscriptionPayload,
-};
+use super::req::{CreateSubscriptionPayload, FindSubscriptionQuery};
 use crate::db::PgPool;
 
-use actix_web::{get, post, put, web, HttpResponse};
+use actix_web::{get, post, web, HttpResponse};
 
 #[post("/")]
 async fn create_subscription(
@@ -20,25 +18,12 @@ async fn create_subscription(
 }
 
 #[get("/")]
-async fn view_subscription(
+async fn find_subscriptions(
     pool: web::Data<PgPool>,
-    query: web::Query<ViewSubscriptionPayload>,
+    query: web::Query<FindSubscriptionQuery>,
 ) -> HttpResponse {
-    let user_subscriptions = Subscription::check_subscriptions(pool.clone(), query);
+    let user_subscriptions = Subscription::find_subscriptions(pool.clone(), query.user_id.clone());
     match user_subscriptions {
-        Ok(subscriptions) => HttpResponse::Ok().json(subscriptions),
-        Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
-    }
-}
-
-#[put("/channels/")]
-async fn update_subscription_channels_data(
-    pool: web::Data<PgPool>,
-    body: web::Json<UpdateSubscriptionChannelPayload>,
-) -> HttpResponse {
-    let subscriptions_update = Subscription::update_subscription_channels(pool, body);
-
-    match subscriptions_update {
         Ok(subscriptions) => HttpResponse::Ok().json(subscriptions),
         Err(err) => HttpResponse::InternalServerError().body(format!("Error : {:?}", err)),
     }
@@ -47,6 +32,5 @@ async fn update_subscription_channels_data(
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(create_subscription)
-        .service(view_subscription)
-        .service(update_subscription_channels_data);
+        .service(find_subscriptions);
 }

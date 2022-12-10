@@ -1,14 +1,10 @@
-use super::req::{
-    CreateSubscriptionPayload, UpdateSubscriptionChannelPayload, ViewSubscriptionPayload,
-};
+use super::req::CreateSubscriptionPayload;
 use crate::db::PgPool;
 use crate::schema::subscriptions;
 
 use actix_web::web;
 use chrono::Duration;
-use diesel::{
-    BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
-};
+use diesel::{ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl};
 use serde::{Deserialize, Serialize};
 use std::ops::Add;
 
@@ -17,12 +13,9 @@ pub struct Subscription {
     id: i32,
     user_id: uuid::Uuid,
     channels_id: i32,
-    channels_slug: String,
     created_at: chrono::NaiveDateTime,
     expired_at: Option<chrono::NaiveDateTime>,
     duration: i32,
-    channels_name: String,
-    status: String,
 }
 
 impl Subscription {
@@ -34,53 +27,32 @@ impl Subscription {
 
         let user_uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
 
+        let current_time = chrono::Utc::now().naive_utc();
+        let exp_date = Self::calculate_expired_time(current_time, body.duration.clone());
+
         let data = (
             (subscriptions::user_id.eq(user_uuid)),
             (subscriptions::channels_id.eq(&body.channels_id)),
-            (subscriptions::channels_slug.eq(&body.channels_slug)),
+            (subscriptions::expired_at.eq(&exp_date)),
             (subscriptions::duration.eq(&body.duration)),
-            (subscriptions::channels_name.eq(&body.channels_name)),
         );
 
-        let insert_res = diesel::insert_into(subscriptions::table)
+        diesel::insert_into(subscriptions::table)
             .values(data)
-            .get_result::<Subscription>(conn);
-
-        match insert_res {
-            Ok(res) => {
-                let exp_date = Self::calculate_expired_time(res.created_at, res.duration);
-                diesel::update(subscriptions::table)
-                    .filter(subscriptions::id.eq(res.id))
-                    .set((
-                        subscriptions::expired_at.eq(exp_date),
-                        subscriptions::status.eq("ONGOING"),
-                    ))
-                    .get_result(conn)
-            }
-            Err(_) => insert_res,
-        }
+            .get_result::<Subscription>(conn)
     }
 
-    pub fn check_subscriptions(
+    pub fn find_subscriptions(
         pool: web::Data<PgPool>,
-        query: web::Query<ViewSubscriptionPayload>,
+        user_id: String,
     ) -> QueryResult<Vec<Subscription>> {
         let conn = &pool.get().unwrap();
 
-        let user_uuid = uuid::Uuid::parse_str(&query.user_id).unwrap();
+        let user_uuid = uuid::Uuid::parse_str(&user_id).unwrap();
 
-        match query.channels_id {
-            Some(channel_id) => subscriptions::table
-                .filter(
-                    subscriptions::user_id
-                        .eq(user_uuid)
-                        .and(subscriptions::channels_id.eq(channel_id)),
-                )
-                .get_results::<Subscription>(conn),
-            None => subscriptions::table
-                .filter(subscriptions::user_id.eq(user_uuid))
-                .get_results::<Subscription>(conn),
-        }
+        subscriptions::table
+            .filter(subscriptions::user_id.eq(user_uuid))
+            .get_results::<Subscription>(conn)
     }
 
     pub fn calculate_expired_time(
@@ -89,20 +61,5 @@ impl Subscription {
     ) -> chrono::NaiveDateTime {
         let duration_in_weeks = 4 * month_duration as i64;
         start_time.add(Duration::weeks(duration_in_weeks))
-    }
-
-    pub fn update_subscription_channels(
-        pool: web::Data<PgPool>,
-        body: web::Json<UpdateSubscriptionChannelPayload>,
-    ) -> QueryResult<Vec<Subscription>> {
-        let conn = &pool.get().unwrap();
-
-        diesel::update(subscriptions::table)
-            .filter(subscriptions::channels_id.eq(&body.channels_id))
-            .set((
-                subscriptions::channels_name.eq(&body.channels_name),
-                subscriptions::channels_slug.eq(&body.channels_slug),
-            ))
-            .get_results(conn)
     }
 }
