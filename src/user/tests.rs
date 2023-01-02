@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 fn create_pool_data() -> actix_web::web::Data<crate::db::PgPool> {
     let db_url = "postgres://postgres:password@localhost/author".to_string();
     let pool = crate::db::build_pool(&db_url).unwrap();
