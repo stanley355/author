@@ -4,7 +4,7 @@ use std::env;
 
 pub type PgPool = Pool<ConnectionManager<PgConnection>>;
 
-fn build_pool(db_url: &String) -> Result<PgPool, PoolError> {
+pub fn build_pool(db_url: &String) -> Result<PgPool, PoolError> {
     let manager = ConnectionManager::<PgConnection>::new(db_url);
     Pool::builder().build(manager)
 }
