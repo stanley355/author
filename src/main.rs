@@ -6,6 +6,7 @@ use dotenv::dotenv;
 use std::env;
 
 mod db;
+mod lib;
 mod schema;
 mod user;
 

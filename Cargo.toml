@@ -17,3 +17,4 @@ serde_json = "1"
 structopt = "0.3"
 uuid = { version = "0.7", features = ["serde", "v4"] }
 jsonwebtokens = "1.1.0"
+regex = "1.8.1"
