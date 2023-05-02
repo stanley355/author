@@ -13,7 +13,12 @@ async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<GmailLoginReq>) ->
             error: "Salah".to_string(),
             message: "Salah".to_string(),
         }),
-        Err(_) => HttpResponse::Ok().body(format!("hahahihi")),
+        Err(_) => {
+            let user = User::add(&pool, body);
+            println!("{:?}: ", user.unwrap());
+
+            HttpResponse::Ok().body(format!("hahahihi"))
+        }
     }
 }
 
