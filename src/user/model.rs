@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use super::req::GmailLoginReq;
 use crate::db::PgPool;
 use crate::schema::users;
+use crate::util::password::generate_random_password;
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct User {
