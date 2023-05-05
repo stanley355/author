@@ -6,17 +6,17 @@ use actix_web::{post, web, HttpResponse};
 
 #[post("/login/gmail/")]
 async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<GmailLoginReq>) -> HttpResponse {
-    let email_exist = User::find_by_email(&pool, &body.email);
+    let user_exist = User::find_by_email(&pool, &body.email);
 
-    match email_exist {
-        Ok(_) => HttpResponse::Accepted().json(ErrorRes {
-            error: "Email Terdaftar".to_string(),
-            message: "Terdaftar".to_string(),
-        }),
+    match user_exist {
+        Ok(user) => {
+            let token = User::create_login_token(user);
+            HttpResponse::Ok().json(LoginTokenRes { token })
+        }
         Err(_) => {
-            let result = User::add(&pool, body);
+            let add_result = User::add(&pool, body);
 
-            match result {
+            match add_result {
                 Ok(user) => {
                     let token = User::create_login_token(user);
                     HttpResponse::Ok().json(LoginTokenRes { token })
