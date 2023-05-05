@@ -1,6 +1,6 @@
 use super::model::User;
 use super::req::GmailLoginReq;
-use super::res::ErrorRes;
+use super::res::{ErrorRes, LoginTokenRes};
 use crate::db::PgPool;
 use actix_web::{post, web, HttpResponse};
 
@@ -17,7 +17,10 @@ async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<GmailLoginReq>) ->
             let result = User::add(&pool, body);
 
             match result {
-                Ok(user) => HttpResponse::Ok().json(user),
+                Ok(user) => {
+                    let token = User::create_login_token(user);
+                    HttpResponse::Ok().json(LoginTokenRes { token })
+                }
                 Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
                     error: err.to_string(),
                     message: "Something went wrong".to_string(),
