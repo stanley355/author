@@ -1,8 +1,26 @@
 use super::model::User;
-use super::req::GmailLoginReq;
+use super::req::{GetUserParam, GmailLoginReq};
 use super::res::{ErrorRes, LoginTokenRes};
 use crate::db::PgPool;
-use actix_web::{post, web, HttpResponse};
+use actix_web::{get, post, web, HttpResponse};
+
+#[get("")]
+async fn get_user(pool: web::Data<PgPool>, query: web::Query<GetUserParam>) -> HttpResponse {
+    // TODO: Create more param handler later
+    let email = query.email.clone().unwrap();
+    let user_exist = User::find_by_email(&pool, &email);
+
+    match user_exist {
+        Ok(user) => {
+            let response = User::remove_password_field(user);
+            HttpResponse::Ok().json(response)
+        }
+        Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
+            error: err.to_string(),
+            message: "Something went wrong".to_string(),
+        }),
+    }
+}
 
 #[post("/login/gmail/")]
 async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<GmailLoginReq>) -> HttpResponse {
@@ -31,5 +49,5 @@ async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<GmailLoginReq>) ->
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(gmail_login);
+    config.service(get_user).service(gmail_login);
 }
