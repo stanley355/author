@@ -26,9 +26,11 @@ impl User {
 
     pub fn add(pool: &web::Data<PgPool>, body: web::Json<GmailLoginReq>) -> QueryResult<User> {
         let conn = pool.get().unwrap();
+        let password = generate_random_password();
         let data = (
             (users::fullname.eq(&body.fullname)),
             (users::email.eq(&body.email)),
+            (users::password.eq(password))
         );
         
         diesel::insert_into(users::table)

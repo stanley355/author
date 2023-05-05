@@ -10,14 +10,19 @@ async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<GmailLoginReq>) ->
 
     match email_exist {
         Ok(_) => HttpResponse::Accepted().json(ErrorRes {
-            error: "Salah".to_string(),
-            message: "Salah".to_string(),
+            error: "Email Terdaftar".to_string(),
+            message: "Terdaftar".to_string(),
         }),
         Err(_) => {
-            // let user = User::add(&pool, body);
-            // println!("{:?}: ", user.unwrap());
+            let result = User::add(&pool, body);
 
-            HttpResponse::Ok().body(format!("hahahihi"))
+            match result {
+                Ok(user) => HttpResponse::Ok().json(user),
+                Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
+                    error: err.to_string(),
+                    message: "Something went wrong".to_string(),
+                }),
+            }
         }
     }
 }
