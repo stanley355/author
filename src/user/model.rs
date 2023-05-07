@@ -1,6 +1,6 @@
 use actix_web::web;
 use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
-use jsonwebtoken::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
+use jsonwebtoken::{encode, Header, Algorithm, EncodingKey};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
