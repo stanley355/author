@@ -65,6 +65,7 @@ impl User {
         }
     }
 
+    // TODO: Hash using bcrypt
     pub fn hash_password(password: &str) -> String {
         let header = Header::new(Algorithm::HS256);
         encode(&header, &password, &EncodingKey::from_secret("secret".as_ref())).unwrap()
