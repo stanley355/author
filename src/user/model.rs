@@ -4,7 +4,7 @@ use jsonwebtokens::{encode, Algorithm, AlgorithmID};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use super::req::{GmailLoginReq, NoPasswordUser};
+use super::req::{GmailLoginReq, NoPasswordUser, RegisterReq};
 use crate::db::PgPool;
 use crate::schema::users;
 use crate::util::password::generate_random_password;
@@ -25,8 +25,22 @@ impl User {
             .filter(users::email.eq(email))
             .get_result::<User>(&conn)
     }
+    
+    pub fn add_from_register(pool: &web::Data<PgPool>, body: web::Json<RegisterReq>) -> QueryResult<User> {
+        let conn = pool.get().unwrap();
+        let password = Self::hash_password(&body.password);
+        let data = (
+            (users::fullname.eq(&body.fullname)),
+            (users::email.eq(&body.email)),
+            (users::password.eq(password)),
+        );
 
-    pub fn add(pool: &web::Data<PgPool>, body: web::Json<GmailLoginReq>) -> QueryResult<User> {
+        diesel::insert_into(users::table)
+            .values(data)
+            .get_result(&conn)
+    }
+
+    pub fn add_from_gmail(pool: &web::Data<PgPool>, body: web::Json<GmailLoginReq>) -> QueryResult<User> {
         let conn = pool.get().unwrap();
         let password = generate_random_password();
         let data = (
@@ -47,6 +61,12 @@ impl User {
             email: user.email,
             phone_number: user.phone_number,
         }
+    }
+
+    pub fn hash_password(password: &str) -> String {
+        let alg = Algorithm::new_hmac(AlgorithmID::HS256, "secret").unwrap();
+        let header = json!({ "alg": alg.name() });
+        encode(&header, &password, &alg).unwrap()
     }
 
     pub fn create_login_token(user: User) -> String {
