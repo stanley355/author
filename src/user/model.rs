@@ -1,6 +1,6 @@
 use actix_web::web;
 use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
-use jsonwebtokens::{encode, Algorithm, AlgorithmID};
+use jsonwebtoken::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -66,16 +66,14 @@ impl User {
     }
 
     pub fn hash_password(password: &str) -> String {
-        let alg = Algorithm::new_hmac(AlgorithmID::HS256, "secret").unwrap();
-        let header = json!({ "alg": alg.name() });
-        encode(&header, &password, &alg).unwrap()
+        let header = Header::new(Algorithm::HS256);
+        encode(&header, &password, &EncodingKey::from_secret("secret".as_ref())).unwrap()
     }
 
     pub fn create_login_token(user: User) -> String {
+        let header = Header::new(Algorithm::HS256);
         let token_payload = Self::remove_password_field(user);
-        let alg = Algorithm::new_hmac(AlgorithmID::HS256, "secret").unwrap();
-        let header = json!({ "alg": alg.name() });
         let body = json!(token_payload);
-        encode(&header, &body, &alg).unwrap()
+        encode(&header, &body, &EncodingKey::from_secret("secret".as_ref())).unwrap()
     }
 }

@@ -56,7 +56,7 @@ async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<GmailLoginReq>) ->
         Ok(user) => {
             let token = User::create_login_token(user);
             HttpResponse::Ok().json(LoginTokenRes { token })
-        }
+        },
         Err(_) => {
             let add_result = User::add_from_gmail(&pool, body);
 
