@@ -4,7 +4,8 @@ use jsonwebtokens::{encode, Algorithm, AlgorithmID};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use super::req::{GmailLoginReq, NoPasswordUser, RegisterReq};
+use super::req::{GmailLoginReq, RegisterReq};
+use super::res::NoPasswordUser;
 use crate::db::PgPool;
 use crate::schema::users;
 use crate::util::password::generate_random_password;

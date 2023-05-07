@@ -10,3 +10,11 @@ pub struct ErrorRes {
 pub struct LoginTokenRes {
     pub token: String,
 }
+
+#[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
+pub struct NoPasswordUser {
+    pub id: uuid::Uuid,
+    pub fullname: String,
+    pub email: String,
+    pub phone_number: Option<String>,
+}
