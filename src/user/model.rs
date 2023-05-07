@@ -5,7 +5,7 @@ use jsonwebtoken::{encode, Header, Algorithm, EncodingKey};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use super::req::{GmailLoginReq, RegisterReq};
+use super::req::{GmailLoginReq, RegisterReq, LoginReq};
 use super::res::NoPasswordUser;
 use crate::db::PgPool;
 use crate::schema::users;
@@ -66,7 +66,19 @@ impl User {
         }
     }
 
-    // TODO: Hash using bcrypt
+    pub fn update_password(
+        pool: &web::Data<PgPool>,
+        body: web::Json<LoginReq>
+    ) -> QueryResult<User> {
+        let conn = &pool.get().unwrap();
+        let password = Self::hash_password(&body.password);
+
+        diesel::update(users::table)
+            .filter(users::email.eq(&body.email))
+            .set(users::password.eq(password))
+            .get_result(conn)
+    }
+
     pub fn hash_password(password: &str) -> String {
         hash(password, DEFAULT_COST).unwrap()
     }
