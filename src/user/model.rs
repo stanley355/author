@@ -1,4 +1,5 @@
 use actix_web::web;
+use bcrypt::{hash, DEFAULT_COST};
 use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 use jsonwebtoken::{encode, Header, Algorithm, EncodingKey};
 use serde::{Deserialize, Serialize};
@@ -67,8 +68,7 @@ impl User {
 
     // TODO: Hash using bcrypt
     pub fn hash_password(password: &str) -> String {
-        let header = Header::new(Algorithm::HS256);
-        encode(&header, &password, &EncodingKey::from_secret("secret".as_ref())).unwrap()
+        hash(password, DEFAULT_COST).unwrap()
     }
 
     pub fn create_login_token(user: User) -> String {

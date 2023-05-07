@@ -14,6 +14,13 @@ pub struct RegisterReq {
 }
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
+pub struct LoginReq{
+    pub email: String,
+    pub password: String,
+}
+
+
+#[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct GmailLoginReq {
     pub fullname: String,
     pub email: String,
