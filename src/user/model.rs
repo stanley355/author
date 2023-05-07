@@ -43,10 +43,11 @@ impl User {
     pub fn add_from_gmail(pool: &web::Data<PgPool>, body: web::Json<GmailLoginReq>) -> QueryResult<User> {
         let conn = pool.get().unwrap();
         let password = generate_random_password();
+        let hashed_password = Self::hash_password(&password);
         let data = (
             (users::fullname.eq(&body.fullname)),
             (users::email.eq(&body.email)),
-            (users::password.eq(password)),
+            (users::password.eq(&hashed_password)),
         );
 
         diesel::insert_into(users::table)
