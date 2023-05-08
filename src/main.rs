@@ -2,6 +2,7 @@
 extern crate diesel;
 
 use actix_web::{web, App, HttpServer};
+use actix_cors::Cors;
 use dotenv::dotenv;
 use std::env;
 
@@ -13,6 +14,7 @@ mod user;
 async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
+            .wrap(Cors::default())
             .app_data(web::Data::new(pool.clone()))
             .service(web::scope("/v1/users").configure(user::handler::route))
     })
