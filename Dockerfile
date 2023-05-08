@@ -1,5 +1,5 @@
 # Use the Rust official image as a base
-FROM ubuntu:latest as build
+FROM ubuntu:latest
 
 # Set the working directory
 WORKDIR /app
