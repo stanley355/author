@@ -34,18 +34,15 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      
-      - name: Create env file
-        run: |
-          echo "HOST=${{ secrets.HOST }}" >> .env
-          echo "PORT=${{ secrets.PORT }}" >> .env
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-          echo "BEARER_TOKEN=${{ secrets.BEARER_TOKEN }}" >> .env
 
       - name: Build and tag Docker image
         uses: docker/build-push-action@v2
         with:
-          env_file: .env
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/author:latest
+          secrets: |
+            HOST=${{ secrets.HOST }}
+            PORT=${{ secrets.PORT }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            BEARER_TOKEN=${{ secrets.BEARER_TOKEN }}

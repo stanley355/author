@@ -1,9 +1,6 @@
 # Use the Rust official image as a base
 FROM rust:latest as builder
 
-# Set the working directory
-WORKDIR /app
-
 ARG HOST
 ARG PORT 
 ARG DATABASE_URL
@@ -13,6 +10,9 @@ ENV HOST=$HOST
 ENV PORT=$PORT
 ENV DATABASE_URL=$DATABASE_URL
 ENV BEARER_TOKEN=$BEARER_TOKEN
+
+# Set the working directory
+WORKDIR /app
 
 # Copy the project files into the container
 COPY . .
