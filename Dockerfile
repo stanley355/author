@@ -7,6 +7,8 @@ WORKDIR /app
 # Copy the project files into the container
 COPY . .
 
+RUN apt update && apt install -y openssl
+
 # Install diesel CLI for migration
 RUN cargo install diesel_cli --no-default-features --features postgres
 
@@ -18,8 +20,6 @@ FROM ubuntu:latest
 
 # Copy the binary from the previous build stage
 COPY --from=build /app/target/release/author .
-
-RUN apt update && apt install -y openssl
 
 # Set the startup command
 CMD ["bash", "-c", "./author diesel migration run && ./author"]
