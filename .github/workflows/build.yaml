@@ -41,6 +41,3 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/author:latest
-
-      - name: Logout from Docker Hub
-        uses: docker/logout-action@v1
