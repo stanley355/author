@@ -7,6 +7,8 @@ WORKDIR /app
 # Copy the project files into the container
 COPY . .
 
+RUN apk add --no-cache openssl-dev
+
 # Install diesel CLI for migration
 RUN cargo install diesel_cli --no-default-features --features postgres
 
