@@ -1,5 +1,5 @@
 # Use the Rust official image as a base
-FROM ubuntu:latest
+FROM rust:latest as builder
 
 # Set the working directory
 WORKDIR /app
@@ -7,10 +7,7 @@ WORKDIR /app
 # Copy the project files into the container
 COPY . .
 
-# Ubuntu
-RUN apt-get update && apt-get install -y curl build-essential libssl-dev pkg-config libpq-dev
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
+RUN apt update && apt install -y openssl
 
 # Install diesel CLI for migration
 RUN cargo install diesel_cli --no-default-features --features postgres
@@ -19,7 +16,7 @@ RUN cargo install diesel_cli --no-default-features --features postgres
 RUN cargo build --release
 
 # Use a smaller base image for the final container
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 
 # Copy the binary from the previous build stage
 COPY --from=build /app/target/release/author .
