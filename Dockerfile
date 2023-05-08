@@ -14,7 +14,7 @@ RUN cargo install diesel_cli --no-default-features --features postgres
 RUN cargo build --release
 
 # Use a smaller base image for the final container
-FROM debian:bullseye-slim
+FROM ubuntu:latest
 
 # Copy the binary from the previous build stage
 COPY --from=build /app/target/release/author .
