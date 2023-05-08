@@ -7,7 +7,7 @@ WORKDIR /app
 # Copy the project files into the container
 COPY . .
 
-RUN apt update && apt install -y libssl1.1
+RUN apt update && apt install -y openssl
 
 # Install diesel CLI for migration
 RUN cargo install diesel_cli --no-default-features --features postgres
