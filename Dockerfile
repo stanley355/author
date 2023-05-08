@@ -1,5 +1,5 @@
 # Use the Rust official image as a base
-FROM rust:latest as build
+FROM ubuntu:latest as build
 
 # Set the working directory
 WORKDIR /app
@@ -7,7 +7,10 @@ WORKDIR /app
 # Copy the project files into the container
 COPY . .
 
-RUN apt update && apt install -y openssl
+# Ubuntu
+RUN apt-get update && apt-get install -y curl build-essential libssl-dev pkg-config libpq-dev
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Install diesel CLI for migration
 RUN cargo install diesel_cli --no-default-features --features postgres
