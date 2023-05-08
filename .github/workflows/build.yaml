@@ -42,7 +42,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/author:latest
           secrets: |
-            HOST=${{ secrets.HOST }}
-            PORT=${{ secrets.PORT }}
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-            BEARER_TOKEN=${{ secrets.BEARER_TOKEN }}
+            "HOST=${{ secrets.HOST }}"
+            "PORT=${{ secrets.PORT }}"
+            "DATABASE_URL=${{ secrets.DATABASE_URL }}"
+            "BEARER_TOKEN=${{ secrets.BEARER_TOKEN }}"
