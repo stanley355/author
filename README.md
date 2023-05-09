@@ -9,3 +9,5 @@
 - $ cargo run
 - Migrate it by sending POST http://localhost:8080/api/migration
 - $ pg_restore --verbose --clean --no-acl --no-owner -h localhost -U {dbName} latest.dump
+
+- docker run --env-file .env --add-host=database:202.80.217.39 -p 8080:8080 355355355/author:latest
