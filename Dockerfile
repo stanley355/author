@@ -1,16 +1,6 @@
 # Use the Rust official image as a base
 FROM rust:latest as builder
 
-ARG HOST
-ARG PORT 
-ARG DATABASE_URL
-ARG BEARER_TOKEN 
-
-ENV HOST=$HOST 
-ENV PORT=$PORT
-ENV DATABASE_URL=$DATABASE_URL
-ENV BEARER_TOKEN=$BEARER_TOKEN
-
 # Set the working directory
 WORKDIR /app
 
