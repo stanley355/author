@@ -32,4 +32,4 @@ COPY --from=builder /app/target/release/author .
 RUN apt update && apt install -y openssl libpq-dev pkg-config
 
 # Set the startup command
-CMD ["bash", "-c", "./author diesel migration run && ./author"]
+CMD ["./author diesel migration run && ./author"]
