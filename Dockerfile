@@ -31,5 +31,7 @@ COPY --from=builder /app/target/release/author .
 
 RUN apt update && apt install -y openssl libpq-dev pkg-config
 
+EXPOSE 8080
+
 # Set the startup command
-CMD ["./author diesel migration run && ./author"]
+CMD ["bash", "-c", "./author diesel migration run && ./author"]
