@@ -41,7 +41,7 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/author:latest
-          secrets: |
+          build-args: |
             "HOST=${{ secrets.HOST }}"
             "PORT=${{ secrets.PORT }}"
             "DATABASE_URL=${{ secrets.DATABASE_URL }}"
