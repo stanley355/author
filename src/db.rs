@@ -11,6 +11,5 @@ pub fn build_pool(db_url: &String) -> Result<PgPool, PoolError> {
 
 pub fn connect_pool() -> PgPool {
     let db_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    println!("Database: {:?}", db_url);
     build_pool(&db_url).expect("Error connecting to Postgres")
 }
