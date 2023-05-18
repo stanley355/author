@@ -24,4 +24,4 @@ RUN apt update && apt install -y openssl libpq-dev pkg-config
 EXPOSE 8080
 
 # Set the startup command
-CMD ["bash", "-c", "./author diesel migration run && ./author"]
+CMD ["./author"]
