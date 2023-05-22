@@ -35,6 +35,7 @@ async fn main() -> std::io::Result<()> {
     let host = &env::var("HOST").unwrap_or("127.0.0.1".to_string());
     let port = &env::var("PORT").unwrap_or("8080".to_string());
     let address = format!("{}:{}", host, port);
+    println!("Server running on: {}", address);
 
     let pool = db::connect_pool();
 

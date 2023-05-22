@@ -1,5 +1,5 @@
 # Use the Rust official image as a base
-FROM rust:latest as build
+FROM rust:latest as builder
 
 # Set the working directory
 WORKDIR /app
@@ -14,10 +14,14 @@ RUN cargo install diesel_cli --no-default-features --features postgres
 RUN cargo build --release
 
 # Use a smaller base image for the final container
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 
 # Copy the binary from the previous build stage
-COPY --from=build /app/target/release/author .
+COPY --from=builder /app/target/release/author .
+
+RUN apt update && apt install -y openssl libpq-dev pkg-config
+
+EXPOSE 8080
 
 # Set the startup command
-CMD ["bash", "-c", "./author diesel migration run && ./author"]
+CMD ["./author"]
