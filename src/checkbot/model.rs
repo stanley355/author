@@ -1,5 +1,6 @@
 use actix_web::web;
-use diesel::types::Timestamp;
+use diesel::Queryable;
+use diesel::sql_types::Timestamp;
 use serde::{Deserialize, Serialize};
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]

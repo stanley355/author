@@ -10,7 +10,7 @@ use std::env;
 mod db;
 mod schema;
 mod user;
-mod checkbot;
+// mod checkbot;
 mod util;
 
 async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
