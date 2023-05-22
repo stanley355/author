@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct NewCheckbotReq {
     pub user_id: String,
-    pub source_text: String,
-    pub checkbot_text: String
+    pub prompt_token: i32,
+    pub completion_token: i32,
+    pub prompt_text: String,
+    pub completion_text: String
 }

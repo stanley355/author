@@ -16,23 +16,20 @@ pub struct Checkbot {
 }
 
 impl Checkbot {
-  pub fn new(pool: &web::Data<PgPool>, body: web::Json<NewCheckbotReq>) -> QueryResult<Vec<Checkbot>> {
+  pub fn new(pool: &web::Data<PgPool>, body: web::Json<NewCheckbotReq>) -> QueryResult<Checkbot> {
     let conn = pool.get().unwrap();
     let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
-    println!("uuid: {}", uuid);
-    // let data = (
-    //     (checkbots::user_id.eq(uuid)),
-    //     (checkbots::source_text_token.eq(1)),
-    //     (checkbots::checkbot_text_token.eq(1)),
-    //     (checkbots::source_text.eq(&body.source_text)),
-    //     (checkbots::source_text.eq(&body.checkbot_text))
-    // );
+    let data = (
+        (checkbots::user_id.eq(uuid)),
+        (checkbots::prompt_token.eq(&body.prompt_token)),
+        (checkbots::completion_token.eq(&body.completion_token)),
+        (checkbots::prompt_text.eq(&body.prompt_text)),
+        (checkbots::completion_text.eq(&body.completion_text))
+    );
 
-    checkbots::table.get_results(&conn)
-
-    // diesel::insert_into(checkbots::table)
-    //     .values(data)
-    //     .get_result(&conn)
+    diesel::insert_into(checkbots::table)
+        .values(data)
+        .get_result(&conn)
   }
 }
 
