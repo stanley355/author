@@ -21,7 +21,7 @@ async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
             .wrap(auth)
             .app_data(web::Data::new(pool.clone()))
             .service(web::scope("/v1/users").configure(user::handler::route))
-            .service(web::scope("/v1/checkbots")).configure(checkbot::handler::route)
+            .service(web::scope("/v1/checkbots").configure(checkbot::handler::route))
     })
     .bind(address)?
     .run()

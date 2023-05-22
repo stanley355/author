@@ -1,5 +1,5 @@
 use actix_web::web;
-use diesel::{Queryable, QueryResult, ExpressionMethods, RunQueryDsl, sql_types::Integer};
+use diesel::{Queryable, QueryResult, ExpressionMethods, RunQueryDsl};
 use serde::{Deserialize, Serialize};
 use crate::{db::PgPool, schema::checkbots};
 use super::req::NewCheckbotReq;
@@ -16,20 +16,22 @@ pub struct Checkbot {
 }
 
 impl Checkbot {
-  pub fn new(pool: &web::Data<PgPool>, body: web::Json<NewCheckbotReq>) -> QueryResult<Checkbot> {
+  pub fn new(pool: &web::Data<PgPool>, body: web::Json<NewCheckbotReq>) -> QueryResult<Vec<Checkbot>> {
     let conn = pool.get().unwrap();
     let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
-    let data = (
-        (checkbots::user_id.eq(uuid)),
-        (checkbots::source_text_token.eq(1)),
-        (checkbots::checkbot_text_token.eq(1)),
-        (checkbots::source_text.eq(&body.source_text)),
-        (checkbots::source_text.eq(&body.checkbot_text))
-    );
+    // let data = (
+    //     (checkbots::user_id.eq(uuid)),
+    //     (checkbots::source_text_token.eq(1)),
+    //     (checkbots::checkbot_text_token.eq(1)),
+    //     (checkbots::source_text.eq(&body.source_text)),
+    //     (checkbots::source_text.eq(&body.checkbot_text))
+    // );
 
-    diesel::insert_into(checkbots::table)
-        .values(data)
-        .get_result(&conn)
+    checkbots::table.get_results(&conn)
+
+    // diesel::insert_into(checkbots::table)
+    //     .values(data)
+    //     .get_result(&conn)
   }
 }
 
