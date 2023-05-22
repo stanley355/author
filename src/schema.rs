@@ -5,10 +5,10 @@ diesel::table! {
         id -> Int4,
         user_id -> Uuid,
         created_at -> Timestamp,
-        source_text_token -> Int4,
-        checkbot_text_token -> Int4,
-        source_text -> Varchar,
-        checkbot_text -> Varchar,
+        prompt_token -> Int4,
+        completion_token -> Int4,
+        prompt_text -> Varchar,
+        completion_text -> Varchar,
     }
 }
 

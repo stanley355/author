@@ -9,16 +9,17 @@ pub struct Checkbot {
   pub id: i32,
   pub user_id: uuid::Uuid,
   pub created_at: chrono::NaiveDateTime,
-  pub source_text_token: i32,
-  pub checkbot_text_token: i32,
-  pub source_text: String,
-  pub checkbot_text: String,
+  pub prompt_token: i32,
+  pub completion_token: i32,
+  pub prompt_text: String,
+  pub completion_text: String,
 }
 
 impl Checkbot {
   pub fn new(pool: &web::Data<PgPool>, body: web::Json<NewCheckbotReq>) -> QueryResult<Vec<Checkbot>> {
     let conn = pool.get().unwrap();
     let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
+    println!("uuid: {}", uuid);
     // let data = (
     //     (checkbots::user_id.eq(uuid)),
     //     (checkbots::source_text_token.eq(1)),
