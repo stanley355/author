@@ -1,11 +1,11 @@
-use super::model::Checkbot;
-use super::req::NewCheckbotReq;
+use super::model::Prompt;
+use super::req::NewPromptReq;
 use crate::{db::PgPool, user::res::ErrorRes};
 use actix_web::{post, web, HttpResponse};
 
 #[post("/")]
-async fn add_checkbot(pool: web::Data<PgPool>, body: web::Json<NewCheckbotReq>) -> HttpResponse {
-    let result = Checkbot::new(&pool, body);
+async fn new_prompt(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> HttpResponse {
+    let result = Prompt::new(&pool, body);
 
     match result {
         Ok(checkbot) => HttpResponse::Accepted().json(checkbot),
@@ -17,5 +17,5 @@ async fn add_checkbot(pool: web::Data<PgPool>, body: web::Json<NewCheckbotReq>) 
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(add_checkbot);
+    config.service(new_prompt);
 }

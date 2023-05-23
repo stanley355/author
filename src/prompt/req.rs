@@ -2,7 +2,7 @@ use diesel::Queryable;
 use serde::{Deserialize, Serialize};
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
-pub struct NewCheckbotReq {
+pub struct NewPromptReq {
     pub user_id: String,
     pub prompt_token: i32,
     pub completion_token: i32,

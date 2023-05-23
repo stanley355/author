@@ -1,5 +1,5 @@
 -- Your SQL goes here
-CREATE TABLE checkbots (
+CREATE TABLE prompts (
   id SERIAL NOT NULL PRIMARY KEY,
   user_id uuid NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),

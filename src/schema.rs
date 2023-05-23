@@ -1,7 +1,7 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    checkbots (id) {
+    prompts (id) {
         id -> Int4,
         user_id -> Uuid,
         created_at -> Timestamp,
@@ -22,9 +22,9 @@ diesel::table! {
     }
 }
 
-diesel::joinable!(checkbots -> users (user_id));
+diesel::joinable!(prompts -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
-    checkbots,
+    prompts,
     users,
 );
