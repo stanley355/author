@@ -9,6 +9,8 @@ diesel::table! {
         completion_token -> Int4,
         prompt_text -> Varchar,
         completion_text -> Varchar,
+        total_token -> Nullable<Int4>,
+        total_cost -> Nullable<Int4>,
     }
 }
 
@@ -19,6 +21,7 @@ diesel::table! {
         email -> Varchar,
         password -> Varchar,
         phone_number -> Nullable<Varchar>,
+        balance -> Nullable<Int4>,
     }
 }
 
