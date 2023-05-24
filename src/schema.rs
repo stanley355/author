@@ -1,17 +1,6 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    balance_logs (id) {
-        id -> Uuid,
-        user_id -> Uuid,
-        created_at -> Timestamp,
-        increase_amount -> Float8,
-        decrease_amount -> Float8,
-        final_balance -> Float8,
-    }
-}
-
-diesel::table! {
     prompts (id) {
         id -> Int4,
         user_id -> Uuid,
@@ -36,11 +25,9 @@ diesel::table! {
     }
 }
 
-diesel::joinable!(balance_logs -> users (user_id));
 diesel::joinable!(prompts -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
-    balance_logs,
     prompts,
     users,
 );

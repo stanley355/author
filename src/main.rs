@@ -8,7 +8,7 @@ use dotenv::dotenv;
 use std::env;
 
 mod db;
-mod balance_log;
+// mod balance_log;
 mod schema;
 mod user;
 mod prompt;
