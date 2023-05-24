@@ -71,6 +71,7 @@ impl User {
             fullname: user.fullname,
             email: user.email,
             phone_number: user.phone_number,
+            balance: user.balance,
         }
     }
 
