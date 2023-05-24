@@ -1,4 +1,5 @@
 use diesel::pg::PgConnection;
+use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool, PoolError};
 use std::env;
 
@@ -12,4 +13,9 @@ pub fn build_pool(db_url: &String) -> Result<PgPool, PoolError> {
 pub fn connect_pool() -> PgPool {
     let db_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     build_pool(&db_url).expect("Error connecting to Postgres")
+}
+
+pub fn establish_pg_connection() -> PgConnection {
+    let db_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    PgConnection::establish(&db_url).unwrap()
 }

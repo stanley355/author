@@ -127,6 +127,11 @@ async fn update_password(pool: web::Data<PgPool>, body: web::Json<LoginReq>) -> 
     }
 }
 
+#[post("/balance/")]
+async fn increase_balance(pool: web::Data<PgPool>, body: web::Json<IncreaseBalanceReq>) -> HttpResponse {
+    
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(get_user)

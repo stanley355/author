@@ -1,14 +1,15 @@
 use actix_web::web;
 use bcrypt::{hash, DEFAULT_COST};
 use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
-use jsonwebtoken::{encode, Header, Algorithm, EncodingKey};
+use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use super::req::{GmailLoginReq, RegisterReq, LoginReq};
+use super::req::{GmailLoginReq, IncreaseBalanceReq, LoginReq, RegisterReq};
 use super::res::NoPasswordUser;
 use crate::db::PgPool;
 use crate::schema::users;
+use crate::schema::users::dsl;
 use crate::util::password::generate_random_password;
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
@@ -18,7 +19,7 @@ pub struct User {
     pub email: String,
     pub password: String,
     pub phone_number: Option<String>,
-    pub balance: f64
+    pub balance: f64,
 }
 
 impl User {
@@ -28,8 +29,11 @@ impl User {
             .filter(users::email.eq(email))
             .get_result::<User>(&conn)
     }
-    
-    pub fn add_from_register(pool: &web::Data<PgPool>, body: web::Json<RegisterReq>) -> QueryResult<User> {
+
+    pub fn add_from_register(
+        pool: &web::Data<PgPool>,
+        body: web::Json<RegisterReq>,
+    ) -> QueryResult<User> {
         let conn = pool.get().unwrap();
         let password = Self::hash_password(&body.password);
         let data = (
@@ -43,7 +47,10 @@ impl User {
             .get_result(&conn)
     }
 
-    pub fn add_from_gmail(pool: &web::Data<PgPool>, body: web::Json<GmailLoginReq>) -> QueryResult<User> {
+    pub fn add_from_gmail(
+        pool: &web::Data<PgPool>,
+        body: web::Json<GmailLoginReq>,
+    ) -> QueryResult<User> {
         let conn = pool.get().unwrap();
         let password = generate_random_password();
         let hashed_password = Self::hash_password(&password);
@@ -69,7 +76,7 @@ impl User {
 
     pub fn update_password(
         pool: &web::Data<PgPool>,
-        body: web::Json<LoginReq>
+        body: web::Json<LoginReq>,
     ) -> QueryResult<User> {
         let conn = &pool.get().unwrap();
         let password = Self::hash_password(&body.password);
@@ -89,5 +96,18 @@ impl User {
         let token_payload = Self::remove_password_field(user);
         let body = json!(token_payload);
         encode(&header, &body, &EncodingKey::from_secret("secret".as_ref())).unwrap()
+    }
+
+    pub fn increase_balance(
+        pool: &web::Data<PgPool>,
+        body: web::Json<IncreaseBalanceReq>,
+    ) -> QueryResult<User> {
+        let conn = &pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
+
+        diesel::update(users::table)
+            .filter(users::id.eq(uuid))
+            .set(dsl::balance.eq(dsl::balance + body.increase_amount))
+            .get_result(conn)
     }
 }
