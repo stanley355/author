@@ -8,10 +8,10 @@ use dotenv::dotenv;
 use std::env;
 
 mod db;
-mod topup;
-mod schema;
-mod user;
 mod prompt;
+mod schema;
+mod topup;
+mod user;
 mod util;
 
 async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
@@ -23,6 +23,7 @@ async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
             .app_data(web::Data::new(pool.clone()))
             .service(web::scope("/v1/users").configure(user::handler::route))
             .service(web::scope("/v1/prompts").configure(prompt::handler::route))
+            .service(web::scope("/v1/topups").configure(topup::handler::route))
     })
     .bind(address)?
     .run()
