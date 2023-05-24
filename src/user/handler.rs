@@ -1,6 +1,8 @@
 use super::model::User;
 use super::req::*;
 use super::res::{ErrorRes, LoginTokenRes};
+use crate::balance_log::model::BalanceLog;
+use crate::balance_log::req::BalanceLogReq;
 use crate::db::PgPool;
 use actix_web::{get, post, web, HttpResponse};
 use bcrypt::verify;
@@ -132,10 +134,20 @@ async fn increase_balance(
     pool: web::Data<PgPool>,
     body: web::Json<IncreaseBalanceReq>,
 ) -> HttpResponse {
-    let increase_result = User::increase_balance(&pool, body);
+    let increase_result = User::increase_balance(&pool, &body);
 
     match increase_result {
-        Ok(user) => HttpResponse::Ok().json(user),
+        Ok(user) => {
+            let log = BalanceLogReq {
+                user_id: body.user_id.clone(),
+                increase_amount: body.increase_amount.clone(),
+                decrease_amount: 0.0,
+                final_balance: user.balance.clone(),
+            };
+            let _log_res = BalanceLog::new(&pool, &log);
+
+            HttpResponse::Ok().json(user)
+        }
         Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
             error: err.to_string(),
             message: "Something went wrong".to_string(),

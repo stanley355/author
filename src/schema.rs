@@ -5,7 +5,6 @@ diesel::table! {
         id -> Uuid,
         user_id -> Uuid,
         created_at -> Timestamp,
-        prev_balance -> Float8,
         increase_amount -> Float8,
         decrease_amount -> Float8,
         final_balance -> Float8,
