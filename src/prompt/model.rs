@@ -1,7 +1,7 @@
 use actix_web::web;
 use diesel::{Queryable, QueryResult, ExpressionMethods, RunQueryDsl};
 use serde::{Deserialize, Serialize};
-use crate::{db::PgPool, schema::prompts::{self, total_cost}};
+use crate::{db::PgPool, schema::prompts};
 use super::req::NewPromptReq;
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
