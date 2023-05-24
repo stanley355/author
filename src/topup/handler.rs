@@ -8,7 +8,7 @@ async fn new_topup(pool: web::Data<PgPool>, body: web::Json<TopUpReq>) -> HttpRe
     let result = TopUp::new(&pool, &body);
 
     match result {
-        Ok(topup) => HttpResponse::Accepted().json(topup),
+        Ok(topup) => HttpResponse::Ok().json(topup),
         Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
             error: err.to_string(),
             message: "Internal Server error".to_string(),
