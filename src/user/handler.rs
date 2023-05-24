@@ -128,8 +128,19 @@ async fn update_password(pool: web::Data<PgPool>, body: web::Json<LoginReq>) -> 
 }
 
 #[post("/balance/")]
-async fn increase_balance(pool: web::Data<PgPool>, body: web::Json<IncreaseBalanceReq>) -> HttpResponse {
-    
+async fn increase_balance(
+    pool: web::Data<PgPool>,
+    body: web::Json<IncreaseBalanceReq>,
+) -> HttpResponse {
+    let increase_result = User::increase_balance(&pool, body);
+
+    match increase_result {
+        Ok(user) => HttpResponse::Ok().json(user),
+        Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
+            error: err.to_string(),
+            message: "Something went wrong".to_string(),
+        }),
+    }
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
@@ -138,5 +149,6 @@ pub fn route(config: &mut web::ServiceConfig) {
         .service(register)
         .service(login)
         .service(gmail_login)
-        .service(update_password);
+        .service(update_password)
+        .service(increase_balance);
 }
