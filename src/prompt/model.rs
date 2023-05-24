@@ -29,7 +29,6 @@ impl Prompt {
         (prompts::prompt_text.eq(&body.prompt_text)),
         (prompts::completion_text.eq(&body.completion_text)),
         (prompts::total_token.eq(&total_token)),
-        (prompts::total_cost.eq(total_token as f64))
     );
 
     diesel::insert_into(prompts::table)
