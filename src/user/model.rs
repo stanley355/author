@@ -18,6 +18,7 @@ pub struct User {
     pub email: String,
     pub password: String,
     pub phone_number: Option<String>,
+    pub balance: f64
 }
 
 impl User {
