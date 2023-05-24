@@ -1,2 +1,2 @@
 -- This file should undo anything in `up.sql`
-DROP TABLE balance_logs;
+DROP TABLE topups;
