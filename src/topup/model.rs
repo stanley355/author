@@ -2,7 +2,7 @@ use actix_web::web;
 use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl};
 use serde::{Deserialize, Serialize};
 
-use super::req::TopUpReq;
+use super::req::{DokuNotifReq, TopUpReq};
 use crate::db::PgPool;
 use crate::schema::topups;
 
@@ -27,5 +27,13 @@ impl TopUp {
         diesel::insert_into(topups::table)
             .values(data)
             .get_result(&conn)
+    }
+
+    pub fn update_balance_from_doku_notif(
+        pool: &web::Data<PgPool>,
+        body: &DokuNotifReq,
+    ) -> QueryResult<TopUp> {
+        let conn = pool.get().unwrap();
+        let topup_id = uuid::Uuid::parse_str(&body.transaction.original_request_id);
     }
 }
