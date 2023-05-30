@@ -9,7 +9,6 @@ use super::req::{GmailLoginReq, IncreaseBalanceReq, LoginReq, RegisterReq};
 use super::res::NoPasswordUser;
 use crate::db::PgPool;
 use crate::schema::users;
-use crate::schema::users::dsl;
 use crate::util::password::generate_random_password;
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
@@ -108,7 +107,7 @@ impl User {
 
         diesel::update(users::table)
             .filter(users::id.eq(uuid))
-            .set(dsl::balance.eq(dsl::balance + body.increase_amount))
+            .set(users::dsl::balance.eq(users::dsl::balance + body.increase_amount))
             .get_result(conn)
     }
 }

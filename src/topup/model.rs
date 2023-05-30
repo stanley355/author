@@ -1,10 +1,12 @@
 use actix_web::web;
-use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl};
+use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl, QueryDsl};
 use serde::{Deserialize, Serialize};
 
 use super::req::{DokuNotifReq, TopUpReq};
 use crate::db::PgPool;
-use crate::schema::topups;
+
+
+use crate::schema::{topups, users};
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct TopUp {
@@ -29,11 +31,18 @@ impl TopUp {
             .get_result(&conn)
     }
 
-    pub fn update_balance_from_doku_notif(
-        pool: &web::Data<PgPool>,
-        body: &DokuNotifReq,
-    ) -> QueryResult<TopUp> {
-        let conn = pool.get().unwrap();
-        let topup_id = uuid::Uuid::parse_str(&body.transaction.original_request_id);
-    }
+    // pub fn update_balance_from_doku_notif(
+    //     pool: &web::Data<PgPool>,
+    //     body: &DokuNotifReq,
+    // ) -> QueryResult<TopUp> {
+    //     let conn = pool.get().unwrap();
+    //     let topup_id = uuid::Uuid::parse_str(&body.transaction.original_request_id);
+        
+    //     diesel::update(topups::table)
+    //         .filter(topups::id.eq(topup_id))
+    //         .left_join(users::table.on(topups::dsl::user_id.eq(users::id)))
+    //         .select((topups::id, topups::user_id, users::balance))
+    //         .set()
+    //         .get_result(conn)
+    // }
 }
