@@ -1,11 +1,10 @@
 use actix_web::web;
-use diesel::prelude::*;
-use diesel::{ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl};
+use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl};
 use serde::{Deserialize, Serialize};
 
 use super::req::{DokuNotifReq, TopUpReq};
 use crate::db::PgPool;
-use crate::schema::{topups, users};
+use crate::schema::topups;
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct TopUp {
@@ -30,7 +29,10 @@ impl TopUp {
             .get_result(&conn)
     }
 
-    pub fn verify_topup_paid_status(pool: &web::Data<PgPool>, body: &DokuNotifReq) -> QueryResult<TopUp> {
+    pub fn verify_topup_paid_status(
+        pool: &web::Data<PgPool>,
+        body: &DokuNotifReq,
+    ) -> QueryResult<TopUp> {
         let conn = pool.get().unwrap();
         let topup_id = uuid::Uuid::parse_str(&body.transaction.original_request_id).unwrap();
 

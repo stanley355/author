@@ -100,7 +100,7 @@ impl User {
 
     pub fn increase_balance(
         pool: &web::Data<PgPool>,
-        body: &web::Json<IncreaseBalanceReq>,
+        body: &IncreaseBalanceReq,
     ) -> QueryResult<User> {
         let conn = &pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();

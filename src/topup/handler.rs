@@ -1,5 +1,7 @@
 use super::model::TopUp;
-use super::req::TopUpReq;
+use super::req::{DokuNotifReq, TopUpReq};
+use crate::user::model::User;
+use crate::user::req::IncreaseBalanceReq;
 use crate::{db::PgPool, user::res::ErrorRes};
 use actix_web::{post, web, HttpResponse};
 
@@ -17,11 +19,29 @@ async fn new_topup(pool: web::Data<PgPool>, body: web::Json<TopUpReq>) -> HttpRe
 }
 
 #[post("/doku/notification/")]
-async fn process_doku_notification(pool: web::Data<PgPool>, body: web::Json<TopUpReq>) -> HttpResponse {
-    let result = TopUp::new(&pool, &body);
+async fn process_doku_notification(
+    pool: web::Data<PgPool>,
+    body: web::Json<DokuNotifReq>,
+) -> HttpResponse {
+    let result = TopUp::verify_topup_paid_status(&pool, &body);
 
     match result {
-        Ok(topup) => HttpResponse::Ok().json(topup),
+        Ok(topup) => {
+            let balance_req = IncreaseBalanceReq {
+                user_id: topup.user_id.to_string(),
+                increase_amount: topup.topup_amount,
+            };
+
+            let balance_res = User::increase_balance(&pool, &balance_req);
+
+            match balance_res {
+                Ok(_) => HttpResponse::Ok().json(topup),
+                Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
+                    error: err.to_string(),
+                    message: "Internal Server error".to_string(),
+                }),
+            }
+        }
         Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
             error: err.to_string(),
             message: "Internal Server error".to_string(),
@@ -30,5 +50,5 @@ async fn process_doku_notification(pool: web::Data<PgPool>, body: web::Json<TopU
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(new_topup);
+    config.service(new_topup).service(process_doku_notification);
 }
