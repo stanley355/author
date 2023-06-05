@@ -1,2 +1,2 @@
 pub mod password;
-pub mod bearer_auth;
+// pub mod bearer_auth;
