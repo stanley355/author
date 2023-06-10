@@ -35,5 +35,24 @@ impl Prompt {
         .values(data)
         .get_result(&conn)
   }
+
+  pub fn new_premium(pool: &web::Data<PgPool>, body: &web::Json<NewPromptReq>) -> QueryResult<Prompt> {
+    let conn = pool.get().unwrap();
+    let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
+    let total_token = &body.prompt_token + &body.completion_token;
+    let data = (
+        (prompts::user_id.eq(uuid)),
+        (prompts::prompt_token.eq(&body.prompt_token)),
+        (prompts::completion_token.eq(&body.completion_token)),
+        (prompts::prompt_text.eq(&body.prompt_text)),
+        (prompts::completion_text.eq(&body.completion_text)),
+        (prompts::total_token.eq(&total_token)),
+        (prompts::total_cost.eq(total_token as f64)),
+    );
+
+    diesel::insert_into(prompts::table)
+        .values(data)
+        .get_result(&conn)
+  }
 }
 
