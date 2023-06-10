@@ -31,3 +31,9 @@ pub struct IncreaseBalanceReq{
     pub user_id: String,
     pub increase_amount: f64,
 }
+
+#[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
+pub struct ReduceBalanceReq{
+    pub user_id: String,
+    pub reduce_amount: f64,
+}

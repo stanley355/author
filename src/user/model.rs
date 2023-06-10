@@ -5,7 +5,7 @@ use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use super::req::{GmailLoginReq, IncreaseBalanceReq, LoginReq, RegisterReq};
+use super::req::{GmailLoginReq, IncreaseBalanceReq, LoginReq, RegisterReq, ReduceBalanceReq};
 use super::res::NoPasswordUser;
 use crate::db::PgPool;
 use crate::schema::users;
@@ -108,6 +108,19 @@ impl User {
         diesel::update(users::table)
             .filter(users::id.eq(uuid))
             .set(users::dsl::balance.eq(users::dsl::balance + body.increase_amount))
+            .get_result(conn)
+    }
+    
+    pub fn reduce_balance(
+        pool: &web::Data<PgPool>,
+        body: &ReduceBalanceReq,
+    ) -> QueryResult<User> {
+        let conn = &pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
+
+        diesel::update(users::table)
+            .filter(users::id.eq(uuid))
+            .set(users::dsl::balance.eq(users::dsl::balance - body.reduce_amount))
             .get_result(conn)
     }
 }
