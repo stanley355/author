@@ -14,7 +14,10 @@ pub struct Prompt {
   pub prompt_text: String,
   pub completion_text: String,
   pub total_token: i32,
-  pub total_cost: f64
+  pub total_cost: f64,
+  pub instruction: String,
+  pub original_text: String,
+  pub is_save: bool,
 }
 
 impl Prompt {
@@ -22,6 +25,7 @@ impl Prompt {
     let conn = pool.get().unwrap();
     let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
     let total_token = &body.prompt_token + &body.completion_token;
+
     let data = (
         (prompts::user_id.eq(uuid)),
         (prompts::prompt_token.eq(&body.prompt_token)),
@@ -29,6 +33,9 @@ impl Prompt {
         (prompts::prompt_text.eq(&body.prompt_text)),
         (prompts::completion_text.eq(&body.completion_text)),
         (prompts::total_token.eq(&total_token)),
+        (prompts::instruction.eq(&body.instruction)),
+        (prompts::original_text.eq(&body.original_text)),
+        (prompts::is_save.eq(&body.is_save)),
     );
 
     diesel::insert_into(prompts::table)
@@ -48,6 +55,9 @@ impl Prompt {
         (prompts::completion_text.eq(&body.completion_text)),
         (prompts::total_token.eq(&total_token)),
         (prompts::total_cost.eq(total_token as f64)),
+        (prompts::instruction.eq(&body.instruction)),
+        (prompts::original_text.eq(&body.original_text)),
+        (prompts::is_save.eq(&body.is_save)),
     );
 
     diesel::insert_into(prompts::table)

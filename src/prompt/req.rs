@@ -7,5 +7,8 @@ pub struct NewPromptReq {
     pub prompt_token: i32,
     pub completion_token: i32,
     pub prompt_text: String,
-    pub completion_text: String
+    pub completion_text: String,
+    pub instruction: String,
+    pub original_text: String,
+    pub is_save: bool
 }

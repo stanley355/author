@@ -1,0 +1,4 @@
+-- Your SQL goes here
+ALTER TABLE prompts ADD COLUMN instruction VARCHAR NOT NULL DEFAULT '';
+ALTER TABLE prompts ADD COLUMN original_text VARCHAR NOT NULL DEFAULT '';
+ALTER TABLE prompts ADD COLUMN is_save BOOLEAN NOT NULL DEFAULT false;
