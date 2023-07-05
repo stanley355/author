@@ -1,3 +1,4 @@
+use std::fmt;
 use diesel::Queryable;
 use serde::{Deserialize, Serialize};
 
@@ -9,6 +10,23 @@ pub struct NewPromptReq {
     pub prompt_text: String,
     pub completion_text: String,
     pub instruction: String,
+    pub instruction_type: InstructionType,
     pub original_text: String,
     pub is_save: bool
+}
+
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub enum InstructionType {
+   Translate,
+   Checkbot 
+}
+
+impl fmt::Display for InstructionType{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            InstructionType::Translate=> write!(f, "translate"),
+            InstructionType::Checkbot=> write!(f, "Checkbot"),
+        }
+    }
 }

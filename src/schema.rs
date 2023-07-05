@@ -12,6 +12,7 @@ diesel::table! {
         total_token -> Int4,
         total_cost -> Float8,
         instruction -> Varchar,
+        instruction_type -> Varchar,
         original_text -> Varchar,
         is_save -> Bool,
     }
