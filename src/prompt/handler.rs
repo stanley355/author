@@ -1,10 +1,10 @@
-use super::model::Prompt;
 use super::req::NewPromptReq;
+use super::{model::Prompt, req::FindSavedPromptReq};
 use crate::{
     db::PgPool,
     user::{model::User, req::ReduceBalanceReq, res::ErrorRes},
 };
-use actix_web::{post, web, HttpResponse};
+use actix_web::{get, post, web, HttpResponse};
 
 #[post("/")]
 async fn new_prompt(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> HttpResponse {
@@ -40,6 +40,25 @@ async fn new_premium_prompt(
     }
 }
 
+#[get("/save/")]
+async fn find_saved_prompt(
+    pool: web::Data<PgPool>,
+    query: web::Query<FindSavedPromptReq>,
+) -> HttpResponse {
+    let result = Prompt::find_saved_prompt(&pool, &query);
+
+    match result {
+        Ok(prompt) => HttpResponse::Ok().json(prompt),
+        Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
+            error: err.to_string(),
+            message: "Internal Server error".to_string(),
+        }),
+    }
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(new_prompt).service(new_premium_prompt);
+    config
+        .service(new_prompt)
+        .service(new_premium_prompt)
+        .service(find_saved_prompt);
 }

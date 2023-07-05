@@ -1,7 +1,9 @@
-use super::req::NewPromptReq;
+use super::req::{FindSavedPromptReq, NewPromptReq};
 use crate::{db::PgPool, schema::prompts};
 use actix_web::web;
-use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl};
+use diesel::{
+    BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
@@ -69,5 +71,22 @@ impl Prompt {
         diesel::insert_into(prompts::table)
             .values(data)
             .get_result(&conn)
+    }
+
+    pub fn find_saved_prompt(
+        pool: &web::Data<PgPool>,
+        query: &web::Query<FindSavedPromptReq>,
+    ) -> QueryResult<Vec<Prompt>> {
+        let conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&query.user_id).unwrap();
+
+        prompts::table
+            .filter(
+                prompts::user_id
+                    .eq(uuid)
+                    .and(prompts::is_save.eq(true))
+                    .and(prompts::instruction_type.eq(query.instruction_type.to_string())),
+            )
+            .get_results::<Prompt>(&conn)
     }
 }
