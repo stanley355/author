@@ -1,9 +1,7 @@
-use super::req::{FindSavedPromptReq, NewPromptReq};
+use super::req::NewPromptReq;
 use crate::{db::PgPool, schema::prompts};
 use actix_web::web;
-use diesel::{
-    BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
-};
+use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl};
 use serde::{Deserialize, Serialize};
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
@@ -17,10 +15,6 @@ pub struct Prompt {
     pub completion_text: String,
     pub total_token: i32,
     pub total_cost: f64,
-    pub instruction: String,
-    pub instruction_type: String,
-    pub original_text: String,
-    pub is_save: bool,
 }
 
 impl Prompt {
@@ -36,10 +30,6 @@ impl Prompt {
             (prompts::prompt_text.eq(&body.prompt_text)),
             (prompts::completion_text.eq(&body.completion_text)),
             (prompts::total_token.eq(&total_token)),
-            (prompts::instruction.eq(&body.instruction)),
-            (prompts::instruction_type.eq(body.instruction_type.to_string())),
-            (prompts::original_text.eq(&body.original_text)),
-            (prompts::is_save.eq(&body.is_save)),
         );
 
         diesel::insert_into(prompts::table)
@@ -62,31 +52,10 @@ impl Prompt {
             (prompts::completion_text.eq(&body.completion_text)),
             (prompts::total_token.eq(&total_token)),
             (prompts::total_cost.eq(total_token as f64)),
-            (prompts::instruction.eq(&body.instruction)),
-            (prompts::instruction_type.eq(body.instruction_type.to_string())),
-            (prompts::original_text.eq(&body.original_text)),
-            (prompts::is_save.eq(&body.is_save)),
         );
 
         diesel::insert_into(prompts::table)
             .values(data)
             .get_result(&conn)
-    }
-
-    pub fn find_saved_prompt(
-        pool: &web::Data<PgPool>,
-        query: &web::Query<FindSavedPromptReq>,
-    ) -> QueryResult<Vec<Prompt>> {
-        let conn = pool.get().unwrap();
-        let uuid = uuid::Uuid::parse_str(&query.user_id).unwrap();
-
-        prompts::table
-            .filter(
-                prompts::user_id
-                    .eq(uuid)
-                    .and(prompts::is_save.eq(true))
-                    .and(prompts::instruction_type.eq(query.instruction_type.to_string())),
-            )
-            .get_results::<Prompt>(&conn)
     }
 }

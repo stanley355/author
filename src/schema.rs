@@ -11,10 +11,6 @@ diesel::table! {
         completion_text -> Varchar,
         total_token -> Int4,
         total_cost -> Float8,
-        instruction -> Varchar,
-        instruction_type -> Varchar,
-        original_text -> Varchar,
-        is_save -> Bool,
     }
 }
 
