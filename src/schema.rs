@@ -15,6 +15,15 @@ diesel::table! {
 }
 
 diesel::table! {
+    referral (id) {
+        id -> Int4,
+        created_at -> Timestamp,
+        user_id -> Uuid,
+        friend_id -> Uuid,
+    }
+}
+
+diesel::table! {
     topups (id) {
         id -> Uuid,
         user_id -> Uuid,
@@ -40,6 +49,7 @@ diesel::joinable!(topups -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     prompts,
+    referral,
     topups,
     users,
 );
