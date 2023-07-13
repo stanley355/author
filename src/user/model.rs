@@ -1,13 +1,14 @@
 use actix_web::web;
 use bcrypt::{hash, DEFAULT_COST};
-use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
+use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use super::req::{GmailLoginReq, IncreaseBalanceReq, LoginReq, RegisterReq, ReduceBalanceReq};
+use super::req::{GmailLoginReq, IncreaseBalanceReq, LoginReq, ReduceBalanceReq, RegisterReq};
 use super::res::NoPasswordUser;
 use crate::db::PgPool;
+use crate::referral::req::CreateReferralReq;
 use crate::schema::users;
 use crate::util::password::generate_random_password;
 
@@ -110,11 +111,22 @@ impl User {
             .set(users::dsl::balance.eq(users::dsl::balance + body.increase_amount))
             .get_result(conn)
     }
-    
-    pub fn reduce_balance(
+
+    pub fn increase_referral_balance(
         pool: &web::Data<PgPool>,
-        body: &ReduceBalanceReq,
+        body: &CreateReferralReq,
     ) -> QueryResult<User> {
+        let conn = &pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
+        let friend_uuid = uuid::Uuid::parse_str(&body.friend_id).unwrap();
+
+        diesel::update(users::table)
+            .filter(users::id.eq(uuid).or(users::id.eq(friend_uuid)))
+            .set(users::dsl::balance.eq(users::dsl::balance + 5000 as f64))
+            .get_result(conn)
+    }
+
+    pub fn reduce_balance(pool: &web::Data<PgPool>, body: &ReduceBalanceReq) -> QueryResult<User> {
         let conn = &pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
 

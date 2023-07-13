@@ -8,6 +8,7 @@ use std::env;
 
 mod db;
 mod prompt;
+mod referral;
 mod schema;
 mod topup;
 mod user;
@@ -21,6 +22,8 @@ async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
             .service(web::scope("/v1/users").configure(user::handler::route))
             .service(web::scope("/v1/prompts").configure(prompt::handler::route))
             .service(web::scope("/v1/topups").configure(topup::handler::route))
+            .service(web::scope("/v1/referral"))
+            .configure(referral::handler::route)
     })
     .bind(address)?
     .run()
