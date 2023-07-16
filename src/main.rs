@@ -7,6 +7,7 @@ use dotenv::dotenv;
 use std::env;
 
 mod db;
+mod document;
 mod prompt;
 mod referral;
 mod schema;

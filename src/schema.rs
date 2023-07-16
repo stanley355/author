@@ -1,6 +1,16 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    documents (id) {
+        id -> Uuid,
+        user_id -> Uuid,
+        created_at -> Timestamp,
+        name -> Varchar,
+        doc_type -> Varchar,
+    }
+}
+
+diesel::table! {
     prompts (id) {
         id -> Int4,
         user_id -> Uuid,
@@ -44,10 +54,12 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(documents -> users (user_id));
 diesel::joinable!(prompts -> users (user_id));
 diesel::joinable!(topups -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    documents,
     prompts,
     referral,
     topups,
