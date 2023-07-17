@@ -1,7 +1,7 @@
 use super::model::Document;
-use super::req::{CreateDocumentReq, FindDocumentsReq};
+use super::req::{CreateDocumentReq, FindDocumentsReq, DeleteDocumentReq};
 use crate::{db::PgPool, user::res::ErrorRes};
-use actix_web::{get, post, web, HttpResponse};
+use actix_web::{get, post, web, HttpResponse, delete};
 
 #[get("")]
 async fn find_document(
@@ -33,6 +33,20 @@ async fn new_document(pool: web::Data<PgPool>, body: web::Json<CreateDocumentReq
     }
 }
 
+#[delete("")]
+async fn delete_document(pool: web::Data<PgPool>, query: web::Query<DeleteDocumentReq>) -> HttpResponse {
+    let id = query.id.clone();
+    let document = Document::delete(&pool, &id);
+
+    match document {
+        Ok(doc) => HttpResponse::Ok().json(doc),
+        Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
+            error: err.to_string(),
+            message: "Something went wrong, please try again".to_string(),
+        }),
+    }
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(new_document).service(find_document);
+    config.service(new_document).service(find_document).service(delete_document);
 }

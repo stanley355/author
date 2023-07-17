@@ -14,6 +14,11 @@ pub struct FindDocumentsReq{
     pub user_id: String,
 }
 
+#[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
+pub struct DeleteDocumentReq{
+    pub id: String,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum DocType {
     Translate,

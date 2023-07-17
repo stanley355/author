@@ -35,11 +35,23 @@ impl Document {
             .get_result(&conn)
     }
 
-    pub fn find_by_user_id(pool: &web::Data<PgPool>, user_id: &String) -> QueryResult<Vec<Document>> {
+    pub fn find_by_user_id(
+        pool: &web::Data<PgPool>,
+        user_id: &String,
+    ) -> QueryResult<Vec<Document>> {
         let conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&user_id).unwrap();
         documents::table
             .filter(documents::user_id.eq(uuid))
+            .order_by(documents::created_at.desc())
             .get_results::<Document>(&conn)
+    }
+
+    pub fn delete(pool: &web::Data<PgPool>, doc_id: &String) -> QueryResult<Document> {
+        let conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&doc_id).unwrap();
+        diesel::delete(documents::table)
+            .filter(documents::id.eq(uuid))
+            .get_result::<Document>(&conn)
     }
 }
