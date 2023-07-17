@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::db::PgPool;
 use crate::schema::documents;
 
-use super::req::CreateDocumentReq;
+use super::req::{CreateDocumentReq, UpdateDocumentReq};
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct Document {
@@ -50,8 +50,22 @@ impl Document {
     pub fn delete(pool: &web::Data<PgPool>, doc_id: &String) -> QueryResult<Document> {
         let conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&doc_id).unwrap();
+
         diesel::delete(documents::table)
             .filter(documents::id.eq(uuid))
+            .get_result::<Document>(&conn)
+    }
+
+    pub fn update_name(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<UpdateDocumentReq>,
+    ) -> QueryResult<Document> {
+        let conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&body.id).unwrap();
+
+        diesel::update(documents::table)
+            .filter(documents::id.eq(uuid))
+            .set(documents::name.eq(&body.name))
             .get_result::<Document>(&conn)
     }
 }

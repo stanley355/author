@@ -19,6 +19,12 @@ pub struct DeleteDocumentReq{
     pub id: String,
 }
 
+#[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
+pub struct UpdateDocumentReq{
+    pub id: String,
+    pub name: String
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum DocType {
     Translate,
