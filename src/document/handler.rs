@@ -1,7 +1,24 @@
 use super::model::Document;
-use super::req::CreateDocumentReq;
+use super::req::{CreateDocumentReq, FindDocumentsReq};
 use crate::{db::PgPool, user::res::ErrorRes};
-use actix_web::{post, web, HttpResponse};
+use actix_web::{get, post, web, HttpResponse};
+
+#[get("")]
+async fn find_document(
+    pool: web::Data<PgPool>,
+    query: web::Query<FindDocumentsReq>,
+) -> HttpResponse {
+    let user_id = query.user_id.clone();
+    let document = Document::find_by_user_id(&pool, &user_id);
+
+    match document {
+        Ok(doc) => HttpResponse::Ok().json(doc),
+        Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
+            error: err.to_string(),
+            message: "Document not found, please try again".to_string(),
+        }),
+    }
+}
 
 #[post("/")]
 async fn new_document(pool: web::Data<PgPool>, body: web::Json<CreateDocumentReq>) -> HttpResponse {
@@ -17,5 +34,5 @@ async fn new_document(pool: web::Data<PgPool>, body: web::Json<CreateDocumentReq
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(new_document);
+    config.service(new_document).service(find_document);
 }
