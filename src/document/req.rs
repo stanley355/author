@@ -11,7 +11,8 @@ pub struct CreateDocumentReq {
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct FindDocumentsReq{
-    pub user_id: String,
+    pub id: Option<String>,
+    pub user_id: Option<String>,
 }
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]

@@ -35,6 +35,18 @@ impl Document {
             .get_result(&conn)
     }
 
+    pub fn find_by_id(
+        pool: &web::Data<PgPool>,
+        id: &String,
+    ) -> QueryResult<Document> {
+        let conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&id).unwrap();
+        documents::table
+            .filter(documents::id.eq(uuid))
+            .order_by(documents::created_at.desc())
+            .get_result::<Document>(&conn)
+    }
+
     pub fn find_by_user_id(
         pool: &web::Data<PgPool>,
         user_id: &String,
