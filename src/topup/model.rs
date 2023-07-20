@@ -29,7 +29,7 @@ impl TopUp {
             .get_result(&conn)
     }
 
-    pub fn verify_topup_paid_status(
+    pub fn verify_doku_paid_status(
         pool: &web::Data<PgPool>,
         body: &DokuNotifReq,
     ) -> QueryResult<TopUp> {

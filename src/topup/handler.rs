@@ -23,7 +23,7 @@ async fn process_doku_notification(
     pool: web::Data<PgPool>,
     body: web::Json<DokuNotifReq>,
 ) -> HttpResponse {
-    let result = TopUp::verify_topup_paid_status(&pool, &body);
+    let result = TopUp::verify_doku_paid_status(&pool, &body);
 
     match result {
         Ok(topup) => {

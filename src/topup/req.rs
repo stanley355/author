@@ -25,3 +25,9 @@ pub struct DokuNotifReq {
     pub transaction: DokuNotifTransaction,
     pub order: DokuNotifOrder,
 }
+
+#[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
+pub struct PaypalNotifReq{
+    pub topup_id: String,
+    pub amount: i32,
+}
