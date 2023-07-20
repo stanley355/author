@@ -29,5 +29,4 @@ pub struct DokuNotifReq {
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct PaypalNotifReq{
     pub topup_id: String,
-    pub amount: i32,
 }
