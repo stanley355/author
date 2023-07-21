@@ -15,6 +15,7 @@ pub struct Prompt {
     pub completion_text: String,
     pub total_token: i32,
     pub total_cost: f64,
+    pub instruction: String,
 }
 
 impl Prompt {
@@ -25,6 +26,7 @@ impl Prompt {
 
         let data = (
             (prompts::user_id.eq(uuid)),
+            (prompts::instruction.eq(&body.instruction)),
             (prompts::prompt_token.eq(&body.prompt_token)),
             (prompts::completion_token.eq(&body.completion_token)),
             (prompts::prompt_text.eq(&body.prompt_text)),
@@ -46,6 +48,7 @@ impl Prompt {
         let total_token = &body.prompt_token + &body.completion_token;
         let data = (
             (prompts::user_id.eq(uuid)),
+            (prompts::instruction.eq(&body.instruction)),
             (prompts::prompt_token.eq(&body.prompt_token)),
             (prompts::completion_token.eq(&body.completion_token)),
             (prompts::prompt_text.eq(&body.prompt_text)),
