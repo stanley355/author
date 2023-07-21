@@ -22,6 +22,7 @@ diesel::table! {
         total_token -> Int4,
         total_cost -> Float8,
         instruction -> Varchar,
+        document_id -> Nullable<Uuid>,
     }
 }
 
@@ -56,6 +57,7 @@ diesel::table! {
 }
 
 diesel::joinable!(documents -> users (user_id));
+diesel::joinable!(prompts -> documents (document_id));
 diesel::joinable!(prompts -> users (user_id));
 diesel::joinable!(topups -> users (user_id));
 

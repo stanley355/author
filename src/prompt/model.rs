@@ -16,6 +16,7 @@ pub struct Prompt {
     pub total_token: i32,
     pub total_cost: f64,
     pub instruction: String,
+    pub document_id: Option<uuid::Uuid>,
 }
 
 impl Prompt {
@@ -23,6 +24,11 @@ impl Prompt {
         let conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
         let total_token = &body.prompt_token + &body.completion_token;
+
+        let doc_id = match body.document_id.clone() {
+            Some(id) => Some(uuid::Uuid::parse_str(&id).unwrap()),
+            None => None,
+        };
 
         let data = (
             (prompts::user_id.eq(uuid)),
@@ -32,6 +38,7 @@ impl Prompt {
             (prompts::prompt_text.eq(&body.prompt_text)),
             (prompts::completion_text.eq(&body.completion_text)),
             (prompts::total_token.eq(&total_token)),
+            (prompts::document_id.eq(&doc_id)),
         );
 
         diesel::insert_into(prompts::table)
@@ -46,6 +53,12 @@ impl Prompt {
         let conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
         let total_token = &body.prompt_token + &body.completion_token;
+
+        let doc_id = match body.document_id.clone() {
+            Some(id) => Some(uuid::Uuid::parse_str(&id).unwrap()),
+            None => None,
+        };
+
         let data = (
             (prompts::user_id.eq(uuid)),
             (prompts::instruction.eq(&body.instruction)),
@@ -55,6 +68,7 @@ impl Prompt {
             (prompts::completion_text.eq(&body.completion_text)),
             (prompts::total_token.eq(&total_token)),
             (prompts::total_cost.eq(total_token as f64)),
+            (prompts::document_id.eq(&doc_id)),
         );
 
         diesel::insert_into(prompts::table)

@@ -9,4 +9,5 @@ pub struct NewPromptReq {
     pub completion_token: i32,
     pub prompt_text: String,
     pub completion_text: String,
+    pub document_id: Option<String>
 }
