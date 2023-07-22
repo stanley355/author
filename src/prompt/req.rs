@@ -11,3 +11,8 @@ pub struct NewPromptReq {
     pub completion_text: String,
     pub document_id: Option<String>
 }
+
+#[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
+pub struct FindPromptReq {
+    pub doc_id: Option<String>
+}

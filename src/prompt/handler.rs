@@ -1,10 +1,10 @@
-use super::model::Prompt;
 use super::req::NewPromptReq;
+use super::{model::Prompt, req::FindPromptReq};
 use crate::{
     db::PgPool,
     user::{model::User, req::ReduceBalanceReq, res::ErrorRes},
 };
-use actix_web::{post, web, HttpResponse};
+use actix_web::{get, post, web, HttpResponse};
 
 #[post("/")]
 async fn new_prompt(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> HttpResponse {
@@ -40,6 +40,34 @@ async fn new_premium_prompt(
     }
 }
 
+#[get("")]
+async fn find_document_prompts(
+    pool: web::Data<PgPool>,
+    query: web::Query<FindPromptReq>,
+) -> HttpResponse {
+    let doc_id = query.doc_id.clone();
+
+    match doc_id {
+        Some(id) => {
+            let document = Prompt::find_by_doc_id(&pool, &id);
+            match document {
+                Ok(doc) => HttpResponse::Ok().json(doc),
+                Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
+                    error: err.to_string(),
+                    message: "Document not found, please try again".to_string(),
+                }),
+            }
+        }
+        None => HttpResponse::BadRequest().json(ErrorRes {
+            error: "Missing or Wrong Parameter".to_string(),
+            message: "Missing or Wrong Parameter".to_string(),
+        }),
+    }
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(new_prompt).service(new_premium_prompt);
+    config
+        .service(new_prompt)
+        .service(new_premium_prompt)
+        .service(find_document_prompts);
 }

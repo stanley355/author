@@ -1,7 +1,7 @@
 use super::req::NewPromptReq;
 use crate::{db::PgPool, schema::prompts};
 use actix_web::web;
-use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl};
+use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl, QueryDsl};
 use serde::{Deserialize, Serialize};
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
@@ -74,5 +74,16 @@ impl Prompt {
         diesel::insert_into(prompts::table)
             .values(data)
             .get_result(&conn)
+    }
+
+    pub fn find_by_doc_id(
+        pool: &web::Data<PgPool>,
+        doc_id: &String,
+    ) -> QueryResult<Vec<Prompt>> {
+        let conn = pool.get().unwrap();
+        let doc_uuid = uuid::Uuid::parse_str(&doc_id).unwrap();
+        prompts::table
+            .filter(prompts::document_id.eq(doc_uuid))
+            .get_results::<Prompt>(&conn)
     }
 }
