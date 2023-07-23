@@ -26,3 +26,8 @@ pub struct UpdatePromptReq {
     pub prompt_text: String,
     pub completion_text: String,
 }
+
+#[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
+pub struct DeletePromptReq {
+    pub prompt_id: i32
+}

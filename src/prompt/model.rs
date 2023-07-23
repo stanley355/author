@@ -106,4 +106,12 @@ impl Prompt {
             .set(data)
             .get_result::<Prompt>(&conn)
     }
+
+    pub fn delete(pool: &web::Data<PgPool>, id: &i32) -> QueryResult<Prompt> {
+        let conn = pool.get().unwrap();
+
+        diesel::delete(prompts::table)
+            .filter(prompts::id.eq(id))
+            .get_result::<Prompt>(&conn)
+    }
 }
