@@ -2,7 +2,8 @@ use actix_web::web;
 use diesel::{ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl};
 use serde::{Deserialize, Serialize};
 
-use crate::db::PgPool;
+use crate::prompt::model::Prompt;
+use crate::{db::PgPool, schema::prompts};
 use crate::schema::documents;
 
 use super::req::{CreateDocumentReq, UpdateDocumentReq};
@@ -66,6 +67,15 @@ impl Document {
         diesel::delete(documents::table)
             .filter(documents::id.eq(uuid))
             .get_result::<Document>(&conn)
+    }
+
+    pub fn delete_child(pool: &web::Data<PgPool>, doc_id: &String) -> QueryResult<Prompt> {
+        let conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&doc_id).unwrap();
+
+        diesel::delete(prompts::table)
+            .filter(prompts::document_id.eq(uuid))
+            .get_result(&conn)
     }
 
     pub fn update_name(

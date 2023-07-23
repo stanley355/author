@@ -71,6 +71,7 @@ async fn delete_document(
     query: web::Query<DeleteDocumentReq>,
 ) -> HttpResponse {
     let id = query.id.clone();
+    let _document_child = Document::delete_child(&pool, &id);
     let document = Document::delete(&pool, &id);
 
     match document {
