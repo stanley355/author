@@ -1,4 +1,4 @@
-use super::req::NewPromptReq;
+use super::req::{NewPromptReq, UpdatePromptReq};
 use crate::{db::PgPool, schema::prompts};
 use actix_web::web;
 use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl, QueryDsl};
@@ -85,5 +85,25 @@ impl Prompt {
         prompts::table
             .filter(prompts::document_id.eq(doc_uuid))
             .get_results::<Prompt>(&conn)
+    }
+
+    pub fn update_prompt(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<UpdatePromptReq>,
+    ) -> QueryResult<Prompt> {
+        let conn = pool.get().unwrap();
+
+        let data = (
+            (prompts::instruction.eq(&body.instruction)),
+            (prompts::prompt_token.eq(&body.prompt_token)),
+            (prompts::completion_token.eq(&body.completion_token)),
+            (prompts::prompt_text.eq(&body.prompt_text)),
+            (prompts::completion_text.eq(&body.completion_text)),
+        );
+
+        diesel::update(prompts::table)
+            .filter(prompts::id.eq(&body.prompt_id))
+            .set(data)
+            .get_result::<Prompt>(&conn)
     }
 }

@@ -1,10 +1,10 @@
-use super::req::NewPromptReq;
+use super::req::{NewPromptReq, UpdatePromptReq};
 use super::{model::Prompt, req::FindPromptReq};
 use crate::{
     db::PgPool,
     user::{model::User, req::ReduceBalanceReq, res::ErrorRes},
 };
-use actix_web::{get, post, web, HttpResponse};
+use actix_web::{get, post, put, web, HttpResponse};
 
 #[post("/")]
 async fn new_prompt(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> HttpResponse {
@@ -65,9 +65,22 @@ async fn find_document_prompts(
     }
 }
 
+#[put("/")]
+async fn update_prompt(pool: web::Data<PgPool>, body: web::Json<UpdatePromptReq>) -> HttpResponse {
+    let prompt = Prompt::update_prompt(&pool, &body);
+    match prompt {
+        Ok(prom) => HttpResponse::Ok().json(prom),
+        Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
+            error: err.to_string(),
+            message: "Fail to update, please try again".to_string(),
+        }),
+    }
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(new_prompt)
         .service(new_premium_prompt)
-        .service(find_document_prompts);
+        .service(find_document_prompts)
+        .service(update_prompt);
 }
