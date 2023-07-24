@@ -1,10 +1,10 @@
-use super::model::Prompt;
-use super::req::NewPromptReq;
+use super::req::{DeletePromptReq, NewPromptReq, UpdatePromptReq};
+use super::{model::Prompt, req::FindPromptReq};
 use crate::{
     db::PgPool,
     user::{model::User, req::ReduceBalanceReq, res::ErrorRes},
 };
-use actix_web::{post, web, HttpResponse};
+use actix_web::{delete, get, post, put, web, HttpResponse};
 
 #[post("/")]
 async fn new_prompt(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> HttpResponse {
@@ -40,6 +40,64 @@ async fn new_premium_prompt(
     }
 }
 
+#[get("")]
+async fn find_document_prompts(
+    pool: web::Data<PgPool>,
+    query: web::Query<FindPromptReq>,
+) -> HttpResponse {
+    let doc_id = query.doc_id.clone();
+
+    match doc_id {
+        Some(id) => {
+            let document = Prompt::find_by_doc_id(&pool, &id);
+            match document {
+                Ok(doc) => HttpResponse::Ok().json(doc),
+                Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
+                    error: err.to_string(),
+                    message: "Document not found, please try again".to_string(),
+                }),
+            }
+        }
+        None => HttpResponse::BadRequest().json(ErrorRes {
+            error: "Missing or Wrong Parameter".to_string(),
+            message: "Missing or Wrong Parameter".to_string(),
+        }),
+    }
+}
+
+#[put("/")]
+async fn update_prompt(pool: web::Data<PgPool>, body: web::Json<UpdatePromptReq>) -> HttpResponse {
+    let prompt = Prompt::update_prompt(&pool, &body);
+    match prompt {
+        Ok(prom) => HttpResponse::Ok().json(prom),
+        Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
+            error: err.to_string(),
+            message: "Fail to update, please try again".to_string(),
+        }),
+    }
+}
+
+#[delete("")]
+async fn delete_prompt(
+    pool: web::Data<PgPool>,
+    query: web::Query<DeletePromptReq>,
+) -> HttpResponse {
+    let result = Prompt::delete(&pool, &query.prompt_id);
+
+    match result {
+        Ok(prompt) => HttpResponse::Ok().json(prompt),
+        Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
+            error: err.to_string(),
+            message: "Fail to delete".to_string(),
+        }),
+    }
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(new_prompt).service(new_premium_prompt);
+    config
+        .service(new_prompt)
+        .service(new_premium_prompt)
+        .service(find_document_prompts)
+        .service(update_prompt)
+        .service(delete_prompt);
 }
