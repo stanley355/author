@@ -1,6 +1,16 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    documents (id) {
+        id -> Uuid,
+        user_id -> Uuid,
+        created_at -> Timestamp,
+        name -> Varchar,
+        doc_type -> Varchar,
+    }
+}
+
+diesel::table! {
     prompts (id) {
         id -> Int4,
         user_id -> Uuid,
@@ -11,6 +21,8 @@ diesel::table! {
         completion_text -> Varchar,
         total_token -> Int4,
         total_cost -> Float8,
+        instruction -> Varchar,
+        document_id -> Nullable<Uuid>,
     }
 }
 
@@ -44,10 +56,13 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(documents -> users (user_id));
+diesel::joinable!(prompts -> documents (document_id));
 diesel::joinable!(prompts -> users (user_id));
 diesel::joinable!(topups -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    documents,
     prompts,
     referral,
     topups,
