@@ -121,8 +121,8 @@ impl User {
         let friend_uuid = uuid::Uuid::parse_str(&body.friend_id).unwrap();
 
         diesel::update(users::table)
-            .filter(users::id.eq(uuid).or(users::id.eq(friend_uuid)))
-            .set(users::dsl::balance.eq(users::dsl::balance + 5000 as f64))
+            .filter((users::id.eq(uuid).or(users::id.eq(friend_uuid))).and(users::balance.le(5000.0)))
+            .set(users::dsl::balance.eq(users::dsl::balance + 5000.0))
             .get_result(conn)
     }
 
