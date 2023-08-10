@@ -15,13 +15,6 @@ pub struct DokuNotifTransaction{
 }
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
-pub struct DokuNotifOrder {
-    pub invoice_number: String,
-    pub amount: i32,
-}
-
-#[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct DokuNotifReq {
     pub transaction: DokuNotifTransaction,
-    pub order: DokuNotifOrder,
 }
