@@ -3,6 +3,11 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
+pub struct FindActiveSubscriptionReq {
+    pub user_id: String,
+}
+
+#[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct NewSubscriptionReq {
     pub topup_id: uuid::Uuid,
     pub user_id: uuid::Uuid,

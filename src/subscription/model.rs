@@ -2,7 +2,9 @@ use super::req::{DurationType, NewSubscriptionReq};
 use crate::{db::PgPool, schema::subscriptions, topup::req::DokuNotifReq};
 use actix_web::web;
 use chrono::{Duration, NaiveDateTime, Utc};
-use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl};
+use diesel::{
+    BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
@@ -61,5 +63,23 @@ impl Subscription {
             .filter(subscriptions::topup_id.eq(topup_id))
             .set(subscriptions::paid.eq(true))
             .get_result(&conn)
+    }
+
+    // select * from subscriptions where paid=true order by created_at DESC limit 1;
+    pub fn find_active_subscription(
+        pool: &web::Data<PgPool>,
+        user_id: &String,
+    ) -> QueryResult<Subscription> {
+        let conn = pool.get().unwrap();
+
+        let uuid = uuid::Uuid::parse_str(user_id).unwrap();
+        subscriptions::table
+            .filter(
+                subscriptions::user_id
+                    .eq(uuid)
+                    .and(subscriptions::paid.eq(true)),
+            )
+            .order_by(subscriptions::created_at.desc())
+            .get_result::<Subscription>(&conn)
     }
 }
