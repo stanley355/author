@@ -38,10 +38,7 @@ async fn new_topup_subscriptions(
             let subscription_result = Subscription::new(&pool, &subscription_payload);
 
             match subscription_result {
-                Ok(sub) => {
-                    println!("{:?}", sub);
-                    HttpResponse::Ok().json(topup)
-                }
+                Ok(_) => HttpResponse::Ok().json(topup),
                 Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
                     error: err.to_string(),
                     message: "Internal Server error".to_string(),
@@ -60,23 +57,35 @@ async fn process_doku_notification(
     pool: web::Data<PgPool>,
     body: web::Json<DokuNotifReq>,
 ) -> HttpResponse {
-    let result = TopUp::verify_doku_paid_status(&pool, &body);
+    let topup_result = TopUp::verify_doku_paid_status(&pool, &body);
 
-    match result {
+    match topup_result {
         Ok(topup) => {
-            let balance_req = IncreaseBalanceReq {
-                user_id: topup.user_id.to_string(),
-                increase_amount: topup.topup_amount,
-            };
+            if topup.topup_type == "subscription" {
+                let subcription_res = Subscription::verify_subscription_paid_status(&pool, &body);
 
-            let balance_res = User::increase_balance(&pool, &balance_req);
+                match subcription_res {
+                    Ok(sub) => {HttpResponse::Ok().json(sub)},
+                    Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
+                        error: err.to_string(),
+                        message: "Internal Server error".to_string(),
+                    }),
+                }
+            } else {
+                let balance_req = IncreaseBalanceReq {
+                    user_id: topup.user_id.to_string(),
+                    increase_amount: topup.topup_amount,
+                };
 
-            match balance_res {
-                Ok(_) => HttpResponse::Ok().json(topup),
-                Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
-                    error: err.to_string(),
-                    message: "Internal Server error".to_string(),
-                }),
+                let balance_res = User::increase_balance(&pool, &balance_req);
+
+                match balance_res {
+                    Ok(_) => HttpResponse::Ok().json(topup),
+                    Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
+                        error: err.to_string(),
+                        message: "Internal Server error".to_string(),
+                    }),
+                }
             }
         }
         Err(err) => HttpResponse::InternalServerError().json(ErrorRes {

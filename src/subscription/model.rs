@@ -1,10 +1,8 @@
 use super::req::{DurationType, NewSubscriptionReq};
-use crate::{db::PgPool, schema::subscriptions};
+use crate::{db::PgPool, schema::subscriptions, topup::req::DokuNotifReq};
 use actix_web::web;
 use chrono::{Duration, NaiveDateTime, Utc};
-use diesel::{
-    BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
-};
+use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl};
 use serde::{Deserialize, Serialize};
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
@@ -50,5 +48,18 @@ impl Subscription {
             .checked_add_signed(Duration::days(days))
             .unwrap();
         return end_time.naive_utc();
+    }
+
+    pub fn verify_subscription_paid_status(
+        pool: &web::Data<PgPool>,
+        body: &DokuNotifReq,
+    ) -> QueryResult<Subscription> {
+        let conn = pool.get().unwrap();
+        let topup_id = uuid::Uuid::parse_str(&body.transaction.original_request_id).unwrap();
+
+        diesel::update(subscriptions::table)
+            .filter(subscriptions::topup_id.eq(topup_id))
+            .set(subscriptions::paid.eq(true))
+            .get_result(&conn)
     }
 }
