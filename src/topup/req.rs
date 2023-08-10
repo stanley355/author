@@ -6,7 +6,13 @@ use serde::{Deserialize, Serialize};
 pub struct TopUpReq {
     pub user_id: String,
     pub topup_amount: f64,
-    pub subscription: Option<DurationType>,
+}
+
+#[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
+pub struct TopUpSubscriptionReq {
+    pub user_id: String,
+    pub topup_amount: f64,
+    pub subscription_duration_type: DurationType,
 }
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]

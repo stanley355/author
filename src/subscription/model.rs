@@ -22,13 +22,12 @@ pub struct Subscription {
 impl Subscription {
     pub fn new(pool: &web::Data<PgPool>, body: &NewSubscriptionReq) -> QueryResult<Subscription> {
         let conn = pool.get().unwrap();
-        let user_id = uuid::Uuid::parse_str(&body.user_id).unwrap();
 
         let end_timestamp = Self::calc_end_timestamp(&body.duration_type);
 
         let data = (
             (subscriptions::topup_id.eq(&body.topup_id)),
-            (subscriptions::user_id.eq(user_id)),
+            (subscriptions::user_id.eq(&body.user_id)),
             (subscriptions::end_at.eq(end_timestamp)),
             (subscriptions::duration_type.eq(body.duration_type.to_string())),
         );

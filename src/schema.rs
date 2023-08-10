@@ -55,6 +55,7 @@ diesel::table! {
         created_at -> Timestamp,
         topup_amount -> Float8,
         paid -> Bool,
+        topup_type -> Varchar,
     }
 }
 
