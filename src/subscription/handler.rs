@@ -12,9 +12,9 @@ async fn find_active_subscription(
 
     match result {
         Ok(topup) => HttpResponse::Ok().json(topup),
-        Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
+        Err(err) => HttpResponse::NotFound().json(ErrorRes {
             error: err.to_string(),
-            message: "Internal Server error".to_string(),
+            message: "Subscription Not Found".to_string(),
         }),
     }
 }
