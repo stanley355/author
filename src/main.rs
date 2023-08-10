@@ -14,6 +14,7 @@ mod schema;
 mod topup;
 mod user;
 mod util;
+mod subscription;
 
 async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
     HttpServer::new(move || {
