@@ -39,11 +39,11 @@ diesel::table! {
     subscriptions (id) {
         id -> Uuid,
         user_id -> Uuid,
+        topup_id -> Uuid,
         created_at -> Timestamp,
         start_at -> Timestamp,
         end_at -> Timestamp,
         duration_type -> Varchar,
-        amount -> Float8,
         paid -> Bool,
     }
 }
@@ -72,6 +72,7 @@ diesel::table! {
 diesel::joinable!(documents -> users (user_id));
 diesel::joinable!(prompts -> documents (document_id));
 diesel::joinable!(prompts -> users (user_id));
+diesel::joinable!(subscriptions -> topups (topup_id));
 diesel::joinable!(subscriptions -> users (user_id));
 diesel::joinable!(topups -> users (user_id));
 

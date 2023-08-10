@@ -11,27 +11,26 @@ use serde::{Deserialize, Serialize};
 pub struct Subscription {
     pub id: uuid::Uuid,
     pub user_id: uuid::Uuid,
+    pub topup_id: uuid::Uuid,
     pub created_at: chrono::NaiveDateTime,
     pub start_at: chrono::NaiveDateTime,
     pub end_at: chrono::NaiveDateTime,
     pub duration_type: String,
-    pub amount: f64,
     pub paid: bool,
 }
 
 impl Subscription {
     pub fn new(pool: &web::Data<PgPool>, body: &NewSubscriptionReq) -> QueryResult<Subscription> {
         let conn = pool.get().unwrap();
-        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
+        let user_id = uuid::Uuid::parse_str(&body.user_id).unwrap();
 
         let end_timestamp = Self::calc_end_timestamp(&body.duration_type);
-        let amount = Self::calc_subscription_amount(&body.duration_type);
 
         let data = (
-            (subscriptions::user_id.eq(uuid)),
+            (subscriptions::topup_id.eq(&body.topup_id)),
+            (subscriptions::user_id.eq(user_id)),
             (subscriptions::end_at.eq(end_timestamp)),
             (subscriptions::duration_type.eq(body.duration_type.to_string())),
-            (subscriptions::amount.eq(amount)),
         );
 
         diesel::insert_into(subscriptions::table)
@@ -52,14 +51,5 @@ impl Subscription {
             .checked_add_signed(Duration::days(days))
             .unwrap();
         return end_time.naive_utc();
-    }
-
-    fn calc_subscription_amount(duration_type: &DurationType) -> f64 {
-        match duration_type {
-            DurationType::Monthly => 25000.,
-            DurationType::Quarterly => 80000.,
-            DurationType::HalfYearly => 150000.,
-            DurationType::Yearly => 299000.,
-        }
     }
 }

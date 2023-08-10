@@ -4,6 +4,7 @@ use std::fmt;
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct NewSubscriptionReq {
+    pub topup_id: uuid::Uuid,
     pub user_id: String,
     pub duration_type: DurationType,
 }
