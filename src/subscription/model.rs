@@ -1,8 +1,5 @@
 use super::req::{DurationType, NewSubscriptionReq};
-use crate::{
-    db::PgPool,
-    schema::{referral, subscriptions},
-};
+use crate::{db::PgPool, schema::subscriptions};
 use actix_web::web;
 use chrono::{Duration, NaiveDateTime, Utc};
 use diesel::{
