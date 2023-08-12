@@ -11,6 +11,7 @@ mod document;
 mod prompt;
 mod referral;
 mod schema;
+mod subscription;
 mod topup;
 mod user;
 mod util;
@@ -25,6 +26,7 @@ async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
             .service(web::scope("/v1/topups").configure(topup::handler::route))
             .service(web::scope("/v1/referral").configure(referral::handler::route))
             .service(web::scope("/v1/documents").configure(document::handler::route))
+            .service(web::scope("/v1/subscriptions").configure(subscription::handler::route))
     })
     .bind(address)?
     .run()

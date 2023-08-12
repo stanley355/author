@@ -36,12 +36,26 @@ diesel::table! {
 }
 
 diesel::table! {
+    subscriptions (id) {
+        id -> Uuid,
+        user_id -> Uuid,
+        topup_id -> Uuid,
+        created_at -> Timestamp,
+        start_at -> Timestamp,
+        end_at -> Timestamp,
+        duration_type -> Varchar,
+        paid -> Bool,
+    }
+}
+
+diesel::table! {
     topups (id) {
         id -> Uuid,
         user_id -> Uuid,
         created_at -> Timestamp,
         topup_amount -> Float8,
         paid -> Bool,
+        topup_type -> Varchar,
     }
 }
 
@@ -59,12 +73,15 @@ diesel::table! {
 diesel::joinable!(documents -> users (user_id));
 diesel::joinable!(prompts -> documents (document_id));
 diesel::joinable!(prompts -> users (user_id));
+diesel::joinable!(subscriptions -> topups (topup_id));
+diesel::joinable!(subscriptions -> users (user_id));
 diesel::joinable!(topups -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     documents,
     prompts,
     referral,
+    subscriptions,
     topups,
     users,
 );
