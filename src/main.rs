@@ -2,11 +2,10 @@
 extern crate diesel;
 
 use actix_cors::Cors;
-use actix_web::{web, App, HttpServer};
 use actix_web::middleware::Logger;
+use actix_web::{web, App, HttpServer};
 use dotenv::dotenv;
 use std::env;
-use util::bearer;
 
 mod db;
 mod prompt;
@@ -17,11 +16,11 @@ mod user;
 mod util;
 
 async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
-
     HttpServer::new(move || {
         App::new()
             .wrap(Cors::default())
             .wrap(Logger::default())
+            .wrap(util::bearer::BearerTokenMiddleware)
             .app_data(web::Data::new(pool.clone()))
             .service(web::scope("/v1/users").configure(user::handler::route))
             .service(web::scope("/v1/prompts").configure(prompt::handler::route))
