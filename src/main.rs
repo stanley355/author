@@ -3,7 +3,7 @@ extern crate diesel;
 
 use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
-use actix_web_httpauth::middleware::HttpAuthentication;
+use actix_web::middleware::Logger;
 use dotenv::dotenv;
 use std::env;
 use util::bearer;
@@ -19,10 +19,9 @@ mod util;
 async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
 
     HttpServer::new(move || {
-        let bearer_auth = HttpAuthentication::bearer(bearer::bearer_validator);
         App::new()
             .wrap(Cors::default())
-            .wrap(bearer_auth)
+            .wrap(Logger::default())
             .app_data(web::Data::new(pool.clone()))
             .service(web::scope("/v1/users").configure(user::handler::route))
             .service(web::scope("/v1/prompts").configure(prompt::handler::route))
