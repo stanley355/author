@@ -25,6 +25,7 @@ diesel::table! {
         end_at -> Timestamp,
         duration_type -> Varchar,
         paid -> Bool,
+        is_paylater -> Nullable<Bool>,
     }
 }
 
