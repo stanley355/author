@@ -17,6 +17,7 @@ pub struct Subscription {
     pub end_at: chrono::NaiveDateTime,
     pub duration_type: String,
     pub paid: bool,
+    pub is_paylater: bool,
 }
 
 impl Subscription {
@@ -81,5 +82,23 @@ impl Subscription {
             )
             .order_by(subscriptions::created_at.desc())
             .get_result::<Subscription>(&conn)
+    }
+
+    pub fn new_paylater(pool: &web::Data<PgPool>, body: &NewSubscriptionReq) -> QueryResult<Subscription> {
+        let conn = pool.get().unwrap();
+
+        let end_timestamp = Self::calc_end_timestamp(&body.duration_type);
+
+        let data = (
+            (subscriptions::topup_id.eq(&body.topup_id)),
+            (subscriptions::user_id.eq(&body.user_id)),
+            (subscriptions::end_at.eq(end_timestamp)),
+            (subscriptions::duration_type.eq(body.duration_type.to_string())),
+            (subscriptions::is_paylater.eq(true))
+        );
+
+        diesel::insert_into(subscriptions::table)
+            .values(data)
+            .get_result(&conn)
     }
 }

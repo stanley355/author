@@ -4,7 +4,9 @@ use crate::subscription::model::Subscription;
 use crate::subscription::req::NewSubscriptionReq;
 use crate::user::model::User;
 use crate::user::req::IncreaseBalanceReq;
+use crate::util::web_response::WebResponse;
 use crate::{db::PgPool, user::res::ErrorRes};
+use actix_web::http::StatusCode;
 use actix_web::{post, web, HttpResponse};
 
 #[post("/")]
@@ -65,7 +67,7 @@ async fn process_doku_notification(
                 let subcription_res = Subscription::verify_subscription_paid_status(&pool, &body);
 
                 match subcription_res {
-                    Ok(sub) => {HttpResponse::Ok().json(sub)},
+                    Ok(sub) => HttpResponse::Ok().json(sub),
                     Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
                         error: err.to_string(),
                         message: "Internal Server error".to_string(),
@@ -95,9 +97,57 @@ async fn process_doku_notification(
     }
 }
 
+#[post("/paylater/")]
+async fn new_topup_paylater(
+    pool: web::Data<PgPool>,
+    body: web::Json<TopUpSubscriptionReq>,
+) -> HttpResponse {
+    let topup_result = TopUp::new_subscription(&pool, &body);
+
+    match topup_result {
+        Ok(topup) => {
+            let subscription_payload = NewSubscriptionReq {
+                topup_id: topup.id.clone(),
+                user_id: topup.user_id.clone(),
+                duration_type: body.subscription_duration_type.clone(),
+            };
+
+            let subscription_result = Subscription::new_paylater(&pool, &subscription_payload);
+
+            match subscription_result {
+                Ok(subscription) => {
+                    let web_res = WebResponse {
+                        status: StatusCode::CREATED.as_u16(),
+                        message: "".to_string(),
+                        data: subscription,
+                    };
+                    HttpResponse::Ok().json(web_res)
+                }
+                Err(err) => {
+                    let web_res = WebResponse {
+                        status: StatusCode::BAD_REQUEST.as_u16(),
+                        message: err.to_string(),
+                        data: "",
+                    };
+                    HttpResponse::InternalServerError().json(web_res)
+                }
+            }
+        }
+        Err(err) => {
+            let web_res = WebResponse {
+                status: StatusCode::BAD_REQUEST.as_u16(),
+                message: err.to_string(),
+                data: "",
+            };
+            HttpResponse::InternalServerError().json(web_res)
+        }
+    }
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(new_topup)
         .service(process_doku_notification)
-        .service(new_topup_subscriptions);
+        .service(new_topup_subscriptions)
+        .service(new_topup_paylater);
 }
