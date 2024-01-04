@@ -4,7 +4,7 @@ use crate::subscription::model::Subscription;
 use crate::subscription::req::NewSubscriptionReq;
 use crate::user::model::User;
 use crate::user::req::IncreaseBalanceReq;
-use crate::util::web_response::WebResponse;
+use crate::util::web_response::WebErrorResponse;
 use crate::{db::PgPool, user::res::ErrorRes};
 use actix_web::http::StatusCode;
 use actix_web::{post, web, HttpResponse};
@@ -115,31 +115,24 @@ async fn new_topup_paylater(
             let subscription_result = Subscription::new_paylater(&pool, &subscription_payload);
 
             match subscription_result {
-                Ok(subscription) => {
-                    let web_res = WebResponse {
-                        status: StatusCode::CREATED.as_u16(),
-                        message: "".to_string(),
-                        data: subscription,
-                    };
-                    HttpResponse::Ok().json(web_res)
-                }
+                Ok(subscription) => HttpResponse::Created().json(subscription),
                 Err(err) => {
-                    let web_res = WebResponse {
+                    let web_res = WebErrorResponse {
                         status: StatusCode::BAD_REQUEST.as_u16(),
-                        message: err.to_string(),
-                        data: "",
+                        error: err.to_string(),
+                        message: "Fail to create subscription".to_string(),
                     };
-                    HttpResponse::InternalServerError().json(web_res)
+                    HttpResponse::BadRequest().json(web_res)
                 }
             }
         }
         Err(err) => {
-            let web_res = WebResponse {
+            let web_res = WebErrorResponse {
                 status: StatusCode::BAD_REQUEST.as_u16(),
-                message: err.to_string(),
-                data: "",
+                error: err.to_string(),
+                message: "Fail to create topup".to_string(),
             };
-            HttpResponse::InternalServerError().json(web_res)
+            HttpResponse::BadRequest().json(web_res)
         }
     }
 }

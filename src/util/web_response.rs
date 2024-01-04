@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct WebResponse<T> {
+pub struct WebErrorResponse {
     pub status: u16,
+    pub error: String,
     pub message: String,
-    pub data: T
 }
