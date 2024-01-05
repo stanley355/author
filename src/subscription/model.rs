@@ -76,15 +76,20 @@ impl Subscription {
         let uuid = uuid::Uuid::parse_str(user_id).unwrap();
         subscriptions::table
             .filter(
-                subscriptions::user_id
-                    .eq(uuid)
-                    .and(subscriptions::paid.eq(true)),
+                subscriptions::user_id.eq(uuid).and(
+                    subscriptions::paid
+                        .eq(true)
+                        .or(subscriptions::is_paylater.eq(true)),
+                ),
             )
             .order_by(subscriptions::created_at.desc())
             .get_result::<Subscription>(&conn)
     }
 
-    pub fn new_paylater(pool: &web::Data<PgPool>, body: &NewSubscriptionReq) -> QueryResult<Subscription> {
+    pub fn new_paylater(
+        pool: &web::Data<PgPool>,
+        body: &NewSubscriptionReq,
+    ) -> QueryResult<Subscription> {
         let conn = pool.get().unwrap();
 
         let end_timestamp = Self::calc_end_timestamp(&body.duration_type);
@@ -94,7 +99,7 @@ impl Subscription {
             (subscriptions::user_id.eq(&body.user_id)),
             (subscriptions::end_at.eq(end_timestamp)),
             (subscriptions::duration_type.eq(body.duration_type.to_string())),
-            (subscriptions::is_paylater.eq(true))
+            (subscriptions::is_paylater.eq(true)),
         );
 
         diesel::insert_into(subscriptions::table)
