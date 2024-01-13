@@ -16,6 +16,7 @@ pub struct NewSubscriptionReq {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum DurationType {
+    Biweekly,
     Monthly,
     Quarterly,
     HalfYearly,
@@ -25,6 +26,7 @@ pub enum DurationType {
 impl fmt::Display for DurationType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            DurationType::Biweekly=> write!(f, "biweekly"),
             DurationType::Monthly => write!(f, "monthly"),
             DurationType::Quarterly => write!(f, "quarterly"),
             DurationType::HalfYearly => write!(f, "half_yearly"),
