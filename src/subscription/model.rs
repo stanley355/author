@@ -40,6 +40,7 @@ impl Subscription {
 
     fn calc_end_timestamp(duration_type: &DurationType) -> NaiveDateTime {
         let days = match duration_type {
+            DurationType::Biweekly=> 14,
             DurationType::Monthly => 30,
             DurationType::Quarterly => 90,
             DurationType::HalfYearly => 180,
