@@ -5,7 +5,7 @@ FROM rust:latest as builder
 WORKDIR /app
 
 # Copy the project files into the container
-COPY . .
+COPY . /app
 
 # Install diesel CLI for migration
 RUN cargo install diesel_cli --no-default-features --features postgres
