@@ -82,8 +82,8 @@ RUN cargo build --release
 
 FROM scratch
 COPY --from=OS_BUILDER /rootfs /
-COPY --from=APP_BUILDER /usr/local/src/target/release/rust-axum /usr/local/bin/rust-axum
+COPY --from=APP_BUILDER /usr/local/src/target/release/author /usr/local/bin/author
 WORKDIR /usr/local/bin
 
-ENTRYPOINT [ "./rust-axum" ]
+ENTRYPOINT [ "./author" ]
 
