@@ -11,7 +11,7 @@ COPY . .
 RUN cargo install diesel_cli --no-default-features --features postgres
 
 # Build the project with cargo
-RUN cargo build --release
+RUN cargo build --release --all-features
 
 # Use a smaller base image for the final container
 FROM debian:bullseye-slim
@@ -19,7 +19,7 @@ FROM debian:bullseye-slim
 # Copy the binary from the previous build stage
 COPY --from=builder /app/target/release/author .
 
-RUN apt update && apt install -y openssl libpq-dev pkg-config
+# RUN apt update && apt install -y openssl libpq-dev pkg-config
 
 EXPOSE 8080
 
