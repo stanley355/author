@@ -19,7 +19,7 @@ FROM debian:bullseye-slim
 # Copy the binary from the previous build stage
 COPY --from=builder /app/target/release/author .
 
-RUN apt update && apt install -y openssl libpq-dev pkg-config
+# RUN apt update && apt install -y openssl libpq-dev pkg-config
 
 EXPOSE 8080
 
