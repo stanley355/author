@@ -5,7 +5,7 @@ FROM rust:latest as builder
 WORKDIR /app
 
 # Copy the project files into the container
-COPY . /app
+COPY . .
 
 # Install diesel CLI for migration
 RUN cargo install diesel_cli --no-default-features --features postgres
@@ -17,13 +17,10 @@ RUN cargo build --release --all-features
 FROM debian:bullseye-slim
 
 # Copy the binary from the previous build stage
-# COPY --from=builder /app/target/release/author .
-COPY --from=builder /app .
+COPY --from=builder /app/target/release/author .
 
 # RUN apt update && apt install -y openssl libpq-dev pkg-config
-RUN apt update 
-RUN apt upgrade
-RUN apt install -y libpq-dev
+RUN apt update && apt install -y libpq-dev
 
 EXPOSE 8080
 
