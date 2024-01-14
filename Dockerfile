@@ -31,7 +31,7 @@
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get upgrade -y
-RUN apt-get install libpq-dev
+RUN apt-get install libpq-dev -y
 
 RUN apt-get install -y -q build-essential curl
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
