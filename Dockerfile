@@ -47,7 +47,7 @@
 # ENTRYPOINT /app/target/release/author
 
 FROM ubuntu:22.04 as OS_BUILDER
-RUN apt-get update && apt-get update && apt-get install -y wget
+RUN apt-get update && apt-get update && apt-get install -y wget libpq-dev
 WORKDIR /tmp
 RUN wget https://go.dev/dl/go1.21.1.linux-amd64.tar.gz
 RUN tar -xvf go1.21.1.linux-amd64.tar.gz
