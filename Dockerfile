@@ -12,5 +12,6 @@ COPY Cargo.toml /app/
 COPY Cargo.lock /app/
 RUN cargo build --release --all-features
 
-EXPOSE 8080
+# EXPOSE 8080
+EXPOSE 8000
 ENTRYPOINT /app/target/release/author
