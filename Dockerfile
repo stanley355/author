@@ -29,7 +29,7 @@ RUN cargo build --release --all-features
 # Final Stage
 # ------------------------------------------------------------------------------
 
-FROM gcr.io/distroless/cc
+FROM debian:bookworm-slim
 
 WORKDIR /runner/
 COPY --from=cargo-build /app/target/release/author /runner
