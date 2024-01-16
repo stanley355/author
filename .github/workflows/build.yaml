@@ -41,4 +41,5 @@ jobs:
         with:
           context: .
           push: true
+          platforms: amd64, x86_64
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/author:latest
