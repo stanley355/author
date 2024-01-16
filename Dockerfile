@@ -35,6 +35,7 @@ WORKDIR /runner/
 
 COPY --from=cargo-build /app/target/release/author /runner
 
-RUN apt install libpq5 -y
+RUN apt install python3-psycopg2
+# RUN apt install libpq5 -y
 
 ENTRYPOINT /runner/author
