@@ -36,5 +36,5 @@ COPY --from=cargo-build /app/target/release/author /runner
 
 RUN apk add libpq-dev
 
-ENTRYPOINT /app/author
+ENTRYPOINT /runner/author
 # CMD ["myapp"]
