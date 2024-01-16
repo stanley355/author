@@ -17,31 +17,24 @@
 # COPY --from=builder /app .
 # EXPOSE 8080
 # ENTRYPOINT /app/target/release/author
+FROM rust:latest as cargo-build
 
-FROM rust:latest AS builder
+WORKDIR /app
 
-RUN rustup target add x86_64-unknown-linux-musl
-RUN apt update && apt install -y musl-tools musl-dev
-RUN update-ca-certificates
+COPY . /app/
 
-WORKDIR /app-builder
+RUN cargo build --release --all-features
 
-COPY ./ .
+# ------------------------------------------------------------------------------
+# Final Stage
+# ------------------------------------------------------------------------------
 
-RUN cargo build --target x86_64-unknown-linux-musl --release
+FROM alpine:latest
 
-####################################################################################################
-## Final image
-####################################################################################################
-FROM scratch
+WORKDIR /runner/
+COPY --from=cargo-build /app/target/release/author /runner
 
-WORKDIR /app-runner
+RUN apt-get install libpq-dev -y
 
-# Copy our build
-COPY --from=builder /app-builder/target/x86_64-unknown-linux-musl/release/author ./
-
-RUN apt install -y libpq-dev
-
-EXPOSE 8080
-
-ENTRYPOINT /app-runner/author
+ENTRYPOINT /app/target/release/author
+# CMD ["myapp"]
