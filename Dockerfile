@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:22.04 as builder
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install libpq-dev -y
 
