@@ -29,13 +29,12 @@ RUN cargo build --release --all-features
 # Final Stage
 # ------------------------------------------------------------------------------
 
-FROM debian:bookworm-slim
+FROM ubuntu:latest
 
 WORKDIR /runner/
 
 COPY --from=cargo-build /app/target/release/author /runner
 
-RUN apt install python3-psycopg2
-# RUN apt install libpq5 -y
+RUN apt install libpq-dev -y
 
 ENTRYPOINT /runner/author
