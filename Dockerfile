@@ -35,6 +35,6 @@ WORKDIR /runner/
 
 COPY --from=cargo-build /app/target/release/author /runner
 
-RUN apt install libpq-dev -y
+RUN apt install libpq5 -y
 
 ENTRYPOINT /runner/author
