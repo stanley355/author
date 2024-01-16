@@ -34,7 +34,7 @@ FROM alpine:latest
 WORKDIR /runner/
 COPY --from=cargo-build /app/target/release/author /runner
 
-# RUN apt-get install libpq-dev -y
+RUN apk add libpq-dev -y
 
 ENTRYPOINT /app/target/release/author
 # CMD ["myapp"]
