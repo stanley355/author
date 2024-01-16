@@ -9,5 +9,11 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 WORKDIR /app
 COPY . /app/
 RUN cargo build --release --all-features
+# EXPOSE 8080
+# ENTRYPOINT /app/target/release/author
+
+FROM rust:1.75 as runner
+WORKDIR /app
+COPY --from=builder /app .
 EXPOSE 8080
 ENTRYPOINT /app/target/release/author
