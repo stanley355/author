@@ -18,19 +18,17 @@
 # EXPOSE 8080
 # ENTRYPOINT /app/target/release/author
 
-####################################################################################################
-## Builder
-####################################################################################################
 FROM rust:latest AS builder
 
-RUN apt update && apt install -y libpq-dev musl-tools musl-dev
+RUN rustup target add x86_64-unknown-linux-musl
+RUN apt update && apt install -y musl-tools musl-dev
 RUN update-ca-certificates
 
 WORKDIR /app-builder
 
 COPY ./ .
 
-RUN cargo build --release --all-features
+RUN cargo build --target x86_64-unknown-linux-musl --release
 
 ####################################################################################################
 ## Final image
@@ -40,10 +38,10 @@ FROM scratch
 WORKDIR /app-runner
 
 # Copy our build
-COPY --from=builder /app-builder/target/release/author ./app-runner/
+COPY --from=builder /app-builder/target/x86_64-unknown-linux-musl/release/author ./
+
 RUN apt install -y libpq-dev
 
 EXPOSE 8080
-ENTRYPOINT /app-runner/author
 
-# CMD ["/myip/myip"]
+ENTRYPOINT /app-runner/author
