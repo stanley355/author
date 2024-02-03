@@ -1,5 +1,5 @@
+use super::model::Prompt;
 use super::req::{DeletePromptReq, NewPromptReq, UpdatePromptReq};
-use super::{model::Prompt};
 use crate::{
     db::PgPool,
     user::{model::User, req::ReduceBalanceReq, res::ErrorRes},

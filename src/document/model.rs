@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{db::PgPool, schema::documents};
 
-use super::req::{FindDocumentReq, NewDocumentReq};
+use super::req::{FindDocumentReq, NewDocumentReq, UpdateDocumentReq};
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct Document {
@@ -58,6 +58,32 @@ impl Document {
                     .eq(user_id)
                     .and(documents::id.eq(document_id)),
             )
+            .get_result(&conn)
+    }
+
+    pub fn update_document(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<UpdateDocumentReq>,
+    ) -> QueryResult<Document> {
+        let conn = pool.get().unwrap();
+        let document_id = uuid::Uuid::parse_str(&body.id).unwrap();
+        let user_id = uuid::Uuid::parse_str(&body.user_id).unwrap();
+
+        let data = (
+            (documents::id.eq(&document_id)),
+            (documents::user_id.eq(&user_id)),
+            (documents::name.eq(&body.name)),
+            (documents::content.eq(&body.content)),
+            (documents::ai_completion.eq(&body.ai_completion)),
+        );
+
+        diesel::update(documents::table)
+            .filter(
+                documents::id
+                    .eq(document_id)
+                    .and(documents::user_id.eq(user_id)),
+            )
+            .set(data)
             .get_result(&conn)
     }
 }
