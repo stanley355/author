@@ -5,7 +5,6 @@ use diesel::{
 use serde::{Deserialize, Serialize};
 
 use crate::{db::PgPool, schema::documents};
-
 use super::req::{DeleteDocumentReq, FindDocumentReq, NewDocumentReq, UpdateDocumentReq};
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
@@ -16,7 +15,7 @@ pub struct Document {
     pub updated_at: chrono::NaiveDateTime,
     pub name: String,
     pub content: Option<String>,
-    pub ai_completion: Option<String>,
+    pub checkbot_completion: Option<String>,
 }
 
 impl Document {
@@ -74,7 +73,7 @@ impl Document {
             (documents::user_id.eq(&user_id)),
             (documents::name.eq(&body.name)),
             (documents::content.eq(&body.content)),
-            (documents::ai_completion.eq(&body.ai_completion)),
+            (documents::checkbot_completion.eq(&body.checkbot_completion)),
         );
 
         diesel::update(documents::table)

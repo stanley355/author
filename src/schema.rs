@@ -8,7 +8,7 @@ diesel::table! {
         updated_at -> Timestamp,
         name -> Varchar,
         content -> Nullable<Text>,
-        ai_completion -> Nullable<Text>,
+        checkbot_completion -> Nullable<Text>,
     }
 }
 

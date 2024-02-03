@@ -19,7 +19,7 @@ pub struct UpdateDocumentReq {
     pub user_id: String,
     pub name: String,
     pub content: Option<String>,
-    pub ai_completion: Option<String>,
+    pub checkbot_completion: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
