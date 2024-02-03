@@ -21,3 +21,9 @@ pub struct UpdateDocumentReq {
     pub content: Option<String>,
     pub ai_completion: Option<String>,
 }
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct DeleteDocumentReq {
+    pub user_id: String,
+    pub document_id: String,
+}

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{db::PgPool, schema::documents};
 
-use super::req::{FindDocumentReq, NewDocumentReq, UpdateDocumentReq};
+use super::req::{DeleteDocumentReq, FindDocumentReq, NewDocumentReq, UpdateDocumentReq};
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct Document {
@@ -84,6 +84,20 @@ impl Document {
                     .and(documents::user_id.eq(user_id)),
             )
             .set(data)
+            .get_result(&conn)
+    }
+
+    pub fn delete(pool: &web::Data<PgPool>, query: &DeleteDocumentReq) -> QueryResult<Document> {
+        let conn = pool.get().unwrap();
+        let document_id = uuid::Uuid::parse_str(&query.document_id).unwrap();
+        let user_id = uuid::Uuid::parse_str(&query.user_id).unwrap();
+
+        diesel::delete(documents::table)
+            .filter(
+                documents::id
+                    .eq(document_id)
+                    .and(documents::user_id.eq(user_id)),
+            )
             .get_result(&conn)
     }
 }
