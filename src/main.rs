@@ -8,6 +8,7 @@ use dotenv::dotenv;
 use std::env;
 
 mod db;
+mod document;
 mod prompt;
 mod schema;
 mod subscription;
@@ -26,6 +27,7 @@ async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
             .service(web::scope("/v1/prompts").configure(prompt::handler::route))
             .service(web::scope("/v1/topups").configure(topup::handler::route))
             .service(web::scope("/v1/subscriptions").configure(subscription::handler::route))
+            .service(web::scope("/v1/documents").configure(document::handler::route))
     })
     .bind(address)?
     .run()

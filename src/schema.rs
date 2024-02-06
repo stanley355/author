@@ -1,6 +1,18 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    documents (id) {
+        id -> Uuid,
+        user_id -> Uuid,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+        name -> Varchar,
+        content -> Nullable<Text>,
+        checkbot_completion -> Nullable<Text>,
+    }
+}
+
+diesel::table! {
     prompts (id) {
         id -> Int4,
         user_id -> Uuid,
@@ -51,12 +63,14 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(documents -> users (user_id));
 diesel::joinable!(prompts -> users (user_id));
 diesel::joinable!(subscriptions -> topups (topup_id));
 diesel::joinable!(subscriptions -> users (user_id));
 diesel::joinable!(topups -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    documents,
     prompts,
     subscriptions,
     topups,
