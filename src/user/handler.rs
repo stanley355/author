@@ -127,6 +127,32 @@ async fn update_password(pool: web::Data<PgPool>, body: web::Json<LoginReq>) -> 
     }
 }
 
+#[post("/forgot-password/")]
+async fn forgot_password(pool: web::Data<PgPool>, body: web::Json<ForgotPasswordReq>) -> HttpResponse {
+    let user_exist = User::find_by_email(&pool, &body.email);
+
+    // match user_exist {
+    //     Ok(user) => {
+    //         let update_result = User::update_password(&pool, body);
+
+    //         match update_result {
+    //             Ok(_) => {
+    //                 let token = User::create_login_token(user);
+    //                 HttpResponse::Ok().json(LoginTokenRes { token })
+    //             }
+    //             Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
+    //                 error: err.to_string(),
+    //                 message: "Something went wrong".to_string(),
+    //             }),
+    //         }
+    //     }
+    //     Err(err) => HttpResponse::BadRequest().json(ErrorRes {
+    //         error: err.to_string(),
+    //         message: "User doesn't exist".to_string(),
+    //     }),
+    // }
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(get_user)

@@ -37,3 +37,8 @@ pub struct ReduceBalanceReq{
     pub user_id: String,
     pub reduce_amount: f64,
 }
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct ForgotPasswordReq {
+    pub email: String
+}
