@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use super::req::{GmailLoginReq, IncreaseBalanceReq, ReduceBalanceReq};
-use super::res::NoPasswordUser;
 use crate::db::PgPool;
 use crate::schema::users;
 use crate::util::password::Password;
@@ -16,6 +15,15 @@ pub struct User {
     pub fullname: String,
     pub email: String,
     pub password: String,
+    pub phone_number: Option<String>,
+    pub balance: f64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct UserWithoutPassword {
+    pub id: uuid::Uuid,
+    pub fullname: String,
+    pub email: String,
     pub phone_number: Option<String>,
     pub balance: f64,
 }
@@ -46,22 +54,20 @@ impl User {
             .get_result(&conn)
     }
 
-    pub fn remove_password_field(user: User) -> NoPasswordUser {
-        NoPasswordUser {
-            id: user.id,
-            fullname: user.fullname,
-            email: user.email,
-            phone_number: user.phone_number,
-            balance: user.balance,
+    pub fn remove_password_field(&self) -> UserWithoutPassword {
+        UserWithoutPassword {
+            id: self.id.clone(),
+            fullname: self.fullname.clone(),
+            email: self.email.clone(),
+            phone_number: self.phone_number.clone(),
+            balance: self.balance,
         }
     }
 
-
-
-    pub fn create_login_token(user: User) -> String {
+    pub fn create_token(&self) -> String {
         let header = Header::new(Algorithm::HS256);
-        let token_payload = Self::remove_password_field(user);
-        let body = json!(token_payload);
+        let token_data = self.remove_password_field();
+        let body = json!(token_data);
         encode(&header, &body, &EncodingKey::from_secret("secret".as_ref())).unwrap()
     }
 

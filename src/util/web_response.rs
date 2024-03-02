@@ -16,4 +16,12 @@ impl WebErrorResponse {
             message: message.to_string(),
         }
     }
+
+    pub fn server_error(error: diesel::result::Error, message: &str) -> Self {
+        Self {
+            status: StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
+            error: error.to_string(),
+            message: message.to_string(),
+        }
+    }
 }

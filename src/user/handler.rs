@@ -2,7 +2,7 @@ use actix_web::{get, post, web, HttpResponse};
 
 use super::model::User;
 use super::req::*;
-use super::res::{ErrorRes, LoginTokenRes};
+use super::res::UserLoginRes;
 use crate::db::PgPool;
 use crate::util::web_response::WebErrorResponse;
 
@@ -12,7 +12,7 @@ async fn get_user(pool: web::Data<PgPool>, query: web::Query<GetUserParam>) -> H
 
     match user_exist {
         Ok(user) => {
-            let response = User::remove_password_field(user);
+            let response = user.remove_password_field();
             HttpResponse::Ok().json(response)
         }
         Err(err) => {
@@ -28,21 +28,22 @@ async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<GmailLoginReq>) ->
 
     match user_exist {
         Ok(user) => {
-            let token = User::create_login_token(user);
-            HttpResponse::Ok().json(LoginTokenRes { token })
+            let token = user.create_token();
+            HttpResponse::Ok().json(UserLoginRes { token })
         }
         Err(_) => {
             let add_result = User::add_from_gmail(&pool, body);
 
             match add_result {
                 Ok(user) => {
-                    let token = User::create_login_token(user);
-                    HttpResponse::Ok().json(LoginTokenRes { token })
+                    let token = user.create_token();
+                    HttpResponse::Ok().json(UserLoginRes { token })
                 }
-                Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
-                    error: err.to_string(),
-                    message: "Something went wrong".to_string(),
-                }),
+                Err(err) => {
+                    let error_res =
+                        WebErrorResponse::server_error(err, "Server Error, please try again");
+                    HttpResponse::InternalServerError().json(error_res)
+                }
             }
         }
     }
