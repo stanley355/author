@@ -1,15 +1,14 @@
 use actix_web::web;
-use bcrypt::{hash, DEFAULT_COST};
 use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use super::req::{GmailLoginReq, IncreaseBalanceReq, LoginReq, ReduceBalanceReq, RegisterReq};
+use super::req::{GmailLoginReq, IncreaseBalanceReq, ReduceBalanceReq};
 use super::res::NoPasswordUser;
 use crate::db::PgPool;
 use crate::schema::users;
-use crate::util::password::generate_random_password;
+use crate::util::password::Password;
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct User {
@@ -29,36 +28,19 @@ impl User {
             .get_result::<User>(&conn)
     }
 
-    pub fn add_from_register(
+    pub fn add_from_gmail(
         pool: &web::Data<PgPool>,
-        body: web::Json<RegisterReq>,
+        body: web::Json<GmailLoginReq>,
     ) -> QueryResult<User> {
         let conn = pool.get().unwrap();
-        let password = Self::hash_password(&body.password);
+        let password = Password::generate_random_hash();
         let data = (
             (users::fullname.eq(&body.fullname)),
             (users::email.eq(&body.email)),
             (users::password.eq(password)),
         );
 
-        diesel::insert_into(users::table)
-            .values(data)
-            .get_result(&conn)
-    }
-
-    pub fn add_from_gmail(
-        pool: &web::Data<PgPool>,
-        body: web::Json<GmailLoginReq>,
-    ) -> QueryResult<User> {
-        let conn = pool.get().unwrap();
-        let password = generate_random_password();
-        let hashed_password = Self::hash_password(&password);
-        let data = (
-            (users::fullname.eq(&body.fullname)),
-            (users::email.eq(&body.email)),
-            (users::password.eq(&hashed_password)),
-        );
-
+        println!("{:?}", data);
         diesel::insert_into(users::table)
             .values(data)
             .get_result(&conn)
@@ -74,22 +56,7 @@ impl User {
         }
     }
 
-    pub fn update_password(
-        pool: &web::Data<PgPool>,
-        body: web::Json<LoginReq>,
-    ) -> QueryResult<User> {
-        let conn = &pool.get().unwrap();
-        let password = Self::hash_password(&body.password);
 
-        diesel::update(users::table)
-            .filter(users::email.eq(&body.email))
-            .set(users::password.eq(password))
-            .get_result(conn)
-    }
-
-    pub fn hash_password(password: &str) -> String {
-        hash(password, DEFAULT_COST).unwrap()
-    }
 
     pub fn create_login_token(user: User) -> String {
         let header = Header::new(Algorithm::HS256);
