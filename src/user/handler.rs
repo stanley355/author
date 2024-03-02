@@ -32,19 +32,8 @@ async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<GmailLoginReq>) ->
             HttpResponse::Ok().json(UserLoginRes { token })
         }
         Err(_) => {
-            let add_result = User::add_from_gmail(&pool, body);
-
-            match add_result {
-                Ok(user) => {
-                    let token = user.create_token();
-                    HttpResponse::Ok().json(UserLoginRes { token })
-                }
-                Err(err) => {
-                    let error_res =
-                        WebErrorResponse::server_error(err, "Server Error, please try again");
-                    HttpResponse::InternalServerError().json(error_res)
-                }
-            }
+            let register_user_res = User::register_user(&pool, body);
+            return  register_user_res;
         }
     }
 }

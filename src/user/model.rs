@@ -1,13 +1,15 @@
-use actix_web::web;
+use actix_web::{web, HttpResponse};
 use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use super::req::{GmailLoginReq, IncreaseBalanceReq, ReduceBalanceReq};
+use super::res::UserLoginRes;
 use crate::db::PgPool;
 use crate::schema::users;
 use crate::util::password::Password;
+use crate::util::web_response::WebErrorResponse;
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct User {
@@ -48,7 +50,6 @@ impl User {
             (users::password.eq(password)),
         );
 
-        println!("{:?}", data);
         diesel::insert_into(users::table)
             .values(data)
             .get_result(&conn)
@@ -69,6 +70,21 @@ impl User {
         let token_data = self.remove_password_field();
         let body = json!(token_data);
         encode(&header, &body, &EncodingKey::from_secret("secret".as_ref())).unwrap()
+    }
+
+    pub fn register_user(pool: &web::Data<PgPool>, body: web::Json<GmailLoginReq>) -> HttpResponse {
+        let add_result = User::add_from_gmail(&pool, body);
+
+        match add_result {
+            Ok(user) => {
+                let token = user.create_token();
+                HttpResponse::Ok().json(UserLoginRes { token })
+            }
+            Err(err) => {
+                let err_res = WebErrorResponse::server_error(err, "Server Error, please try again");
+                HttpResponse::InternalServerError().json(err_res)
+            }
+        }
     }
 
     pub fn increase_balance(
