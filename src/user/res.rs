@@ -1,21 +1,14 @@
 use serde::{Deserialize, Serialize};
 
+// TODO: Remove this after refac all error
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ErrorRes {
     pub error: String,
     pub message: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct LoginTokenRes {
-    pub token: String,
-}
 
-#[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
-pub struct NoPasswordUser {
-    pub id: uuid::Uuid,
-    pub fullname: String,
-    pub email: String,
-    pub phone_number: Option<String>,
-    pub balance: f64
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UserLoginRes {
+    pub token: String,
 }

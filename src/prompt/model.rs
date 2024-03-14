@@ -1,5 +1,10 @@
-use super::req::{NewPromptReq, UpdatePromptReq};
-use crate::{db::PgPool, schema::prompts};
+use super::{req::NewPromptReq, res::NewPromptRes};
+use crate::schema::prompts;
+use crate::{
+    db::PgPool,
+    openai::{model::OpenAi, res::OpenAiChatRes},
+};
+
 use actix_web::web;
 use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl};
 use serde::{Deserialize, Serialize};
@@ -19,75 +24,48 @@ pub struct Prompt {
 }
 
 impl Prompt {
-    pub fn new(pool: &web::Data<PgPool>, body: web::Json<NewPromptReq>) -> QueryResult<Prompt> {
+    pub async fn new(
+        pool: &web::Data<PgPool>,
+        body: web::Json<NewPromptReq>,
+    ) -> Result<NewPromptRes, reqwest::Error> {
+        let openai_result =
+            OpenAi::new_chat_completion(&body.system_prompt, &body.user_prompt).await;
+
+        match openai_result {
+            Ok(result) => {
+                let _prompt_save_res = Self::save_prompt(pool, &body, &result);
+                let new_prompt_res =
+                    NewPromptRes::new(body.into_inner(), result.choices[0].message.content.clone());
+                return Ok(new_prompt_res);
+            }
+            Err(err) => Err(err),
+        }
+    }
+
+    pub fn save_prompt(
+        pool: &web::Data<PgPool>,
+        new_prompt_req: &web::Json<NewPromptReq>,
+        openai_chat_res: &OpenAiChatRes,
+    ) -> QueryResult<Prompt> {
         let conn = pool.get().unwrap();
-        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
-        let total_token = &body.prompt_token + &body.completion_token;
+        let uuid = uuid::Uuid::parse_str(&new_prompt_req.user_id).unwrap();
+        let prompt_text = format!(
+            "{} {}",
+            &new_prompt_req.system_prompt, &new_prompt_req.user_prompt
+        );
 
         let data = (
             (prompts::user_id.eq(uuid)),
-            (prompts::instruction.eq(&body.instruction)),
-            (prompts::prompt_token.eq(&body.prompt_token)),
-            (prompts::completion_token.eq(&body.completion_token)),
-            (prompts::prompt_text.eq(&body.prompt_text)),
-            (prompts::completion_text.eq(&body.completion_text)),
-            (prompts::total_token.eq(&total_token)),
+            (prompts::instruction.eq(&new_prompt_req.system_prompt)),
+            (prompts::prompt_token.eq(openai_chat_res.usage.prompt_tokens as i32)),
+            (prompts::completion_token.eq(openai_chat_res.usage.completion_tokens as i32)),
+            (prompts::prompt_text.eq(prompt_text)),
+            (prompts::completion_text.eq(&openai_chat_res.choices[0].message.content)),
+            (prompts::total_token.eq(openai_chat_res.usage.total_tokens as i32)),
         );
 
         diesel::insert_into(prompts::table)
             .values(data)
             .get_result(&conn)
-    }
-
-    pub fn new_premium(
-        pool: &web::Data<PgPool>,
-        body: &web::Json<NewPromptReq>,
-    ) -> QueryResult<Prompt> {
-        let conn = pool.get().unwrap();
-        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
-        let total_token = &body.prompt_token + &body.completion_token;
-
-        let data = (
-            (prompts::user_id.eq(uuid)),
-            (prompts::instruction.eq(&body.instruction)),
-            (prompts::prompt_token.eq(&body.prompt_token)),
-            (prompts::completion_token.eq(&body.completion_token)),
-            (prompts::prompt_text.eq(&body.prompt_text)),
-            (prompts::completion_text.eq(&body.completion_text)),
-            (prompts::total_token.eq(&total_token)),
-            (prompts::total_cost.eq(total_token as f64)),
-        );
-
-        diesel::insert_into(prompts::table)
-            .values(data)
-            .get_result(&conn)
-    }
-
-    pub fn update_prompt(
-        pool: &web::Data<PgPool>,
-        body: &web::Json<UpdatePromptReq>,
-    ) -> QueryResult<Prompt> {
-        let conn = pool.get().unwrap();
-
-        let data = (
-            (prompts::instruction.eq(&body.instruction)),
-            (prompts::prompt_token.eq(&body.prompt_token)),
-            (prompts::completion_token.eq(&body.completion_token)),
-            (prompts::prompt_text.eq(&body.prompt_text)),
-            (prompts::completion_text.eq(&body.completion_text)),
-        );
-
-        diesel::update(prompts::table)
-            .filter(prompts::id.eq(&body.prompt_id))
-            .set(data)
-            .get_result::<Prompt>(&conn)
-    }
-
-    pub fn delete(pool: &web::Data<PgPool>, id: &i32) -> QueryResult<Prompt> {
-        let conn = pool.get().unwrap();
-
-        diesel::delete(prompts::table)
-            .filter(prompts::id.eq(id))
-            .get_result::<Prompt>(&conn)
     }
 }

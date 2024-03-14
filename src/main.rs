@@ -9,6 +9,7 @@ use std::env;
 
 mod db;
 mod document;
+mod openai;
 mod prompt;
 mod schema;
 mod subscription;

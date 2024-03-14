@@ -1,15 +1,15 @@
-use actix_web::web;
-use bcrypt::{hash, DEFAULT_COST};
+use actix_web::{web, HttpResponse};
 use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use super::req::{GmailLoginReq, IncreaseBalanceReq, LoginReq, ReduceBalanceReq, RegisterReq};
-use super::res::NoPasswordUser;
+use super::req::{GmailLoginReq, IncreaseBalanceReq, ReduceBalanceReq};
+use super::res::UserLoginRes;
 use crate::db::PgPool;
 use crate::schema::users;
-use crate::util::password::generate_random_password;
+use crate::util::password::Password;
+use crate::util::web_response::WebErrorResponse;
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct User {
@@ -17,6 +17,15 @@ pub struct User {
     pub fullname: String,
     pub email: String,
     pub password: String,
+    pub phone_number: Option<String>,
+    pub balance: f64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct UserWithoutPassword {
+    pub id: uuid::Uuid,
+    pub fullname: String,
+    pub email: String,
     pub phone_number: Option<String>,
     pub balance: f64,
 }
@@ -29,12 +38,12 @@ impl User {
             .get_result::<User>(&conn)
     }
 
-    pub fn add_from_register(
+    pub fn add_from_gmail(
         pool: &web::Data<PgPool>,
-        body: web::Json<RegisterReq>,
+        body: web::Json<GmailLoginReq>,
     ) -> QueryResult<User> {
         let conn = pool.get().unwrap();
-        let password = Self::hash_password(&body.password);
+        let password = Password::generate_random_hash();
         let data = (
             (users::fullname.eq(&body.fullname)),
             (users::email.eq(&body.email)),
@@ -46,56 +55,36 @@ impl User {
             .get_result(&conn)
     }
 
-    pub fn add_from_gmail(
-        pool: &web::Data<PgPool>,
-        body: web::Json<GmailLoginReq>,
-    ) -> QueryResult<User> {
-        let conn = pool.get().unwrap();
-        let password = generate_random_password();
-        let hashed_password = Self::hash_password(&password);
-        let data = (
-            (users::fullname.eq(&body.fullname)),
-            (users::email.eq(&body.email)),
-            (users::password.eq(&hashed_password)),
-        );
-
-        diesel::insert_into(users::table)
-            .values(data)
-            .get_result(&conn)
-    }
-
-    pub fn remove_password_field(user: User) -> NoPasswordUser {
-        NoPasswordUser {
-            id: user.id,
-            fullname: user.fullname,
-            email: user.email,
-            phone_number: user.phone_number,
-            balance: user.balance,
+    pub fn remove_password_field(&self) -> UserWithoutPassword {
+        UserWithoutPassword {
+            id: self.id.clone(),
+            fullname: self.fullname.clone(),
+            email: self.email.clone(),
+            phone_number: self.phone_number.clone(),
+            balance: self.balance,
         }
     }
 
-    pub fn update_password(
-        pool: &web::Data<PgPool>,
-        body: web::Json<LoginReq>,
-    ) -> QueryResult<User> {
-        let conn = &pool.get().unwrap();
-        let password = Self::hash_password(&body.password);
-
-        diesel::update(users::table)
-            .filter(users::email.eq(&body.email))
-            .set(users::password.eq(password))
-            .get_result(conn)
-    }
-
-    pub fn hash_password(password: &str) -> String {
-        hash(password, DEFAULT_COST).unwrap()
-    }
-
-    pub fn create_login_token(user: User) -> String {
+    pub fn create_token(&self) -> String {
         let header = Header::new(Algorithm::HS256);
-        let token_payload = Self::remove_password_field(user);
-        let body = json!(token_payload);
+        let token_data = self.remove_password_field();
+        let body = json!(token_data);
         encode(&header, &body, &EncodingKey::from_secret("secret".as_ref())).unwrap()
+    }
+
+    pub fn register_user(pool: &web::Data<PgPool>, body: web::Json<GmailLoginReq>) -> HttpResponse {
+        let add_result = User::add_from_gmail(&pool, body);
+
+        match add_result {
+            Ok(user) => {
+                let token = user.create_token();
+                HttpResponse::Ok().json(UserLoginRes { token })
+            }
+            Err(err) => {
+                let err_res = WebErrorResponse::server_error(err, "Server Error, please try again");
+                HttpResponse::InternalServerError().json(err_res)
+            }
+        }
     }
 
     pub fn increase_balance(
