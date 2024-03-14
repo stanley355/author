@@ -15,6 +15,7 @@ mod schema;
 mod subscription;
 mod topup;
 mod user;
+mod doku;
 mod util;
 
 async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
