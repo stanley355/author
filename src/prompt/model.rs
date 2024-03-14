@@ -1,5 +1,5 @@
 use super::req::NewPromptReq;
-use crate::{db::PgPool, document::req, prompt::req::OpenAiChatReq, schema::prompts};
+use crate::db::PgPool;
 
 use actix_web::web;
 use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl};
@@ -24,30 +24,7 @@ pub struct Prompt {
 
 impl Prompt {
     pub async fn new(pool: &web::Data<PgPool>, body: web::Json<NewPromptReq>) {
-        let req_body = OpenAiChatReq::new(body.system_prompt.clone(), body.user_prompt.clone());
 
-        let openai_url = &env::var("OPENAI_URL").unwrap();
-        let url = format!("{}v1/chat/completions", openai_url);
-        let openai_key = &env::var("OPENAI_API_KEY").unwrap();
-        let authorization_key = format!("Bearer {}", openai_key);
-
-        let mut headers = HeaderMap::new();
-        headers.insert("Authorization", authorization_key.parse().unwrap());
-        let client = reqwest::Client::new();
-
-        let b = client
-            
-            .post(url)
-            .headers(headers)
-            .json(&req_body)
-            .send()
-            .await
-            .unwrap();
-        // .headers(headers)
-        // .json(&map)
-        // .send()
-        // .await?.json();
-        println!("{:?}", b.text().await);
         // let conn = pool.get().unwrap();
         // let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
         // let total_token = &body.prompt_token + &body.completion_token;
