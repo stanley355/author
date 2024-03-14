@@ -38,6 +38,14 @@ impl User {
             .get_result::<User>(&conn)
     }
 
+    pub fn find_by_id(pool: &web::Data<PgPool>, id: &str) -> QueryResult<User> {
+        let conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(id).unwrap();
+        users::table
+            .filter(users::id.eq(uuid))
+            .get_result::<User>(&conn)
+    }
+
     pub fn add_from_gmail(
         pool: &web::Data<PgPool>,
         body: web::Json<GmailLoginReq>,
