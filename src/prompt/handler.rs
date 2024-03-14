@@ -5,7 +5,7 @@ use actix_web::{post, web, HttpResponse};
 
 #[post("/")]
 async fn new_prompt(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> HttpResponse {
-    // let result = Prompt::new(&pool, body);
+    let result = Prompt::new(&pool, body).await;
 
         HttpResponse::Accepted().body("woi".to_string())
     // match result {
