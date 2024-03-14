@@ -24,4 +24,12 @@ impl WebErrorResponse {
             message: message.to_string(),
         }
     }
+
+    pub fn reqwest_server_error(error: reqwest::Error, message: &str) -> Self {
+        Self {
+            status: StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
+            error: error.to_string(),
+            message: message.to_string(),
+        }
+    }
 }

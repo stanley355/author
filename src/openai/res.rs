@@ -6,7 +6,8 @@ pub struct OpenAiChatRes {
   pub object: String,
   pub model: String,
   pub created: u32,
-  pub choices: Vec<OpenAiChatResChoices>
+  pub choices: Vec<OpenAiChatResChoices>,
+  pub usage: OpenAiChatResUsage
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -21,3 +22,11 @@ pub struct OpenAiChatResChoicesMsg {
   pub role: String,
   pub content: String
 }
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct OpenAiChatResUsage {
+  pub prompt_tokens: u32,
+  pub completion_tokens:u32,
+  pub total_tokens: u32 
+}
+
