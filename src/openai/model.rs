@@ -2,7 +2,7 @@ use reqwest::header::HeaderMap;
 use serde::{Deserialize, Serialize};
 use std::env;
 
-use crate::openai::req::OpenAiChatReq;
+use crate::openai::{req::OpenAiChatReq, res::OpenAiChatRes};
 
 #[derive(Debug, Clone)]
 pub struct OpenAi;
@@ -30,6 +30,6 @@ impl OpenAi {
           .await
           .unwrap();
 
-      println!("{:?}", openai_res.text().await);
+      println!("{:?}", openai_res.json::<OpenAiChatRes>().await);
     }
 }

@@ -1,5 +1,5 @@
 use super::req::NewPromptReq;
-use crate::db::PgPool;
+use crate::{db::PgPool, openai::model::OpenAi};
 
 use actix_web::web;
 use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl};
@@ -25,6 +25,7 @@ pub struct Prompt {
 impl Prompt {
     pub async fn new(pool: &web::Data<PgPool>, body: web::Json<NewPromptReq>) {
 
+        let b = OpenAi::new_chat_completion(&body.system_prompt, &body.user_prompt).await;
         // let conn = pool.get().unwrap();
         // let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
         // let total_token = &body.prompt_token + &body.completion_token;
