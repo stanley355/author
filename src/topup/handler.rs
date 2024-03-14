@@ -1,5 +1,6 @@
 use super::model::TopUp;
 use super::req::DokuNotifReq;
+use crate::doku::model::Doku;
 use crate::subscription::model::Subscription;
 use crate::topup::req::TopupPayasyougoReq;
 use crate::user::model::User;
@@ -15,10 +16,11 @@ async fn new_topup_payasyougo(
 ) -> HttpResponse {
     let result = TopUp::new_payasyougo(&pool, &body);
 
-
-    
     match result {
-        Ok(topup) => HttpResponse::Ok().json(topup),
+        Ok(topup) => {
+            Doku::new_checkout_payment(&pool, &topup);
+            HttpResponse::Ok().json(topup)
+        }
         Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
             error: err.to_string(),
             message: "Internal Server error".to_string(),
