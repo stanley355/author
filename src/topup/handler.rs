@@ -1,10 +1,10 @@
 use super::model::TopUp;
 use super::req::DokuNotifReq;
-use crate::doku::model::Doku;
 use crate::subscription::model::Subscription;
 use crate::topup::req::TopupPayasyougoReq;
 use crate::user::model::User;
 use crate::user::req::IncreaseBalanceReq;
+use crate::util::web_response::WebErrorResponse;
 use crate::{db::PgPool, user::res::ErrorRes};
 
 use actix_web::{post, web, HttpResponse};
@@ -17,14 +17,11 @@ async fn new_topup_payasyougo(
     let result = TopUp::new_payasyougo(&pool, &body);
 
     match result {
-        Ok(topup) => {
-            Doku::new_checkout_payment(&pool, &topup);
-            HttpResponse::Ok().json(topup)
+        Ok(topup) => HttpResponse::Ok().json(topup),
+        Err(err) => {
+            let err_res = WebErrorResponse::server_error(err, "Fail to create, please try again");
+            HttpResponse::InternalServerError().json(err_res)
         }
-        Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
-            error: err.to_string(),
-            message: "Internal Server error".to_string(),
-        }),
     }
 }
 

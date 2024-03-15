@@ -17,18 +17,6 @@ pub struct TopUp {
 }
 
 impl TopUp {
-    // pub fn new(pool: &web::Data<PgPool>, body: &TopUpReq) -> QueryResult<TopUp> {
-    //     let conn = pool.get().unwrap();
-    //     let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
-    //     let data = (
-    //         (topups::user_id.eq(uuid)),
-    //         (topups::topup_amount.eq(&body.topup_amount)),
-    //     );
-
-    //     diesel::insert_into(topups::table)
-    //         .values(data)
-    //         .get_result(&conn)
-    // }
 
     pub fn new_payasyougo(pool: &web::Data<PgPool>, body: &web::Json<TopupPayasyougoReq>) -> QueryResult<TopUp> {
         let conn = pool.get().unwrap();
@@ -42,20 +30,6 @@ impl TopUp {
             .values(data)
             .get_result(&conn)
     }
-
-    // pub fn new_subscription(pool: &web::Data<PgPool>, body: &TopUpSubscriptionReq) -> QueryResult<TopUp> {
-    //     let conn = pool.get().unwrap();
-    //     let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
-    //     let data = (
-    //         (topups::user_id.eq(uuid)),
-    //         (topups::topup_amount.eq(&body.topup_amount)),
-    //         (topups::topup_type.eq("subscription".to_string()))
-    //     );
-
-    //     diesel::insert_into(topups::table)
-    //         .values(data)
-    //         .get_result(&conn)
-    // }
 
     pub fn verify_doku_paid_status(
         pool: &web::Data<PgPool>,
