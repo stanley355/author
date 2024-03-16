@@ -22,6 +22,15 @@ async fn get_user(pool: web::Data<PgPool>, query: web::Query<GetUserParam>) -> H
     }
 }
 
+#[get("/account")]
+async fn get_user_account(
+    pool: web::Data<PgPool>,
+    query: web::Query<GetAccountParam>,
+) -> HttpResponse {
+    let account_page_data = User::fetch_account_page_data(&pool, &query.id);
+    HttpResponse::Ok().json(account_page_data)
+}
+
 #[post("/login/gmail/")]
 async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<GmailLoginReq>) -> HttpResponse {
     let user_exist = User::find_by_email(&pool, &body.email);
@@ -33,11 +42,14 @@ async fn gmail_login(pool: web::Data<PgPool>, body: web::Json<GmailLoginReq>) ->
         }
         Err(_) => {
             let register_user_res = User::register_user(&pool, body);
-            return  register_user_res;
+            return register_user_res;
         }
     }
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(get_user).service(gmail_login);
+    config
+        .service(get_user)
+        .service(gmail_login)
+        .service(get_user_account);
 }
