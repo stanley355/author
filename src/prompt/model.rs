@@ -21,6 +21,7 @@ pub struct Prompt {
     pub total_token: i32,
     pub total_cost: f64,
     pub instruction: String,
+    pub prompt_type: Option<String>
 }
 
 impl Prompt {
@@ -62,6 +63,7 @@ impl Prompt {
             (prompts::prompt_text.eq(prompt_text)),
             (prompts::completion_text.eq(&openai_chat_res.choices[0].message.content)),
             (prompts::total_token.eq(openai_chat_res.usage.total_tokens as i32)),
+            (prompts::prompt_type.eq(new_prompt_req.prompt_type.to_string()))
         );
 
         diesel::insert_into(prompts::table)

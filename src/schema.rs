@@ -24,6 +24,7 @@ diesel::table! {
         total_token -> Int4,
         total_cost -> Float8,
         instruction -> Varchar,
+        prompt_type -> Nullable<Varchar>,
     }
 }
 
