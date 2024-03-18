@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TopupPayasyougoReq {
@@ -7,8 +8,31 @@ pub struct TopupPayasyougoReq {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct TopupPremiumReq {
+    pub user_id: String,
+    pub duration: TopupPremiumDuration,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct TopupPaidReq {
     pub id: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub enum TopupPremiumDuration {
+    Monthly,
+    Quarterly,
+    HalfYearly,
+}
+
+impl fmt::Display for TopupPremiumDuration {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            TopupPremiumDuration::Monthly => write!(f, "monthly"),
+            TopupPremiumDuration::Quarterly => write!(f, "quarterly"),
+            TopupPremiumDuration::HalfYearly => write!(f, "half_yearly"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

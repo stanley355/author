@@ -1,6 +1,5 @@
 use super::model::TopUp;
-use super::req::TopupPaidReq;
-use crate::topup::req::TopupPayasyougoReq;
+use super::req::{TopupPaidReq, TopupPayasyougoReq, TopupPremiumReq};
 use crate::util::web_response::WebErrorResponse;
 use crate::{db::PgPool, user::model::User};
 
@@ -12,6 +11,22 @@ async fn new_topup_payasyougo(
     body: web::Json<TopupPayasyougoReq>,
 ) -> HttpResponse {
     let result = TopUp::new_payasyougo(&pool, &body);
+
+    match result {
+        Ok(topup) => HttpResponse::Ok().json(topup),
+        Err(err) => {
+            let err_res = WebErrorResponse::server_error(err, "Fail to create, please try again");
+            HttpResponse::InternalServerError().json(err_res)
+        }
+    }
+}
+
+#[post("/premium/")]
+async fn new_topup_premium(
+    pool: web::Data<PgPool>,
+    body: web::Json<TopupPremiumReq>,
+) -> HttpResponse {
+    let result = TopUp::new_premium(&pool, &body);
 
     match result {
         Ok(topup) => HttpResponse::Ok().json(topup),

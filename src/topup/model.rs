@@ -2,7 +2,7 @@ use actix_web::web;
 use diesel::{ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl};
 use serde::{Deserialize, Serialize};
 
-use super::req::{TopupPaidReq, TopupPayasyougoReq};
+use super::req::{TopupPaidReq, TopupPayasyougoReq, TopupPremiumDuration, TopupPremiumReq};
 use crate::db::PgPool;
 use crate::schema::topups;
 
@@ -26,6 +26,33 @@ impl TopUp {
         let data = (
             (topups::user_id.eq(uuid)),
             (topups::topup_amount.eq(&body.topup_amount)),
+        );
+
+        diesel::insert_into(topups::table)
+            .values(data)
+            .get_result(&conn)
+    }
+
+    pub fn calc_premium_price(duration: &TopupPremiumDuration) -> f64 {
+        match duration {
+            TopupPremiumDuration::Monthly => 25000.0,
+            TopupPremiumDuration::Quarterly => 70000.0,
+            TopupPremiumDuration::HalfYearly => 150000.0,
+        }
+    }
+
+    pub fn new_premium(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<TopupPremiumReq>,
+    ) -> QueryResult<TopUp> {
+        let conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
+        let price = Self::calc_premium_price(&body.duration);
+
+        let data = (
+            (topups::user_id.eq(uuid)),
+            (topups::topup_amount.eq(&price)),
+            (topups::topup_type.eq("subscription".to_string())),
         );
 
         diesel::insert_into(topups::table)
