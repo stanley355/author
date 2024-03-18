@@ -27,7 +27,6 @@ async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
             .service(web::scope("/v1/users").configure(user::handler::route))
             .service(web::scope("/v1/prompts").configure(prompt::handler::route))
             .service(web::scope("/v1/topups").configure(topup::handler::route))
-            .service(web::scope("/v1/subscriptions").configure(subscription::handler::route))
             .service(web::scope("/v1/documents").configure(document::handler::route))
     })
     .bind(address)?

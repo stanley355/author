@@ -8,6 +8,11 @@ pub struct GetUserParam {
 
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
+pub struct GetAccountParam {
+    pub id: String
+}
+
+#[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct GmailLoginReq {
     pub fullname: String,
     pub email: String,
