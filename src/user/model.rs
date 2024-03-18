@@ -115,14 +115,14 @@ impl User {
 
     pub fn increase_balance(
         pool: &web::Data<PgPool>,
-        body: &IncreaseBalanceReq,
+        topup_id: uuid::Uuid,
+        topup_amount: f64
     ) -> QueryResult<User> {
         let conn = &pool.get().unwrap();
-        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
 
         diesel::update(users::table)
-            .filter(users::id.eq(uuid))
-            .set(users::dsl::balance.eq(users::dsl::balance + body.increase_amount))
+            .filter(users::id.eq(topup_id))
+            .set(users::dsl::balance.eq(users::dsl::balance + topup_amount))
             .get_result(conn)
     }
 

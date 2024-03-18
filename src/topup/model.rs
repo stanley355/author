@@ -2,7 +2,7 @@ use actix_web::web;
 use diesel::{ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl};
 use serde::{Deserialize, Serialize};
 
-use super::req::{DokuNotifReq, TopupPayasyougoReq};
+use super::req::{TopupPaidReq, TopupPayasyougoReq};
 use crate::db::PgPool;
 use crate::schema::topups;
 
@@ -43,12 +43,12 @@ impl TopUp {
             .get_results::<TopUp>(&conn)
     }
 
-    pub fn verify_doku_paid_status(
+    pub fn update_paid_topup(
         pool: &web::Data<PgPool>,
-        body: &DokuNotifReq,
+        body: &web::Json<TopupPaidReq>,
     ) -> QueryResult<TopUp> {
         let conn = pool.get().unwrap();
-        let topup_id = uuid::Uuid::parse_str(&body.transaction.original_request_id).unwrap();
+        let topup_id = uuid::Uuid::parse_str(&body.id).unwrap();
 
         diesel::update(topups::table)
             .filter(topups::id.eq(topup_id))

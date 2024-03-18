@@ -1,11 +1,8 @@
 use super::model::TopUp;
-use super::req::DokuNotifReq;
-use crate::subscription::model::Subscription;
+use super::req::TopupPaidReq;
+use crate::db::PgPool;
 use crate::topup::req::TopupPayasyougoReq;
-use crate::user::model::User;
-use crate::user::req::IncreaseBalanceReq;
 use crate::util::web_response::WebErrorResponse;
-use crate::{db::PgPool, user::res::ErrorRes};
 
 use actix_web::{post, web, HttpResponse};
 
@@ -25,51 +22,22 @@ async fn new_topup_payasyougo(
     }
 }
 
-#[post("/doku/notification/")]
-async fn process_doku_notification(
-    pool: web::Data<PgPool>,
-    body: web::Json<DokuNotifReq>,
-) -> HttpResponse {
-    let topup_result = TopUp::verify_doku_paid_status(&pool, &body);
+#[post("/paid/")]
+async fn new_paid_topup(pool: web::Data<PgPool>, body: web::Json<TopupPaidReq>) -> HttpResponse {
+    let result = TopUp::update_paid_topup(&pool, &body);
 
-    match topup_result {
+    match result {
         Ok(topup) => {
-            if topup.topup_type == "subscription" {
-                let subcription_res = Subscription::verify_subscription_paid_status(&pool, &body);
-
-                match subcription_res {
-                    Ok(sub) => HttpResponse::Ok().json(sub),
-                    Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
-                        error: err.to_string(),
-                        message: "Internal Server error".to_string(),
-                    }),
-                }
-            } else {
-                let balance_req = IncreaseBalanceReq {
-                    user_id: topup.user_id.to_string(),
-                    increase_amount: topup.topup_amount,
-                };
-
-                let balance_res = User::increase_balance(&pool, &balance_req);
-
-                match balance_res {
-                    Ok(_) => HttpResponse::Ok().json(topup),
-                    Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
-                        error: err.to_string(),
-                        message: "Internal Server error".to_string(),
-                    }),
-                }
-            }
+            
+            HttpResponse::Ok().json(topup)
+        },
+        Err(err) => {
+            let err_res = WebErrorResponse::server_error(err, "Fail to update, please try again");
+            HttpResponse::InternalServerError().json(err_res)
         }
-        Err(err) => HttpResponse::InternalServerError().json(ErrorRes {
-            error: err.to_string(),
-            message: "Internal Server error".to_string(),
-        }),
     }
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
-    config
-        .service(new_topup_payasyougo)
-        .service(process_doku_notification);
+    config.service(new_topup_payasyougo).service(new_paid_topup);
 }

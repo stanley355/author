@@ -7,6 +7,11 @@ pub struct TopupPayasyougoReq {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct TopupPaidReq {
+    pub id: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct DokuNotifTransaction {
     pub status: String,
     pub date: String,
@@ -17,3 +22,5 @@ pub struct DokuNotifTransaction {
 pub struct DokuNotifReq {
     pub transaction: DokuNotifTransaction,
 }
+
+
