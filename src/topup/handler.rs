@@ -3,7 +3,6 @@ use super::req::{TopupPaidReq, TopupPayasyougoReq, TopupPremiumReq};
 use crate::subscription::model::Subscription;
 use crate::util::web_response::WebErrorResponse;
 use crate::{db::PgPool, user::model::User};
-
 use actix_web::{post, web, HttpResponse};
 
 #[post("/payasyougo/")]
@@ -16,7 +15,8 @@ async fn new_topup_payasyougo(
     match result {
         Ok(topup) => HttpResponse::Ok().json(topup),
         Err(err) => {
-            let err_res = WebErrorResponse::server_error(err, "Fail to create topup, please try again");
+            let err_res =
+                WebErrorResponse::server_error(err, "Fail to create topup, please try again");
             HttpResponse::InternalServerError().json(err_res)
         }
     }
@@ -38,14 +38,17 @@ async fn new_topup_premium(
                     return HttpResponse::Ok().json(topup);
                 }
                 Err(err) => {
-                    let err_res =
-                        WebErrorResponse::server_error(err, "Fail to create subscription, please try again");
+                    let err_res = WebErrorResponse::server_error(
+                        err,
+                        "Fail to create subscription, please try again",
+                    );
                     return HttpResponse::InternalServerError().json(err_res);
                 }
             }
         }
         Err(err) => {
-            let err_res = WebErrorResponse::server_error(err, "Fail to create topup, please try again");
+            let err_res =
+                WebErrorResponse::server_error(err, "Fail to create topup, please try again");
             HttpResponse::InternalServerError().json(err_res)
         }
     }
@@ -77,12 +80,16 @@ async fn new_paid_topup(pool: web::Data<PgPool>, body: web::Json<TopupPaidReq>) 
             HttpResponse::Ok().json(topup)
         }
         Err(err) => {
-            let err_res = WebErrorResponse::server_error(err, "Fail to update payment, please try again");
+            let err_res =
+                WebErrorResponse::server_error(err, "Fail to update payment, please try again");
             HttpResponse::InternalServerError().json(err_res)
         }
     }
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(new_topup_payasyougo).service(new_paid_topup);
+    config
+        .service(new_topup_payasyougo)
+        .service(new_topup_premium)
+        .service(new_paid_topup);
 }
