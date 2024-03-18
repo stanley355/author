@@ -1,5 +1,11 @@
-use super::req::{DurationType, NewSubscriptionReq};
-use crate::{db::PgPool, schema::subscriptions, topup::req::DokuNotifReq};
+use crate::{
+    db::PgPool,
+    schema::subscriptions,
+    topup::{
+        model::TopUp,
+        req::{TopupPremiumDuration, TopupPremiumReq},
+    },
+};
 use actix_web::web;
 use chrono::{Duration, NaiveDateTime, Utc};
 use diesel::{
@@ -21,30 +27,11 @@ pub struct Subscription {
 }
 
 impl Subscription {
-    pub fn new(pool: &web::Data<PgPool>, body: &NewSubscriptionReq) -> QueryResult<Subscription> {
-        let conn = pool.get().unwrap();
-
-        let end_timestamp = Self::calc_end_timestamp(&body.duration_type);
-
-        let data = (
-            (subscriptions::topup_id.eq(&body.topup_id)),
-            (subscriptions::user_id.eq(&body.user_id)),
-            (subscriptions::end_at.eq(end_timestamp)),
-            (subscriptions::duration_type.eq(body.duration_type.to_string())),
-        );
-
-        diesel::insert_into(subscriptions::table)
-            .values(data)
-            .get_result(&conn)
-    }
-
-    fn calc_end_timestamp(duration_type: &DurationType) -> NaiveDateTime {
+    fn calc_end_timestamp(duration_type: &TopupPremiumDuration) -> NaiveDateTime {
         let days = match duration_type {
-            DurationType::Biweekly => 14,
-            DurationType::Monthly => 30,
-            DurationType::Quarterly => 90,
-            DurationType::HalfYearly => 180,
-            DurationType::Yearly => 365,
+            &TopupPremiumDuration::Monthly => 30,
+            &TopupPremiumDuration::Quarterly => 90,
+            &TopupPremiumDuration::HalfYearly => 180,
         };
 
         let current_time = Utc::now();
@@ -54,18 +41,39 @@ impl Subscription {
         return end_time.naive_utc();
     }
 
-    pub fn verify_subscription_paid_status(
+    pub fn new(
         pool: &web::Data<PgPool>,
-        body: &DokuNotifReq,
+        body: &web::Json<TopupPremiumReq>,
+        topup: &TopUp,
     ) -> QueryResult<Subscription> {
         let conn = pool.get().unwrap();
-        let topup_id = uuid::Uuid::parse_str(&body.transaction.original_request_id).unwrap();
 
-        diesel::update(subscriptions::table)
-            .filter(subscriptions::topup_id.eq(topup_id))
-            .set(subscriptions::paid.eq(true))
+        let end_timestamp = Self::calc_end_timestamp(&body.duration);
+
+        let data = (
+            (subscriptions::topup_id.eq(&topup.id)),
+            (subscriptions::user_id.eq(&topup.user_id)),
+            (subscriptions::end_at.eq(end_timestamp)),
+            (subscriptions::duration_type.eq(body.duration.to_string())),
+        );
+
+        diesel::insert_into(subscriptions::table)
+            .values(data)
             .get_result(&conn)
     }
+
+    // pub fn verify_subscription_paid_status(
+    //     pool: &web::Data<PgPool>,
+    //     body: &DokuNotifReq,
+    // ) -> QueryResult<Subscription> {
+    //     let conn = pool.get().unwrap();
+    //     let topup_id = uuid::Uuid::parse_str(&body.transaction.original_request_id).unwrap();
+
+    //     diesel::update(subscriptions::table)
+    //         .filter(subscriptions::topup_id.eq(topup_id))
+    //         .set(subscriptions::paid.eq(true))
+    //         .get_result(&conn)
+    // }
 
     // select * from subscriptions where paid=true order by created_at DESC limit 1;
     pub fn find_active_subscription(
@@ -77,10 +85,11 @@ impl Subscription {
 
         subscriptions::table
             .filter(
-                subscriptions::user_id
-                    .eq(uuid)
-                    .and(subscriptions::paid.eq(true)
-                    .and(subscriptions::end_at.gt(diesel::dsl::sql("now()")))),
+                subscriptions::user_id.eq(uuid).and(
+                    subscriptions::paid
+                        .eq(true)
+                        .and(subscriptions::end_at.gt(diesel::dsl::sql("now()"))),
+                ),
             )
             .order_by(subscriptions::created_at.desc())
             .get_result::<Subscription>(&conn)

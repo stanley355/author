@@ -1,5 +1,6 @@
 use super::model::TopUp;
 use super::req::{TopupPaidReq, TopupPayasyougoReq, TopupPremiumReq};
+use crate::subscription::model::Subscription;
 use crate::util::web_response::WebErrorResponse;
 use crate::{db::PgPool, user::model::User};
 
@@ -15,7 +16,7 @@ async fn new_topup_payasyougo(
     match result {
         Ok(topup) => HttpResponse::Ok().json(topup),
         Err(err) => {
-            let err_res = WebErrorResponse::server_error(err, "Fail to create, please try again");
+            let err_res = WebErrorResponse::server_error(err, "Fail to create topup, please try again");
             HttpResponse::InternalServerError().json(err_res)
         }
     }
@@ -29,9 +30,22 @@ async fn new_topup_premium(
     let result = TopUp::new_premium(&pool, &body);
 
     match result {
-        Ok(topup) => HttpResponse::Ok().json(topup),
+        Ok(topup) => {
+            let subscription_result = Subscription::new(&pool, &body, &topup);
+
+            match subscription_result {
+                Ok(_) => {
+                    return HttpResponse::Ok().json(topup);
+                }
+                Err(err) => {
+                    let err_res =
+                        WebErrorResponse::server_error(err, "Fail to create subscription, please try again");
+                    return HttpResponse::InternalServerError().json(err_res);
+                }
+            }
+        }
         Err(err) => {
-            let err_res = WebErrorResponse::server_error(err, "Fail to create, please try again");
+            let err_res = WebErrorResponse::server_error(err, "Fail to create topup, please try again");
             HttpResponse::InternalServerError().json(err_res)
         }
     }
@@ -63,7 +77,7 @@ async fn new_paid_topup(pool: web::Data<PgPool>, body: web::Json<TopupPaidReq>) 
             HttpResponse::Ok().json(topup)
         }
         Err(err) => {
-            let err_res = WebErrorResponse::server_error(err, "Fail to update, please try again");
+            let err_res = WebErrorResponse::server_error(err, "Fail to update payment, please try again");
             HttpResponse::InternalServerError().json(err_res)
         }
     }
