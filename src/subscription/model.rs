@@ -62,18 +62,17 @@ impl Subscription {
             .get_result(&conn)
     }
 
-    // pub fn verify_subscription_paid_status(
-    //     pool: &web::Data<PgPool>,
-    //     body: &DokuNotifReq,
-    // ) -> QueryResult<Subscription> {
-    //     let conn = pool.get().unwrap();
-    //     let topup_id = uuid::Uuid::parse_str(&body.transaction.original_request_id).unwrap();
+    pub fn update_paid_subscription(
+        pool: &web::Data<PgPool>,
+        topup_id: &uuid::Uuid,
+    ) -> QueryResult<Subscription> {
+        let conn = pool.get().unwrap();
 
-    //     diesel::update(subscriptions::table)
-    //         .filter(subscriptions::topup_id.eq(topup_id))
-    //         .set(subscriptions::paid.eq(true))
-    //         .get_result(&conn)
-    // }
+        diesel::update(subscriptions::table)
+            .filter(subscriptions::topup_id.eq(topup_id))
+            .set(subscriptions::paid.eq(true))
+            .get_result(&conn)
+    }
 
     // select * from subscriptions where paid=true order by created_at DESC limit 1;
     pub fn find_active_subscription(

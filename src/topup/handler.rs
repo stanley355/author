@@ -38,10 +38,8 @@ async fn new_topup_premium(
                     return HttpResponse::Ok().json(topup);
                 }
                 Err(err) => {
-                    let err_res = WebErrorResponse::server_error(
-                        err,
-                        "Fail to create subscription, please try again",
-                    );
+                    let err_res =
+                        WebErrorResponse::server_error(err, "Fail to create subscription");
                     return HttpResponse::InternalServerError().json(err_res);
                 }
             }
@@ -69,14 +67,27 @@ async fn new_paid_topup(pool: web::Data<PgPool>, body: web::Json<TopupPaidReq>) 
                         return HttpResponse::Ok().json(topup);
                     }
                     Err(err) => {
-                        let err_res = WebErrorResponse::server_error(
-                            err,
-                            "Fail to update balance, please try again",
-                        );
+                        let err_res = WebErrorResponse::server_error(err, "Fail to update balance");
                         return HttpResponse::InternalServerError().json(err_res);
                     }
                 }
             }
+
+            if topup.topup_type == "subscription".to_string() {
+                let update_subscription = Subscription::update_paid_subscription(&pool, &topup.id);
+
+                match update_subscription {
+                    Ok(_) => {
+                        return HttpResponse::Ok().json(topup);
+                    }
+                    Err(err) => {
+                        let err_res =
+                            WebErrorResponse::server_error(err, "Fail to update subscription");
+                        return HttpResponse::InternalServerError().json(err_res);
+                    }
+                }
+            }
+
             HttpResponse::Ok().json(topup)
         }
         Err(err) => {
