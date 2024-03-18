@@ -1,5 +1,5 @@
 use super::model::TopUp;
-use super::req::{TopupPaidReq, TopupPayasyougoReq, TopupPremiumReq};
+use super::req::{TopupPaidReq, TopupPayasyougoReq, TopupPremiumReq,DokuNotifReq};
 use crate::subscription::model::Subscription;
 use crate::util::web_response::WebErrorResponse;
 use crate::{db::PgPool, user::model::User};
@@ -52,9 +52,10 @@ async fn new_topup_premium(
     }
 }
 
-#[post("/paid/")]
-async fn new_paid_topup(pool: web::Data<PgPool>, body: web::Json<TopupPaidReq>) -> HttpResponse {
-    let result = TopUp::update_paid_topup(&pool, &body);
+#[post("/doku/notification/")]
+async fn new_doku_notification(pool: web::Data<PgPool>, body: web::Json<DokuNotifReq>) -> HttpResponse {
+    let paid_req = TopupPaidReq::new(body.transaction.original_request_id.clone());
+    let result = TopUp::update_paid_topup(&pool, &paid_req);
 
     match result {
         Ok(topup) => {
@@ -98,9 +99,10 @@ async fn new_paid_topup(pool: web::Data<PgPool>, body: web::Json<TopupPaidReq>) 
     }
 }
 
+
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(new_topup_payasyougo)
         .service(new_topup_premium)
-        .service(new_paid_topup);
+        .service(new_doku_notification);
 }

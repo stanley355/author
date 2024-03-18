@@ -18,6 +18,12 @@ pub struct TopupPaidReq {
     pub id: String,
 }
 
+impl TopupPaidReq {
+    pub fn new(id: String) -> Self {
+        Self { id }
+    }
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum TopupPremiumDuration {
     Monthly,
@@ -46,5 +52,3 @@ pub struct DokuNotifTransaction {
 pub struct DokuNotifReq {
     pub transaction: DokuNotifTransaction,
 }
-
-

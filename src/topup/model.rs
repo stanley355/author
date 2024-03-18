@@ -72,7 +72,7 @@ impl TopUp {
 
     pub fn update_paid_topup(
         pool: &web::Data<PgPool>,
-        body: &web::Json<TopupPaidReq>,
+        body: &TopupPaidReq,
     ) -> QueryResult<TopUp> {
         let conn = pool.get().unwrap();
         let topup_id = uuid::Uuid::parse_str(&body.id).unwrap();
