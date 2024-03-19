@@ -12,7 +12,7 @@ async fn new_prompt(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> H
 
     match subscription_result {
         Ok(_) => {
-            return Prompt::new_prompt_response(pool, body, false).await;
+            return Prompt::new_prompt_response(&pool, body, false).await;
         }
         Err(_) => {
             let user_result = User::find_by_id(&pool, &body.user_id);
@@ -20,15 +20,10 @@ async fn new_prompt(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> H
             match user_result {
                 Ok(user) => match user.balance > 0.0 {
                     true => {
-                        return Prompt::new_prompt_response(pool, body, true).await;
+                        return Prompt::new_prompt_response(&pool, body, true).await;
                     }
                     false => {
-                        let error_res = WebErrorResponse {
-                            status: 600,
-                            error: "Subscription Not Found".to_string(),
-                            message: "User has no subscription".to_string(),
-                        };
-                        return HttpResponse::BadRequest().json(error_res);
+                        return Prompt::new_monthly_prompt(&pool, body).await;
                     }
                 },
                 Err(err) => {
