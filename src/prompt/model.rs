@@ -122,7 +122,7 @@ impl Prompt {
 
         match prompt_count_result {
             Ok(count) => {
-                if count > 5 {
+                if count >= 5 {
                     let error_res = WebErrorResponse {
                         status: 600,
                         error: "Monthly Limit Exceeded".to_string(),
