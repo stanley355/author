@@ -1,10 +1,10 @@
-use std::fmt;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum PromptType {
-   Translate,
-   GrammarCheck
+    Translate,
+    GrammarCheck,
 }
 
 impl fmt::Display for PromptType {

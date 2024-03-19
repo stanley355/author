@@ -1,11 +1,12 @@
 use super::{req::NewPromptReq, res::NewPromptRes};
 use crate::schema::prompts;
+use crate::util::web_response::WebErrorResponse;
 use crate::{
     db::PgPool,
     openai::{model::OpenAi, res::OpenAiChatRes},
 };
 
-use actix_web::web;
+use actix_web::{web, HttpResponse};
 use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl};
 use serde::{Deserialize, Serialize};
 
@@ -69,5 +70,20 @@ impl Prompt {
         diesel::insert_into(prompts::table)
             .values(data)
             .get_result(&conn)
+    }
+
+    pub async fn new_prompt_response(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> HttpResponse {
+        let result = Prompt::new(&pool, body).await;
+
+        match result {
+            Ok(new_prompt_res) => HttpResponse::Ok().json(new_prompt_res),
+            Err(err) => {
+                let err_res = WebErrorResponse::reqwest_server_error(
+                    err,
+                    "Fail to execute, please try again",
+                );
+                return HttpResponse::InternalServerError().json(err_res);
+            }
+        }
     }
 }
