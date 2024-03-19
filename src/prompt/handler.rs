@@ -1,18 +1,31 @@
 use super::model::Prompt;
 use super::req::NewPromptReq;
-use crate::{db::PgPool, util::web_response::WebErrorResponse};
+use crate::{
+    db::PgPool, subscription::model::Subscription, user::model::User,
+    util::web_response::WebErrorResponse,
+};
 use actix_web::{post, web, HttpResponse};
 
 #[post("/")]
 async fn new_prompt(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> HttpResponse {
-    let result = Prompt::new(&pool, body).await;
+    let subscription_result = Subscription::find_active_subscription(&pool, &body.user_id);
 
-    match result {
-        Ok(new_prompt_res) => HttpResponse::Ok().json(new_prompt_res),
-        Err(err) => {
-            let err_res = WebErrorResponse::reqwest_server_error(err, "Fail to execute, please try again");
-            return  HttpResponse::InternalServerError().json(err_res);
-        },
+    match subscription_result {
+        Ok(_) => Prompt::new_prompt_response(&pool, body, false).await,
+        Err(_) => {
+            let user_result = User::find_by_id(&pool, &body.user_id);
+
+            match user_result {
+                Ok(user) => match user.balance > 0.0 {
+                    true => Prompt::new_prompt_response(&pool, body, true).await,
+                    false => Prompt::new_monthly_prompt(&pool, body).await
+                },
+                Err(err) => {
+                    let err_res = WebErrorResponse::server_error(err, "User not found");
+                    return HttpResponse::BadRequest().json(err_res);
+                }
+            }
+        }
     }
 }
 
