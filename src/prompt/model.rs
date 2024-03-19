@@ -1,5 +1,6 @@
 use super::{req::NewPromptReq, res::NewPromptRes};
 use crate::schema::prompts;
+use crate::user::model::User;
 use crate::util::web_response::WebErrorResponse;
 use crate::{
     db::PgPool,
@@ -29,12 +30,18 @@ impl Prompt {
     pub async fn new(
         pool: &web::Data<PgPool>,
         body: web::Json<NewPromptReq>,
+        is_pay_as_you_go: bool,
     ) -> Result<NewPromptRes, reqwest::Error> {
         let openai_result =
             OpenAi::new_chat_completion(&body.system_prompt, &body.user_prompt).await;
 
         match openai_result {
             Ok(result) => {
+                if is_pay_as_you_go {
+                    let user_id = uuid::Uuid::parse_str(&body.user_id).unwrap(); 
+                    let _user_reduce_balance = User::reduce_balance(pool, user_id, result.usage.total_tokens as f64);
+                }
+
                 let _prompt_save_res = Self::save_prompt(pool, &body, &result);
                 let new_prompt_res =
                     NewPromptRes::new(body.into_inner(), result.choices[0].message.content.clone());
@@ -72,8 +79,8 @@ impl Prompt {
             .get_result(&conn)
     }
 
-    pub async fn new_prompt_response(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> HttpResponse {
-        let result = Prompt::new(&pool, body).await;
+    pub async fn new_prompt_response(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>, is_pay_as_you_go: bool) -> HttpResponse {
+        let result = Prompt::new(&pool, body, is_pay_as_you_go).await;
 
         match result {
             Ok(new_prompt_res) => HttpResponse::Ok().json(new_prompt_res),

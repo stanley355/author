@@ -4,7 +4,7 @@ use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use super::req::{GmailLoginReq, IncreaseBalanceReq, ReduceBalanceReq};
+use super::req::GmailLoginReq;
 use super::res::{GetAccountRes, UserLoginRes};
 use crate::db::PgPool;
 use crate::schema::users;
@@ -47,7 +47,7 @@ impl User {
             .get_result::<User>(&conn)
     }
 
-    pub fn fetch_account_page_data(pool: &web::Data<PgPool>, user_id: &str) -> GetAccountRes{
+    pub fn fetch_account_page_data(pool: &web::Data<PgPool>, user_id: &str) -> GetAccountRes {
         let user_query = Self::find_by_id(pool, user_id);
         let active_subscription_query = Subscription::find_active_subscription(pool, user_id);
         let topups_query = TopUp::find_user_topups(pool, user_id);
@@ -58,8 +58,14 @@ impl User {
                 Some(active_subscription),
                 Some(topups),
             ),
-            (Ok(user), Ok(active_subscription), _) => GetAccountRes::new(Some(user.remove_password_field()), Some(active_subscription), None),
-            (Ok(user), _, Ok(topups)) => GetAccountRes::new(Some(user.remove_password_field()), None, Some(topups)),
+            (Ok(user), Ok(active_subscription), _) => GetAccountRes::new(
+                Some(user.remove_password_field()),
+                Some(active_subscription),
+                None,
+            ),
+            (Ok(user), _, Ok(topups)) => {
+                GetAccountRes::new(Some(user.remove_password_field()), None, Some(topups))
+            }
             (_, _, _) => GetAccountRes::new(None, None, None),
         }
     }
@@ -116,7 +122,7 @@ impl User {
     pub fn increase_balance(
         pool: &web::Data<PgPool>,
         topup_id: uuid::Uuid,
-        topup_amount: f64
+        topup_amount: f64,
     ) -> QueryResult<User> {
         let conn = &pool.get().unwrap();
 
@@ -126,13 +132,16 @@ impl User {
             .get_result(conn)
     }
 
-    pub fn reduce_balance(pool: &web::Data<PgPool>, body: &ReduceBalanceReq) -> QueryResult<User> {
+    pub fn reduce_balance(
+        pool: &web::Data<PgPool>,
+        user_id: uuid::Uuid,
+        reduce_amount: f64,
+    ) -> QueryResult<User> {
         let conn = &pool.get().unwrap();
-        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
 
         diesel::update(users::table)
-            .filter(users::id.eq(uuid))
-            .set(users::dsl::balance.eq(users::dsl::balance - body.reduce_amount))
+            .filter(users::id.eq(user_id))
+            .set(users::dsl::balance.eq(users::dsl::balance - reduce_amount))
             .get_result(conn)
     }
 }

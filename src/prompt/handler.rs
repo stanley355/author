@@ -12,7 +12,7 @@ async fn new_prompt(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> H
 
     match subscription_result {
         Ok(_) => {
-            return Prompt::new_prompt_response(pool, body).await;
+            return Prompt::new_prompt_response(pool, body, false).await;
         }
         Err(_) => {
             let user_result = User::find_by_id(&pool, &body.user_id);
@@ -20,7 +20,7 @@ async fn new_prompt(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> H
             match user_result {
                 Ok(user) => match user.balance > 0.0 {
                     true => {
-                        return Prompt::new_prompt_response(pool, body).await;
+                        return Prompt::new_prompt_response(pool, body, true).await;
                     }
                     false => {
                         let error_res = WebErrorResponse {
