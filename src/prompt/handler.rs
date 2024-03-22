@@ -79,9 +79,7 @@ async fn update_image_to_text_prompt(
             let user_result = User::find_by_id(&pool, &body.user_id);
 
             match user_result {
-                Ok(user) => {
-                    Prompt::update_image_to_text_response(&pool, body, user.balance > 0.0).await
-                }
+                Ok(_) => Prompt::update_image_to_text_response(&pool, body, true).await,
                 Err(err) => {
                     let err_res = WebErrorResponse::server_error(err, "User not found");
                     return HttpResponse::BadRequest().json(err_res);
