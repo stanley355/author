@@ -1,3 +1,4 @@
+use super::req::{NewImageToTextPromptReq, PromptType};
 use super::{req::NewPromptReq, res::NewPromptRes};
 use crate::schema::prompts;
 use crate::user::model::User;
@@ -101,15 +102,24 @@ impl Prompt {
         }
     }
 
-    pub fn count_user_monthly_prompt(pool: &web::Data<PgPool>, user_id: &str) -> QueryResult<i64> {
+    pub fn count_user_monthly_prompt(
+        pool: &web::Data<PgPool>,
+        user_id: &str,
+        prompt_type: &PromptType,
+    ) -> QueryResult<i64> {
         let conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(user_id).unwrap();
 
         prompts::table
-            .filter(prompts::user_id.eq(uuid).and(prompts::created_at.between(
-                diesel::dsl::sql("date_trunc('month', now())"),
-                diesel::dsl::sql("now()"),
-            )))
+            .filter(
+                prompts::user_id
+                    .eq(uuid)
+                    .and(prompts::prompt_type.eq(prompt_type.to_string()))
+                    .and(prompts::created_at.between(
+                        diesel::dsl::sql("date_trunc('month', now())"),
+                        diesel::dsl::sql("now()"),
+                    )),
+            )
             .count()
             .get_result(&conn)
     }
@@ -118,7 +128,8 @@ impl Prompt {
         pool: &web::Data<PgPool>,
         body: web::Json<NewPromptReq>,
     ) -> HttpResponse {
-        let prompt_count_result = Self::count_user_monthly_prompt(&pool, &body.user_id);
+        let prompt_count_result =
+            Self::count_user_monthly_prompt(&pool, &body.user_id, &body.prompt_type);
 
         match prompt_count_result {
             Ok(count) => {
@@ -142,5 +153,28 @@ impl Prompt {
                 return HttpResponse::BadRequest().json(error_res);
             }
         }
+    }
+
+    pub fn save_image_prompt(
+        pool: &web::Data<PgPool>,
+        new_prompt_req: &web::Json<NewImageToTextPromptReq>,
+    ) -> QueryResult<Prompt> {
+        let conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&new_prompt_req.user_id).unwrap();
+
+        let data = (
+            (prompts::user_id.eq(uuid)),
+            (prompts::instruction.eq("Image to text".to_string())),
+            (prompts::prompt_token.eq(0)),
+            (prompts::completion_token.eq(0)),
+            (prompts::prompt_text.eq("Image to text".to_string())),
+            (prompts::completion_text.eq("".to_string())),
+            (prompts::total_token.eq(0)),
+            (prompts::prompt_type.eq(new_prompt_req.prompt_type.to_string())),
+        );
+
+        diesel::insert_into(prompts::table)
+            .values(data)
+            .get_result(&conn)
     }
 }
