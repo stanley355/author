@@ -42,7 +42,7 @@ impl Prompt {
                 if is_pay_as_you_go {
                     let user_id = uuid::Uuid::parse_str(&body.user_id).unwrap();
                     let _user_reduce_balance =
-                        User::reduce_balance(pool, user_id, result.usage.total_tokens as f64);
+                        User::reduce_balance(pool, user_id, result.usage.total_tokens / 2 as f64);
                 }
 
                 let _prompt_save_res = Self::save_prompt(pool, &body, &result);
