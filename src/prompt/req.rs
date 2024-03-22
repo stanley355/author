@@ -28,3 +28,11 @@ pub struct NewImageToTextPromptReq {
     pub prompt_type: PromptType
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UpdateImageToTextPromptReq {
+    pub prompt_id: i32,
+    pub user_id: String,
+    pub completion_text: String 
+}
+
+
