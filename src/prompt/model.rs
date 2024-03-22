@@ -155,7 +155,7 @@ impl Prompt {
         }
     }
 
-    pub fn save_image_prompt(
+    pub fn save_image_to_text_prompt(
         pool: &web::Data<PgPool>,
         new_prompt_req: &web::Json<NewImageToTextPromptReq>,
     ) -> QueryResult<Prompt> {
@@ -177,4 +177,52 @@ impl Prompt {
             .values(data)
             .get_result(&conn)
     }
+
+    pub async fn new_image_to_text_response(
+        pool: &web::Data<PgPool>,
+        body: web::Json<NewImageToTextPromptReq>,
+    ) -> HttpResponse {
+        let result = Self::save_image_to_text_prompt(&pool, &body);
+
+        match result {
+            Ok(new_prompt_res) => HttpResponse::Ok().json(new_prompt_res),
+            Err(err) => {
+                let err_res =
+                    WebErrorResponse::server_error(err, "Fail to execute, please try again");
+                return HttpResponse::InternalServerError().json(err_res);
+            }
+        }
+    }
+
+    pub async fn new_image_to_text_monthly_prompt(
+        pool: &web::Data<PgPool>,
+        body: web::Json<NewImageToTextPromptReq>,
+    ) -> HttpResponse {
+        let prompt_count_result =
+            Self::count_user_monthly_prompt(&pool, &body.user_id, &body.prompt_type);
+
+        match prompt_count_result {
+            Ok(count) => {
+                if count >= 5 {
+                    let error_res = WebErrorResponse {
+                        status: 600,
+                        error: "Monthly Limit Exceeded".to_string(),
+                        message: "User exceeds monthly limit".to_string(),
+                    };
+                    return HttpResponse::BadRequest().json(error_res);
+                }
+
+                return Self::new_image_to_text_response(pool, body).await;
+            }
+            Err(_) => {
+                let error_res = WebErrorResponse {
+                    status: 600,
+                    error: "Subscription Not Found".to_string(),
+                    message: "User has no subscription".to_string(),
+                };
+                return HttpResponse::BadRequest().json(error_res);
+            }
+        }
+    }
+
 }
