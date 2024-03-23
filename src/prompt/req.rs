@@ -5,6 +5,7 @@ use std::fmt;
 pub enum PromptType {
     Translate,
     GrammarCheck,
+    ImageToText
 }
 
 impl fmt::Display for PromptType {
@@ -20,3 +21,18 @@ pub struct NewPromptReq {
     pub user_prompt: String,
     pub prompt_type: PromptType,
 }
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct NewImageToTextPromptReq {
+    pub user_id: String,
+    pub prompt_type: PromptType
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UpdateImageToTextPromptReq {
+    pub prompt_id: i32,
+    pub user_id: String,
+    pub completion_text: String 
+}
+
+
