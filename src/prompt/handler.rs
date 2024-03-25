@@ -1,5 +1,11 @@
+use std::io::{Cursor, Write};
+
 use super::model::Prompt;
-use super::req::{NewImageToTextPromptReq, NewPromptReq, PromptType, UpdateImageToTextPromptReq};
+use super::req::{
+    NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType,
+    UpdateImageToTextPromptReq,
+};
+use crate::openai::model::{OpenAi, OpenAiTextToSpeechReq};
 use crate::{
     db::PgPool, subscription::model::Subscription, user::model::User,
     util::web_response::WebErrorResponse,
@@ -89,9 +95,24 @@ async fn update_image_to_text_prompt(
     }
 }
 
+#[post("/text-to-speech/")]
+async fn new_text_to_speech(
+    pool: web::Data<PgPool>,
+    body: web::Json<NewTextToSpeechPromptReq>,
+) -> HttpResponse {
+    let file_req_body = OpenAiTextToSpeechReq::new(&body);
+    let file_byte_res = OpenAi::new_text_to_speech(file_req_body).await;
+
+    match file_byte_res {
+        Ok(bytes) => HttpResponse::Ok().body(bytes),
+        Err(_) => HttpResponse::BadRequest().body("woi".to_string()),
+    }
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(new_prompt)
         .service(new_image_to_text_prompt)
-        .service(update_image_to_text_prompt);
+        .service(update_image_to_text_prompt)
+        .service(new_text_to_speech);
 }
