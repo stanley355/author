@@ -1,6 +1,6 @@
 use super::model::Prompt;
 use super::req::{
-    MontlyPromptReq, NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType,
+    NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType,
     UpdateImageToTextPromptReq,
 };
 use crate::{
@@ -9,6 +9,93 @@ use crate::{
 };
 use actix_web::put;
 use actix_web::{http::StatusCode, post, web, HttpResponse};
+
+pub enum PromptHandler {
+    TranslateGrammarCheck(NewPromptReq),
+    ImageToText(NewImageToTextPromptReq),
+    TextToSpeech(NewTextToSpeechPromptReq),
+}
+
+impl PromptHandler {
+    pub async fn new(self, pool: web::Data<PgPool>, user_id: &str) -> HttpResponse {
+        let subscription_result = Subscription::find_active_subscription(&pool, user_id);
+
+        match subscription_result {
+            Ok(_) => match self {
+                PromptHandler::TranslateGrammarCheck(body) => {
+                    Prompt::new_prompt_response(&pool, web::Json(body), false).await
+                }
+                PromptHandler::ImageToText(body) => {
+                    Prompt::new_image_to_text_response(&pool, web::Json(body)).await
+                }
+                PromptHandler::TextToSpeech(body) => {
+                    Prompt::new_text_to_speech_response(&pool, web::Json(body), false).await
+                }
+            },
+            Err(_) => {
+                let user_result = User::find_by_id(&pool, user_id);
+
+                match user_result {
+                    Ok(user) => match user.balance > 0.0 {
+                        true => {
+                            match self {
+                                PromptHandler::TranslateGrammarCheck(body) => {
+                                    Prompt::new_prompt_response(&pool, web::Json(body), true).await
+                                }
+                                PromptHandler::ImageToText(body) => {
+                                    Prompt::new_image_to_text_response(&pool, web::Json(body)).await
+                                }
+                                PromptHandler::TextToSpeech(body) => {
+                                    Prompt::new_text_to_speech_response(
+                                        &pool,
+                                        web::Json(body),
+                                        true,
+                                    )
+                                    .await
+                                }
+                            }
+
+                            // Prompt::new_prompt_response(&pool, body, true).await
+                        }
+                        false => match self {
+                            PromptHandler::TranslateGrammarCheck(body) => {
+                                Prompt::new_monthly_prompt(
+                                    &pool,
+                                    &body.user_id,
+                                    &body.prompt_type,
+                                    PromptHandler::TranslateGrammarCheck(body.clone()),
+                                )
+                                .await
+                            }
+                            PromptHandler::ImageToText(body) => {
+                                Prompt::new_monthly_prompt(
+                                    &pool,
+                                    &body.user_id,
+                                    &PromptType::ImageToText,
+                                    PromptHandler::ImageToText(body.clone()),
+                                )
+                                .await
+                            }
+                            PromptHandler::TextToSpeech(body) => {
+                                Prompt::new_monthly_prompt(
+                                    &pool,
+                                    &body.user_id,
+                                    &PromptType::TextToSpeech,
+                                    PromptHandler::TextToSpeech(body.clone()),
+                                )
+                                .await
+                            }
+                        },
+                    },
+                    Err(err) => {
+                        let err_res = WebErrorResponse::server_error(err, "User not found");
+                        return HttpResponse::BadRequest().json(err_res);
+                    }
+                }
+            }
+        }
+    }
+}
 
 #[post("/")]
 async fn new_prompt(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> HttpResponse {
@@ -27,7 +114,7 @@ async fn new_prompt(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> H
                             &pool,
                             &body.user_id,
                             &body.prompt_type,
-                            MontlyPromptReq::NewPromptReq(body.clone()),
+                            PromptHandler::TranslateGrammarCheck(body.clone()),
                         )
                         .await
                     }
@@ -71,10 +158,10 @@ async fn new_image_to_text_prompt(
                             &pool,
                             &body.user_id,
                             &body.prompt_type,
-                            MontlyPromptReq::NewImageToTextPromptReq(body.clone()),
+                            PromptHandler::ImageToText(body.clone()),
                         )
                         .await
-                    },
+                    }
                 },
                 Err(err) => {
                     let err_res = WebErrorResponse::server_error(err, "User not found");
@@ -130,10 +217,10 @@ async fn new_text_to_speech(
                             &pool,
                             &body.user_id,
                             &PromptType::TextToSpeech,
-                            MontlyPromptReq::NewTextToSpeechPromptReq(body.clone()),
+                            PromptHandler::TextToSpeech(body.clone()),
                         )
                         .await
-                    },
+                    }
                 },
                 Err(err) => {
                     let err_res = WebErrorResponse::server_error(err, "User not found");

@@ -1,5 +1,6 @@
+use super::handler::PromptHandler;
 use super::req::{
-    MontlyPromptReq, NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType,
+    NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType,
     UpdateImageToTextPromptReq,
 };
 use super::res::NewPromptRes;
@@ -131,7 +132,7 @@ impl Prompt {
         pool: &web::Data<PgPool>,
         user_id: &str,
         prompt_type: &PromptType,
-        body: MontlyPromptReq,
+        body: PromptHandler,
     ) -> HttpResponse {
         let prompt_count_result = Self::count_user_monthly_prompt(&pool, &user_id, &prompt_type);
 
@@ -147,13 +148,13 @@ impl Prompt {
                 }
 
                 match body {
-                    MontlyPromptReq::NewPromptReq(req_body) => {
+                    PromptHandler::TranslateGrammarCheck(req_body) => {
                         Self::new_prompt_response(pool, web::Json(req_body), false).await
                     }
-                    MontlyPromptReq::NewImageToTextPromptReq(req_body) => {
+                    PromptHandler::ImageToText(req_body) => {
                         Self::new_image_to_text_response(pool, web::Json(req_body)).await
                     }
-                    MontlyPromptReq::NewTextToSpeechPromptReq(req_body) => {
+                    PromptHandler::TextToSpeech(req_body) => {
                         Self::new_text_to_speech_response(pool, web::Json(req_body), false).await
                     }
                 }

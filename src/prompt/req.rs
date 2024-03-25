@@ -59,10 +59,3 @@ pub struct NewTextToSpeechPromptReq {
     pub user_prompt: String,
     pub voice: TextToSpeechVoice
 }
-
-
-pub enum MontlyPromptReq {
-    NewPromptReq(NewPromptReq),
-    NewImageToTextPromptReq(NewImageToTextPromptReq),
-    NewTextToSpeechPromptReq(NewTextToSpeechPromptReq)
-}
