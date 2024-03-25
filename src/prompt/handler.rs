@@ -1,6 +1,6 @@
 use super::model::Prompt;
 use super::req::{
-    NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType,
+    MontlyPromptReq, NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType,
     UpdateImageToTextPromptReq,
 };
 use crate::{
@@ -22,7 +22,15 @@ async fn new_prompt(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> H
             match user_result {
                 Ok(user) => match user.balance > 0.0 {
                     true => Prompt::new_prompt_response(&pool, body, true).await,
-                    false => Prompt::new_monthly_prompt(&pool, body).await,
+                    false => {
+                        Prompt::new_monthly_prompt(
+                            &pool,
+                            &body.user_id,
+                            &body.prompt_type,
+                            MontlyPromptReq::NewPromptReq(body.clone()),
+                        )
+                        .await
+                    }
                 },
                 Err(err) => {
                     let err_res = WebErrorResponse::server_error(err, "User not found");
@@ -58,7 +66,15 @@ async fn new_image_to_text_prompt(
             match user_result {
                 Ok(user) => match user.balance > 0.0 {
                     true => Prompt::new_image_to_text_response(&pool, body).await,
-                    false => Prompt::new_image_to_text_monthly_prompt(&pool, body).await,
+                    false => {
+                        Prompt::new_monthly_prompt(
+                            &pool,
+                            &body.user_id,
+                            &body.prompt_type,
+                            MontlyPromptReq::NewImageToTextPromptReq(body.clone()),
+                        )
+                        .await
+                    },
                 },
                 Err(err) => {
                     let err_res = WebErrorResponse::server_error(err, "User not found");
@@ -82,7 +98,9 @@ async fn update_image_to_text_prompt(
             let user_result = User::find_by_id(&pool, &body.user_id);
 
             match user_result {
-                Ok(user) => Prompt::update_image_to_text_response(&pool, body, user.balance > 0.0).await,
+                Ok(user) => {
+                    Prompt::update_image_to_text_response(&pool, body, user.balance > 0.0).await
+                }
                 Err(err) => {
                     let err_res = WebErrorResponse::server_error(err, "User not found");
                     return HttpResponse::BadRequest().json(err_res);
@@ -107,7 +125,15 @@ async fn new_text_to_speech(
             match user_result {
                 Ok(user) => match user.balance > 0.0 {
                     true => Prompt::new_text_to_speech_response(&pool, body, true).await,
-                    false => Prompt::new_text_to_speech_monthly_prompt(&pool, body).await,
+                    false => {
+                        Prompt::new_monthly_prompt(
+                            &pool,
+                            &body.user_id,
+                            &PromptType::TextToSpeech,
+                            MontlyPromptReq::NewTextToSpeechPromptReq(body.clone()),
+                        )
+                        .await
+                    },
                 },
                 Err(err) => {
                     let err_res = WebErrorResponse::server_error(err, "User not found");

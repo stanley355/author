@@ -61,3 +61,8 @@ pub struct NewTextToSpeechPromptReq {
 }
 
 
+pub enum MontlyPromptReq {
+    NewPromptReq(NewPromptReq),
+    NewImageToTextPromptReq(NewImageToTextPromptReq),
+    NewTextToSpeechPromptReq(NewTextToSpeechPromptReq)
+}

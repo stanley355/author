@@ -1,5 +1,5 @@
 use super::req::{
-    NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType,
+    MontlyPromptReq, NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType,
     UpdateImageToTextPromptReq,
 };
 use super::res::NewPromptRes;
@@ -129,10 +129,11 @@ impl Prompt {
 
     pub async fn new_monthly_prompt(
         pool: &web::Data<PgPool>,
-        body: web::Json<NewPromptReq>,
+        user_id: &str,
+        prompt_type: &PromptType,
+        body: MontlyPromptReq,
     ) -> HttpResponse {
-        let prompt_count_result =
-            Self::count_user_monthly_prompt(&pool, &body.user_id, &body.prompt_type);
+        let prompt_count_result = Self::count_user_monthly_prompt(&pool, &user_id, &prompt_type);
 
         match prompt_count_result {
             Ok(count) => {
@@ -145,7 +146,17 @@ impl Prompt {
                     return HttpResponse::BadRequest().json(error_res);
                 }
 
-                return Self::new_prompt_response(pool, body, false).await;
+                match body {
+                    MontlyPromptReq::NewPromptReq(req_body) => {
+                        Self::new_prompt_response(pool, web::Json(req_body), false).await
+                    }
+                    MontlyPromptReq::NewImageToTextPromptReq(req_body) => {
+                        Self::new_image_to_text_response(pool, web::Json(req_body)).await
+                    }
+                    MontlyPromptReq::NewTextToSpeechPromptReq(req_body) => {
+                        Self::new_text_to_speech_response(pool, web::Json(req_body), false).await
+                    }
+                }
             }
             Err(_) => {
                 let error_res = WebErrorResponse {
@@ -193,37 +204,6 @@ impl Prompt {
                 let err_res =
                     WebErrorResponse::server_error(err, "Fail to create prompt, please try again");
                 return HttpResponse::InternalServerError().json(err_res);
-            }
-        }
-    }
-
-    pub async fn new_image_to_text_monthly_prompt(
-        pool: &web::Data<PgPool>,
-        body: web::Json<NewImageToTextPromptReq>,
-    ) -> HttpResponse {
-        let prompt_count_result =
-            Self::count_user_monthly_prompt(&pool, &body.user_id, &body.prompt_type);
-
-        match prompt_count_result {
-            Ok(count) => {
-                if count >= 5 {
-                    let error_res = WebErrorResponse {
-                        status: 600,
-                        error: "Monthly Limit Exceeded".to_string(),
-                        message: "User exceeds monthly limit".to_string(),
-                    };
-                    return HttpResponse::BadRequest().json(error_res);
-                }
-
-                return Self::new_image_to_text_response(pool, body).await;
-            }
-            Err(_) => {
-                let error_res = WebErrorResponse {
-                    status: 600,
-                    error: "Subscription Not Found".to_string(),
-                    message: "User has no subscription".to_string(),
-                };
-                return HttpResponse::BadRequest().json(error_res);
             }
         }
     }
@@ -322,37 +302,6 @@ impl Prompt {
                     "Fail to generate file, please try again",
                 );
                 HttpResponse::InternalServerError().json(err_res)
-            }
-        }
-    }
-
-    pub async fn new_text_to_speech_monthly_prompt(
-        pool: &web::Data<PgPool>,
-        body: web::Json<NewTextToSpeechPromptReq>,
-    ) -> HttpResponse {
-        let prompt_count_result =
-            Self::count_user_monthly_prompt(&pool, &body.user_id, &PromptType::TextToSpeech);
-
-        match prompt_count_result {
-            Ok(count) => {
-                if count >= 5 {
-                    let error_res = WebErrorResponse {
-                        status: 600,
-                        error: "Monthly Limit Exceeded".to_string(),
-                        message: "User exceeds monthly limit".to_string(),
-                    };
-                    return HttpResponse::BadRequest().json(error_res);
-                }
-
-                return Self::new_text_to_speech_response(pool, body, false).await;
-            }
-            Err(_) => {
-                let error_res = WebErrorResponse {
-                    status: 600,
-                    error: "Subscription Not Found".to_string(),
-                    message: "User has no subscription".to_string(),
-                };
-                return HttpResponse::BadRequest().json(error_res);
             }
         }
     }
