@@ -1,4 +1,4 @@
-use super::handler::PromptHandler;
+use super::prompt_handler::PromptHandler;
 use super::req::{
     NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType,
     UpdateImageToTextPromptReq,
@@ -219,6 +219,7 @@ impl Prompt {
         let updated_column = (
             prompts::completion_text.eq(&req.completion_text),
             prompts::completion_token.eq(completion_token as i32),
+            prompts::total_token.eq(completion_token as i32),
         );
 
         diesel::update(prompts::table)
