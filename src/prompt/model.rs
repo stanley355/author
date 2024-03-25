@@ -1,11 +1,14 @@
-use super::req::{NewImageToTextPromptReq, PromptType, UpdateImageToTextPromptReq};
-use super::{req::NewPromptReq, res::NewPromptRes};
+use super::req::{
+    NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType,
+    UpdateImageToTextPromptReq,
+};
+use super::res::NewPromptRes;
 use crate::schema::prompts;
 use crate::user::model::User;
 use crate::util::web_response::WebErrorResponse;
 use crate::{
     db::PgPool,
-    openai::{model::OpenAi, res::OpenAiChatRes},
+    openai::{model::OpenAi, req::OpenAiTextToSpeechReq, res::OpenAiChatRes},
 };
 
 use actix_web::{web, HttpResponse};
@@ -262,6 +265,94 @@ impl Prompt {
                 let err_res =
                     WebErrorResponse::server_error(err, "Fail to update prompt, please try again");
                 return HttpResponse::InternalServerError().json(err_res);
+            }
+        }
+    }
+
+    pub fn save_text_to_speech_prompt(
+        pool: &web::Data<PgPool>,
+        new_prompt_req: &web::Json<NewTextToSpeechPromptReq>,
+    ) -> QueryResult<Prompt> {
+        let conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&new_prompt_req.user_id).unwrap();
+        let total_token = &new_prompt_req
+            .user_prompt
+            .split(" ")
+            .collect::<Vec<&str>>()
+            .len();
+
+        let data = (
+            (prompts::user_id.eq(uuid)),
+            (prompts::instruction.eq("Text to Speech".to_string())),
+            (prompts::prompt_token.eq(*total_token as i32)),
+            (prompts::completion_token.eq(0)),
+            (prompts::prompt_text.eq(new_prompt_req.user_prompt.to_string())),
+            (prompts::completion_text.eq("".to_string())),
+            (prompts::total_token.eq(*total_token as i32)),
+            (prompts::prompt_type.eq(PromptType::TextToSpeech.to_string())),
+        );
+
+        diesel::insert_into(prompts::table)
+            .values(data)
+            .get_result(&conn)
+    }
+
+    pub async fn new_text_to_speech_response(
+        pool: &web::Data<PgPool>,
+        body: web::Json<NewTextToSpeechPromptReq>,
+        is_pay_as_you_go: bool,
+    ) -> HttpResponse {
+        if is_pay_as_you_go {
+            let completion_token = body.user_prompt.split(" ").collect::<Vec<&str>>().len();
+            let user_id = uuid::Uuid::parse_str(&body.user_id).unwrap();
+            let _user_reduce_balance =
+                User::reduce_balance(pool, user_id, (completion_token / 2) as f64);
+        }
+
+        let _save_prompt = Self::save_text_to_speech_prompt(pool, &body);
+
+        let file_req_body = OpenAiTextToSpeechReq::new(&body);
+        let file_byte_res = OpenAi::new_text_to_speech(file_req_body).await;
+
+        match file_byte_res {
+            Ok(bytes) => HttpResponse::Ok().body(bytes),
+            Err(err) => {
+                let err_res = WebErrorResponse::reqwest_server_error(
+                    err,
+                    "Fail to generate file, please try again",
+                );
+                HttpResponse::InternalServerError().json(err_res)
+            }
+        }
+    }
+
+    pub async fn new_text_to_speech_monthly_prompt(
+        pool: &web::Data<PgPool>,
+        body: web::Json<NewTextToSpeechPromptReq>,
+    ) -> HttpResponse {
+        let prompt_count_result =
+            Self::count_user_monthly_prompt(&pool, &body.user_id, &PromptType::TextToSpeech);
+
+        match prompt_count_result {
+            Ok(count) => {
+                if count >= 5 {
+                    let error_res = WebErrorResponse {
+                        status: 600,
+                        error: "Monthly Limit Exceeded".to_string(),
+                        message: "User exceeds monthly limit".to_string(),
+                    };
+                    return HttpResponse::BadRequest().json(error_res);
+                }
+
+                return Self::new_text_to_speech_response(pool, body, false).await;
+            }
+            Err(_) => {
+                let error_res = WebErrorResponse {
+                    status: 600,
+                    error: "Subscription Not Found".to_string(),
+                    message: "User has no subscription".to_string(),
+                };
+                return HttpResponse::BadRequest().json(error_res);
             }
         }
     }

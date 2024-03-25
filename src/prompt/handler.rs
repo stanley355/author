@@ -1,11 +1,8 @@
-use std::io::{Cursor, Write};
-
 use super::model::Prompt;
 use super::req::{
     NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType,
     UpdateImageToTextPromptReq,
 };
-use crate::openai::model::{OpenAi, OpenAiTextToSpeechReq};
 use crate::{
     db::PgPool, subscription::model::Subscription, user::model::User,
     util::web_response::WebErrorResponse,
@@ -85,7 +82,7 @@ async fn update_image_to_text_prompt(
             let user_result = User::find_by_id(&pool, &body.user_id);
 
             match user_result {
-                Ok(_) => Prompt::update_image_to_text_response(&pool, body, true).await,
+                Ok(user) => Prompt::update_image_to_text_response(&pool, body, user.balance > 0.0).await,
                 Err(err) => {
                     let err_res = WebErrorResponse::server_error(err, "User not found");
                     return HttpResponse::BadRequest().json(err_res);
@@ -100,12 +97,24 @@ async fn new_text_to_speech(
     pool: web::Data<PgPool>,
     body: web::Json<NewTextToSpeechPromptReq>,
 ) -> HttpResponse {
-    let file_req_body = OpenAiTextToSpeechReq::new(&body);
-    let file_byte_res = OpenAi::new_text_to_speech(file_req_body).await;
+    let subscription_result = Subscription::find_active_subscription(&pool, &body.user_id);
 
-    match file_byte_res {
-        Ok(bytes) => HttpResponse::Ok().body(bytes),
-        Err(_) => HttpResponse::BadRequest().body("woi".to_string()),
+    match subscription_result {
+        Ok(_) => Prompt::new_text_to_speech_response(&pool, body, false).await,
+        Err(_) => {
+            let user_result = User::find_by_id(&pool, &body.user_id);
+
+            match user_result {
+                Ok(user) => match user.balance > 0.0 {
+                    true => Prompt::new_text_to_speech_response(&pool, body, true).await,
+                    false => Prompt::new_text_to_speech_monthly_prompt(&pool, body).await,
+                },
+                Err(err) => {
+                    let err_res = WebErrorResponse::server_error(err, "User not found");
+                    return HttpResponse::BadRequest().json(err_res);
+                }
+            }
+        }
     }
 }
 
