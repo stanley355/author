@@ -59,3 +59,9 @@ pub struct NewTextToSpeechPromptReq {
     pub user_prompt: String,
     pub voice: TextToSpeechVoice
 }
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct DeleteTextToSpeechFileReq {
+    pub file_name: String
+}
+

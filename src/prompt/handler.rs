@@ -1,16 +1,15 @@
 use super::model::Prompt;
+use super::prompt_handler::PromptHandler;
 use super::req::{
-    NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType,
-    UpdateImageToTextPromptReq,
+    DeleteTextToSpeechFileReq, NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq,
+    PromptType, UpdateImageToTextPromptReq,
 };
 use crate::{
     db::PgPool, subscription::model::Subscription, user::model::User,
     util::web_response::WebErrorResponse,
 };
-use super::prompt_handler::PromptHandler;
-use actix_web::put;
+use actix_web::{delete, put};
 use actix_web::{http::StatusCode, post, web, HttpResponse};
-
 
 #[post("/")]
 async fn new_prompt(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> HttpResponse {
@@ -71,10 +70,29 @@ async fn new_text_to_speech(
     return PromptHandler::new(prompt_handle, pool, &body.user_id).await;
 }
 
+#[delete("/text-to-speech/file")]
+async fn delete_text_to_speech_file(body: web::Query<DeleteTextToSpeechFileReq>) -> HttpResponse {
+    let file_path = format!("/tmp/{}", &body.file_name);
+    let file_del_result = std::fs::remove_file(file_path);
+
+    match file_del_result {
+        Ok(_) => HttpResponse::Ok().body("Success".to_string()),
+        Err(err) => {
+            let err_res = WebErrorResponse {
+                status: StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
+                error: err.to_string(),
+                message: "Fail to delete file, please try again".to_string(),
+            };
+            HttpResponse::InternalServerError().json(err_res)
+        }
+    }
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(new_prompt)
         .service(new_image_to_text_prompt)
         .service(update_image_to_text_prompt)
-        .service(new_text_to_speech);
+        .service(new_text_to_speech)
+        .service(delete_text_to_speech_file);
 }

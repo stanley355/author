@@ -3,7 +3,7 @@ use super::req::{
     NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType,
     UpdateImageToTextPromptReq,
 };
-use super::res::NewPromptRes;
+use super::res::{NewPromptRes, NewTextToSpeechRes};
 use crate::schema::prompts;
 use crate::user::model::User;
 use crate::util::web_response::WebErrorResponse;
@@ -16,6 +16,7 @@ use actix_web::{web, HttpResponse};
 use diesel::{
     BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
 };
+use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
@@ -297,7 +298,25 @@ impl Prompt {
         let file_byte_res = OpenAi::new_text_to_speech(file_req_body).await;
 
         match file_byte_res {
-            Ok(bytes) => HttpResponse::Ok().body(bytes),
+            Ok(bytes) => {
+                let file_name = format!("{}.mp3", uuid::Uuid::new_v4().to_string());
+                let file_path = format!("/tmp/{}", file_name);
+                let file_creation = std::fs::write(file_path, &bytes);
+                match file_creation {
+                    Ok(_) => {
+                        let res = NewTextToSpeechRes { file_name };
+                        HttpResponse::Ok().json(res)
+                    }
+                    Err(err) => {
+                        let err_res = WebErrorResponse {
+                            status: StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
+                            error: err.to_string(),
+                            message: "Fail to generate file, please try again".to_string() 
+                        };
+                        HttpResponse::InternalServerError().json(err_res)
+                    }
+                }
+            }
             Err(err) => {
                 let err_res = WebErrorResponse::reqwest_server_error(
                     err,

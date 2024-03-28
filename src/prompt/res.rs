@@ -21,3 +21,8 @@ impl NewPromptRes {
         }
     }
 }
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct NewTextToSpeechRes {
+    pub file_name: String,
+}
