@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::prompt::req::NewTextToSpeechPromptReq;
+
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct OpenAiChatReq {
@@ -23,24 +25,19 @@ impl OpenAiChatReq {
 }
 
 
-// export interface IChatCompletionRes {
-//   id: string;
-//   object: string;
-//   created: number;
-//   model: string;
-//   choices: IChatCompletionChoice[];
-//   usage: {
-//     prompt_tokens: number;
-//     completion_tokens: number;
-//     total_tokens: number;
-//   };
-// }
+#[derive(Debug, Clone, Serialize)]
+pub struct OpenAiTextToSpeechReq {
+    model: String,
+    input: String,
+    voice: String,
+}
 
-// interface IChatCompletionChoice {
-//   index: number;
-//   message: {
-//     role: string;
-//     content: string;
-//   };
-//   finish_reason: string;
-// }
+impl OpenAiTextToSpeechReq {
+    pub fn new(req: &NewTextToSpeechPromptReq) -> Self {
+        OpenAiTextToSpeechReq {
+            model: "tts-1".to_string(),
+            input: req.user_prompt.clone(),
+            voice: req.voice.to_string().to_lowercase(),
+        }
+    }
+}

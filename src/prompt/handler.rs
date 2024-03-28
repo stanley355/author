@@ -1,33 +1,20 @@
 use super::model::Prompt;
-use super::req::{NewImageToTextPromptReq, NewPromptReq, PromptType, UpdateImageToTextPromptReq};
+use super::prompt_handler::PromptHandler;
+use super::req::{
+    DeleteTextToSpeechFileReq, NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq,
+    PromptType, UpdateImageToTextPromptReq,
+};
 use crate::{
     db::PgPool, subscription::model::Subscription, user::model::User,
     util::web_response::WebErrorResponse,
 };
-use actix_web::put;
+use actix_web::{delete, put};
 use actix_web::{http::StatusCode, post, web, HttpResponse};
 
 #[post("/")]
 async fn new_prompt(pool: web::Data<PgPool>, body: web::Json<NewPromptReq>) -> HttpResponse {
-    let subscription_result = Subscription::find_active_subscription(&pool, &body.user_id);
-
-    match subscription_result {
-        Ok(_) => Prompt::new_prompt_response(&pool, body, false).await,
-        Err(_) => {
-            let user_result = User::find_by_id(&pool, &body.user_id);
-
-            match user_result {
-                Ok(user) => match user.balance > 0.0 {
-                    true => Prompt::new_prompt_response(&pool, body, true).await,
-                    false => Prompt::new_monthly_prompt(&pool, body).await,
-                },
-                Err(err) => {
-                    let err_res = WebErrorResponse::server_error(err, "User not found");
-                    return HttpResponse::BadRequest().json(err_res);
-                }
-            }
-        }
-    }
+    let prompt_handle = PromptHandler::TranslateGrammarCheck(body.clone());
+    return PromptHandler::new(prompt_handle, pool, &body.user_id).await;
 }
 
 #[post("/image-to-text/")]
@@ -45,25 +32,8 @@ async fn new_image_to_text_prompt(
         return HttpResponse::BadRequest().json(err_res);
     }
 
-    let subscription_result = Subscription::find_active_subscription(&pool, &body.user_id);
-
-    match subscription_result {
-        Ok(_) => Prompt::new_image_to_text_response(&pool, body).await,
-        Err(_) => {
-            let user_result = User::find_by_id(&pool, &body.user_id);
-
-            match user_result {
-                Ok(user) => match user.balance > 0.0 {
-                    true => Prompt::new_image_to_text_response(&pool, body).await,
-                    false => Prompt::new_image_to_text_monthly_prompt(&pool, body).await,
-                },
-                Err(err) => {
-                    let err_res = WebErrorResponse::server_error(err, "User not found");
-                    return HttpResponse::BadRequest().json(err_res);
-                }
-            }
-        }
-    }
+    let prompt_handle = PromptHandler::ImageToText(body.clone());
+    return PromptHandler::new(prompt_handle, pool, &body.user_id).await;
 }
 
 #[put("/image-to-text/")]
@@ -79,7 +49,9 @@ async fn update_image_to_text_prompt(
             let user_result = User::find_by_id(&pool, &body.user_id);
 
             match user_result {
-                Ok(_) => Prompt::update_image_to_text_response(&pool, body, true).await,
+                Ok(user) => {
+                    Prompt::update_image_to_text_response(&pool, body, user.balance > 0.0).await
+                }
                 Err(err) => {
                     let err_res = WebErrorResponse::server_error(err, "User not found");
                     return HttpResponse::BadRequest().json(err_res);
@@ -89,9 +61,38 @@ async fn update_image_to_text_prompt(
     }
 }
 
+#[post("/text-to-speech/")]
+async fn new_text_to_speech(
+    pool: web::Data<PgPool>,
+    body: web::Json<NewTextToSpeechPromptReq>,
+) -> HttpResponse {
+    let prompt_handle = PromptHandler::TextToSpeech(body.clone());
+    return PromptHandler::new(prompt_handle, pool, &body.user_id).await;
+}
+
+#[delete("/text-to-speech/file")]
+async fn delete_text_to_speech_file(body: web::Query<DeleteTextToSpeechFileReq>) -> HttpResponse {
+    let file_path = format!("/tmp/{}", &body.file_name);
+    let file_del_result = std::fs::remove_file(file_path);
+
+    match file_del_result {
+        Ok(_) => HttpResponse::Ok().body("Success".to_string()),
+        Err(err) => {
+            let err_res = WebErrorResponse {
+                status: StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
+                error: err.to_string(),
+                message: "Fail to delete file, please try again".to_string(),
+            };
+            HttpResponse::InternalServerError().json(err_res)
+        }
+    }
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(new_prompt)
         .service(new_image_to_text_prompt)
-        .service(update_image_to_text_prompt);
+        .service(update_image_to_text_prompt)
+        .service(new_text_to_speech)
+        .service(delete_text_to_speech_file);
 }

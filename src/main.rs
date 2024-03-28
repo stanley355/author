@@ -6,6 +6,7 @@ use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
 use dotenv::dotenv;
 use std::env;
+use actix_files::Files;
 
 mod db;
 mod document;
@@ -24,6 +25,7 @@ async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
             .wrap(Logger::default())
             .wrap(util::bearer::BearerTokenMiddleware)
             .app_data(web::Data::new(pool.clone()))
+            .service(Files::new("/v1/files", "/tmp"))
             .service(web::scope("/v1/users").configure(user::handler::route))
             .service(web::scope("/v1/prompts").configure(prompt::handler::route))
             .service(web::scope("/v1/topups").configure(topup::handler::route))

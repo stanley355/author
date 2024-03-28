@@ -55,7 +55,7 @@ where
     forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        if req.path() == "/v1/topups/doku/notification/" {
+        if req.path() == "/v1/topups/doku/notification/" || req.path().contains("/v1/files") {
             let fut = self.service.call(req);
             return Box::pin(async move {
                 let res = fut.await?;
