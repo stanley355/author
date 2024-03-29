@@ -5,7 +5,8 @@ use std::fmt;
 pub enum PromptType {
     Translate,
     GrammarCheck,
-    ImageToText
+    ImageToText,
+    TextToSpeech
 }
 
 impl fmt::Display for PromptType {
@@ -35,4 +36,32 @@ pub struct UpdateImageToTextPromptReq {
     pub completion_text: String 
 }
 
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub enum TextToSpeechVoice {
+    Alloy,
+    Echo,
+    Fable,
+    Onyx,
+    Nova,
+    Shimmer
+}
+
+impl fmt::Display for TextToSpeechVoice{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct NewTextToSpeechPromptReq {
+    pub user_id: String,
+    pub user_prompt: String,
+    pub voice: TextToSpeechVoice
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct DeleteTextToSpeechFileReq {
+    pub file_name: String
+}
 
