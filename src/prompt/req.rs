@@ -64,4 +64,3 @@ pub struct NewTextToSpeechPromptReq {
 pub struct DeleteTextToSpeechFileReq {
     pub file_name: String
 }
-

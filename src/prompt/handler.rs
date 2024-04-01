@@ -88,6 +88,20 @@ async fn delete_text_to_speech_file(body: web::Query<DeleteTextToSpeechFileReq>)
     }
 }
 
+
+#[post("/speech-to-text/")]
+async fn new_speech_to_text(
+    pool: web::Data<PgPool>,
+    body: web::Form<NewTextToSpeechPromptReq>,
+) -> HttpResponse {
+    // let prompt_handle = PromptHandler::TextToSpeech(body.clone());
+    // return PromptHandler::new(prompt_handle, pool, &body.user_id).await;
+
+    
+    HttpResponse::Ok().body("body".to_string())
+}
+
+
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(new_prompt)
