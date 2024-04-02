@@ -365,4 +365,47 @@ impl Prompt {
             }
         }
     }
+
+    pub fn update_speech_to_text_prompt(
+        pool: web::Data<PgPool>,
+        req: web::Json<UpdateSpeechToTextPromptReq>,
+    ) -> QueryResult<Prompt> {
+        let conn = pool.get().unwrap();
+
+        let completion_token = req.completion_text.split(" ").collect::<Vec<&str>>().len();
+        let updated_column = (
+            prompts::completion_text.eq(&req.completion_text),
+            prompts::completion_token.eq(completion_token as i32),
+            prompts::total_token.eq(completion_token as i32),
+        );
+
+        diesel::update(prompts::table)
+            .filter(prompts::id.eq(&req.prompt_id))
+            .set(updated_column)
+            .get_result(&conn)
+    }
+
+
+    pub async fn update_speech_to_text_response(
+        pool: web::Data<PgPool>,
+        body: web::Json<UpdateSpeechToTextPromptReq>,
+        is_pay_as_you_go: bool,
+    ) -> HttpResponse {
+        if is_pay_as_you_go {
+            let completion_token = body.completion_text.split(" ").collect::<Vec<&str>>().len();
+            let user_id = uuid::Uuid::parse_str(&body.user_id).unwrap();
+            let _user_reduce_balance =
+                User::reduce_balance(&pool, user_id, (completion_token / 2) as f64);
+        }
+        let result = Self::update_speech_to_text_prompt(pool, body);
+
+        match result {
+            Ok(update_prompt_res) => HttpResponse::Ok().json(update_prompt_res),
+            Err(err) => {
+                let err_res =
+                    WebErrorResponse::server_error(err, "Fail to update prompt, please try again");
+                return HttpResponse::InternalServerError().json(err_res);
+            }
+        }
+    }
 }

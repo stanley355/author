@@ -85,6 +85,15 @@ async fn new_speech_to_text(
     return prompt_handler.new(pool, &body.user_id).await;
 }
 
+#[put("/speech-to-text/")]
+async fn update_speech_to_text_prompt(
+    pool: web::Data<PgPool>,
+    body: web::Json<UpdateSpeechToTextPromptReq>,
+) -> HttpResponse {
+    let handler = PromptUpdateHandler::SpeechToText(web::Json(body.clone()));
+    handler.response_http(pool, &body.user_id).await
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(new_prompt)
@@ -92,5 +101,6 @@ pub fn route(config: &mut web::ServiceConfig) {
         .service(update_image_to_text_prompt)
         .service(new_text_to_speech)
         .service(delete_text_to_speech_file)
-        .service(new_speech_to_text);
+        .service(new_speech_to_text)
+        .service(update_speech_to_text_prompt);
 }

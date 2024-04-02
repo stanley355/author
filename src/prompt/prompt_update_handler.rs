@@ -1,13 +1,14 @@
 use actix_web::{web, HttpResponse};
 
 use super::model::Prompt;
-use super::req::UpdateImageToTextPromptReq;
+use super::req::{UpdateImageToTextPromptReq, UpdateSpeechToTextPromptReq};
 use crate::subscription::model::Subscription;
 use crate::user::model::User;
 use crate::{db::PgPool, util::web_response::WebErrorResponse};
 
 pub enum PromptUpdateHandler {
     ImageToText(web::Json<UpdateImageToTextPromptReq>),
+    SpeechToText(web::Json<UpdateSpeechToTextPromptReq>),
 }
 
 impl PromptUpdateHandler {
@@ -38,6 +39,9 @@ impl PromptUpdateHandler {
         match self {
             PromptUpdateHandler::ImageToText(req_body) => {
                 Prompt::update_image_to_text_response(&pool, req_body, is_pay_as_you_go).await
+            }
+            PromptUpdateHandler::SpeechToText(req_body) => {
+                Prompt::update_speech_to_text_response(pool, req_body, is_pay_as_you_go).await
             }
         }
     }
