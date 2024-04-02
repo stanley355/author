@@ -1,8 +1,5 @@
 use super::prompt_handler::PromptHandler;
-use super::req::{
-    NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType,
-    UpdateImageToTextPromptReq,
-};
+use super::req::*;
 use super::res::{NewPromptRes, NewTextToSpeechRes};
 use crate::schema::prompts;
 use crate::user::model::User;
@@ -158,6 +155,9 @@ impl Prompt {
                     PromptHandler::TextToSpeech(req_body) => {
                         Self::new_text_to_speech_response(pool, web::Json(req_body), false).await
                     }
+                    PromptHandler::SpeechToText(req_body) => {
+                        Self::new_speech_to_text_response(pool, web::Json(req_body)).await
+                    }
                 }
             }
             Err(_) => {
@@ -311,7 +311,7 @@ impl Prompt {
                         let err_res = WebErrorResponse {
                             status: StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
                             error: err.to_string(),
-                            message: "Fail to generate file, please try again".to_string() 
+                            message: "Fail to generate file, please try again".to_string(),
                         };
                         HttpResponse::InternalServerError().json(err_res)
                     }
@@ -323,6 +323,45 @@ impl Prompt {
                     "Fail to generate file, please try again",
                 );
                 HttpResponse::InternalServerError().json(err_res)
+            }
+        }
+    }
+
+    pub fn new_speech_to_text_prompt(
+        pool: &web::Data<PgPool>,
+        body: web::Json<NewSpeechToTextPromptReq>,
+    ) -> QueryResult<Prompt> {
+        let conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
+
+        let data = (
+            (prompts::user_id.eq(uuid)),
+            (prompts::instruction.eq("Speech to Text".to_string())),
+            (prompts::prompt_token.eq(0)),
+            (prompts::completion_token.eq(0)),
+            (prompts::prompt_text.eq("Speech to Text".to_string())),
+            (prompts::completion_text.eq("".to_string())),
+            (prompts::total_token.eq(0)),
+            (prompts::prompt_type.eq(body.prompt_type.to_string())),
+        );
+
+        diesel::insert_into(prompts::table)
+            .values(data)
+            .get_result(&conn)
+    }
+
+    pub async fn new_speech_to_text_response(
+        pool: &web::Data<PgPool>,
+        body: web::Json<NewSpeechToTextPromptReq>,
+    ) -> HttpResponse {
+        let result = Self::new_speech_to_text_prompt(pool, body);
+
+        match result {
+            Ok(new_prompt_res) => HttpResponse::Ok().json(new_prompt_res),
+            Err(err) => {
+                let err_res =
+                    WebErrorResponse::server_error(err, "Fail to create prompt, please try again");
+                return HttpResponse::InternalServerError().json(err_res);
             }
         }
     }

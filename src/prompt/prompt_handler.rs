@@ -1,5 +1,5 @@
 use super::model::Prompt;
-use super::req::{NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType};
+use super::req::{NewImageToTextPromptReq, NewPromptReq, NewSpeechToTextPromptReq, NewTextToSpeechPromptReq, PromptType};
 use crate::{
     db::PgPool, subscription::model::Subscription, user::model::User,
     util::web_response::WebErrorResponse,
@@ -10,6 +10,7 @@ pub enum PromptHandler {
     TranslateGrammarCheck(NewPromptReq),
     ImageToText(NewImageToTextPromptReq),
     TextToSpeech(NewTextToSpeechPromptReq),
+    SpeechToText(NewSpeechToTextPromptReq)
 }
 
 impl PromptHandler {
@@ -50,6 +51,9 @@ impl PromptHandler {
             PromptHandler::TextToSpeech(body) => {
                 Prompt::new_text_to_speech_response(&pool, web::Json(body), is_pay_as_you_go).await
             }
+            PromptHandler::SpeechToText(body) => {
+                Prompt::new_speech_to_text_response(&pool, web::Json(body)).await
+            }
         }
     }
 
@@ -79,6 +83,15 @@ impl PromptHandler {
                     &body.user_id,
                     &PromptType::TextToSpeech,
                     PromptHandler::TextToSpeech(body.clone()),
+                )
+                .await
+            }
+            PromptHandler::SpeechToText(body) => {
+                Prompt::new_monthly_prompt(
+                    &pool,
+                    &body.user_id,
+                    &PromptType::SpeechToText,
+                    PromptHandler::SpeechToText(body.clone()),
                 )
                 .await
             }

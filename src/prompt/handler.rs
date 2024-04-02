@@ -87,9 +87,18 @@ async fn delete_text_to_speech_file(body: web::Query<DeleteTextToSpeechFileReq>)
 
 #[post("/speech-to-text/")]
 async fn new_speech_to_text(pool: web::Data<PgPool>, body: web::Json<NewSpeechToTextPromptReq>) -> HttpResponse {
+    if body.prompt_type.to_string() != PromptType::SpeechToText.to_string() {
+        let err_res = WebErrorResponse {
+            status: StatusCode::BAD_REQUEST.as_u16(),
+            error: "Invalid Prompt Type".to_string(),
+            message: "Invalid Prompt Type".to_string(),
+        };
 
+        return HttpResponse::BadRequest().json(err_res);
+    }
 
-    HttpResponse::Ok().body("body".to_string())
+    let prompt_handler = PromptHandler::SpeechToText(body.clone());
+    return  prompt_handler.new(pool, &body.user_id).await;
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
