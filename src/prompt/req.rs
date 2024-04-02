@@ -6,7 +6,8 @@ pub enum PromptType {
     Translate,
     GrammarCheck,
     ImageToText,
-    TextToSpeech
+    TextToSpeech,
+    SpeechToText
 }
 
 impl fmt::Display for PromptType {
@@ -63,4 +64,10 @@ pub struct NewTextToSpeechPromptReq {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct DeleteTextToSpeechFileReq {
     pub file_name: String
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct NewSpeechToTextPromptReq {
+    pub user_id: String,
+    pub prompt_type: PromptType
 }

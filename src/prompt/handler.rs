@@ -1,9 +1,6 @@
 use super::model::Prompt;
 use super::prompt_handler::PromptHandler;
-use super::req::{
-    DeleteTextToSpeechFileReq, NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq,
-    PromptType, UpdateImageToTextPromptReq,
-};
+use super::req::*;
 use crate::{
     db::PgPool, subscription::model::Subscription, user::model::User,
     util::web_response::WebErrorResponse,
@@ -88,19 +85,12 @@ async fn delete_text_to_speech_file(body: web::Query<DeleteTextToSpeechFileReq>)
     }
 }
 
-
 #[post("/speech-to-text/")]
-async fn new_speech_to_text(
-    pool: web::Data<PgPool>,
-    body: web::Form<NewTextToSpeechPromptReq>,
-) -> HttpResponse {
-    // let prompt_handle = PromptHandler::TextToSpeech(body.clone());
-    // return PromptHandler::new(prompt_handle, pool, &body.user_id).await;
+async fn new_speech_to_text(pool: web::Data<PgPool>, body: web::Json<NewSpeechToTextPromptReq>) -> HttpResponse {
 
-    
+
     HttpResponse::Ok().body("body".to_string())
 }
-
 
 pub fn route(config: &mut web::ServiceConfig) {
     config
@@ -108,5 +98,6 @@ pub fn route(config: &mut web::ServiceConfig) {
         .service(new_image_to_text_prompt)
         .service(update_image_to_text_prompt)
         .service(new_text_to_speech)
-        .service(delete_text_to_speech_file);
+        .service(delete_text_to_speech_file)
+        .service(new_speech_to_text);
 }
