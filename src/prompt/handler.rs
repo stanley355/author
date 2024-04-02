@@ -1,10 +1,7 @@
-use super::model::Prompt;
 use super::prompt_handler::PromptHandler;
+use super::prompt_update_handler::PromptUpdateHandler;
 use super::req::*;
-use crate::{
-    db::PgPool, subscription::model::Subscription, user::model::User,
-    util::web_response::WebErrorResponse,
-};
+use crate::{db::PgPool, util::web_response::WebErrorResponse};
 use actix_web::{delete, put};
 use actix_web::{http::StatusCode, post, web, HttpResponse};
 
@@ -38,24 +35,8 @@ async fn update_image_to_text_prompt(
     pool: web::Data<PgPool>,
     body: web::Json<UpdateImageToTextPromptReq>,
 ) -> HttpResponse {
-    let subscription_result = Subscription::find_active_subscription(&pool, &body.user_id);
-
-    match subscription_result {
-        Ok(_) => Prompt::update_image_to_text_response(&pool, body, false).await,
-        Err(_) => {
-            let user_result = User::find_by_id(&pool, &body.user_id);
-
-            match user_result {
-                Ok(user) => {
-                    Prompt::update_image_to_text_response(&pool, body, user.balance > 0.0).await
-                }
-                Err(err) => {
-                    let err_res = WebErrorResponse::server_error(err, "User not found");
-                    return HttpResponse::BadRequest().json(err_res);
-                }
-            }
-        }
-    }
+    let handler = PromptUpdateHandler::ImageToText(web::Json(body.clone()));
+    handler.response_http(pool, &body.user_id).await
 }
 
 #[post("/text-to-speech/")]
@@ -86,7 +67,10 @@ async fn delete_text_to_speech_file(body: web::Query<DeleteTextToSpeechFileReq>)
 }
 
 #[post("/speech-to-text/")]
-async fn new_speech_to_text(pool: web::Data<PgPool>, body: web::Json<NewSpeechToTextPromptReq>) -> HttpResponse {
+async fn new_speech_to_text(
+    pool: web::Data<PgPool>,
+    body: web::Json<NewSpeechToTextPromptReq>,
+) -> HttpResponse {
     if body.prompt_type.to_string() != PromptType::SpeechToText.to_string() {
         let err_res = WebErrorResponse {
             status: StatusCode::BAD_REQUEST.as_u16(),
@@ -98,7 +82,7 @@ async fn new_speech_to_text(pool: web::Data<PgPool>, body: web::Json<NewSpeechTo
     }
 
     let prompt_handler = PromptHandler::SpeechToText(body.clone());
-    return  prompt_handler.new(pool, &body.user_id).await;
+    return prompt_handler.new(pool, &body.user_id).await;
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
