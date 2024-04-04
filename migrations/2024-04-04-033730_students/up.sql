@@ -4,7 +4,7 @@ CREATE TABLE students (
   user_id uuid NOT NULL REFERENCES users(id),
   student_id VARCHAR NOT NULL,
   student_email VARCHAR,
-  student_card_img_url VARCHAR NOT NULL,
+  student_card_img_url VARCHAR,
   institution_level VARCHAR NOT NULL,
   institution_name VARCHAR NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),

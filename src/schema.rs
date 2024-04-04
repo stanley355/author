@@ -22,7 +22,7 @@ diesel::table! {
         user_id -> Uuid,
         student_id -> Varchar,
         student_email -> Nullable<Varchar>,
-        student_card_img_url -> Varchar,
+        student_card_img_url -> Nullable<Varchar>,
         institution_level -> Varchar,
         institution_name -> Varchar,
         created_at -> Timestamp,

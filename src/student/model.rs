@@ -14,7 +14,7 @@ pub struct Student {
     user_id: Uuid,
     student_id: String,
     student_email: Option<String>,
-    student_card_img_url: String,
+    student_card_img_url: Option<String>,
     institution_level: String,
     institution_name: String,
     created_at: NaiveDateTime,
