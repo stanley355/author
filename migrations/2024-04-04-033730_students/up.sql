@@ -11,7 +11,7 @@ CREATE TABLE students (
   updated_at TIMESTAMP NOT NULL DEFAULT NOW(), 
   free_discount_end_at TIMESTAMP NOT NULL,
   half_discount_end_at TIMESTAMP NOT NULL,
-  student_application_valid BOOLEAN DEFAULT true,
+  student_application_valid BOOLEAN NOT NULL DEFAULT true,
   student_application_invalid_reason VARCHAR
 );
 
