@@ -17,6 +17,24 @@ diesel::table! {
 }
 
 diesel::table! {
+    students (id) {
+        id -> Uuid,
+        user_id -> Uuid,
+        student_id -> Varchar,
+        student_email -> Nullable<Varchar>,
+        student_card_img_url -> Varchar,
+        institution_level -> Varchar,
+        institution_name -> Varchar,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+        free_discount_end_at -> Timestamp,
+        half_discount_end_at -> Timestamp,
+        student_application_valid -> Nullable<Bool>,
+        student_application_invalid_reason -> Nullable<Varchar>,
+    }
+}
+
+diesel::table! {
     subscriptions (id) {
         id -> Uuid,
         user_id -> Uuid,
@@ -53,12 +71,14 @@ diesel::table! {
 }
 
 diesel::joinable!(prompts -> users (user_id));
+diesel::joinable!(students -> users (user_id));
 diesel::joinable!(subscriptions -> topups (topup_id));
 diesel::joinable!(subscriptions -> users (user_id));
 diesel::joinable!(topups -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     prompts,
+    students,
     subscriptions,
     topups,
     users,
