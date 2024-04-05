@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use super::req::{TopupPaidReq, TopupPayasyougoReq, TopupPremiumDuration, TopupPremiumReq};
 use crate::db::PgPool;
 use crate::schema::topups;
+use crate::student::model::Student;
 
 #[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
 pub struct TopUp {
@@ -33,7 +34,15 @@ impl TopUp {
             .get_result(&conn)
     }
 
-    pub fn calc_premium_price(duration: &TopupPremiumDuration) -> f64 {
+    pub fn calc_timely_price(duration: &TopupPremiumDuration, is_student: bool) -> f64 {
+        if is_student {
+            return match duration {
+                TopupPremiumDuration::Monthly => 12500.0,
+                TopupPremiumDuration::Quarterly => 30000.0,
+                TopupPremiumDuration::HalfYearly => 70000.0,
+            };
+        }
+
         match duration {
             TopupPremiumDuration::Monthly => 25000.0,
             TopupPremiumDuration::Quarterly => 70000.0,
@@ -41,13 +50,35 @@ impl TopUp {
         }
     }
 
+    pub fn check_premium_price(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<TopupPremiumReq>,
+    ) -> f64 {
+        let student_disc_check = Student::find_active_discount(pool, &body.user_id);
+
+        match student_disc_check {
+            Ok(student) => {
+                let student_disc_availability = student.check_discount_availability();
+                match (
+                    student_disc_availability.is_student,
+                    student_disc_availability.is_half_discount,
+                ) {
+                    (true, true) => Self::calc_timely_price(&body.duration, true),
+                    (_, _) => Self::calc_timely_price(&body.duration, false),
+                }
+            }
+            Err(_) => Self::calc_timely_price(&body.duration, false),
+        }
+    }
+
     pub fn new_premium(
         pool: &web::Data<PgPool>,
         body: &web::Json<TopupPremiumReq>,
     ) -> QueryResult<TopUp> {
+        let price = Self::check_premium_price(pool, body);
+
         let conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
-        let price = Self::calc_premium_price(&body.duration);
 
         let data = (
             (topups::user_id.eq(uuid)),
@@ -70,10 +101,7 @@ impl TopUp {
             .get_results::<TopUp>(&conn)
     }
 
-    pub fn update_paid_topup(
-        pool: &web::Data<PgPool>,
-        body: &TopupPaidReq,
-    ) -> QueryResult<TopUp> {
+    pub fn update_paid_topup(pool: &web::Data<PgPool>, body: &TopupPaidReq) -> QueryResult<TopUp> {
         let conn = pool.get().unwrap();
         let topup_id = uuid::Uuid::parse_str(&body.id).unwrap();
 
