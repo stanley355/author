@@ -10,6 +10,11 @@ async fn new_student(
     pool: web::Data<PgPool>,
     new_student_req: web::Json<NewStudentReq>,
 ) -> HttpResponse {
+    if &new_student_req.student_id == "" || &new_student_req.institution_name == "" {
+        let msg = "Missing student id or institution name";
+        return HttpErrorResponse::new(Some(400), msg.to_string(), msg).response();
+    }
+
     let new_student_result = Student::insert_one(pool, new_student_req.into_inner());
 
     match new_student_result {
