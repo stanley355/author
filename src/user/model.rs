@@ -91,7 +91,8 @@ impl User {
 
             (Ok(user), _, _, Ok(topups)) => {
                 GetAccountRes::new(Some(user.remove_password_field()), None, None, Some(topups))
-            }
+            },
+            (Ok(user), _, _, _) => GetAccountRes::new(Some(user.remove_password_field()), None, None, None),
             (_, _, _, _) => GetAccountRes::new(None, None, None, None),
         }
     }
