@@ -76,12 +76,25 @@ impl User {
                     None,
                 )
             }
+            (Ok(user), Ok(active_student_discount), _, Ok(topups)) => GetAccountRes::new(
+                Some(user.remove_password_field()),
+                Some(active_student_discount),
+                None,
+                Some(topups),
+            ),
+            (Ok(user), _, Ok(active_subscription), Ok(topups)) => GetAccountRes::new(
+                Some(user.remove_password_field()),
+                None,
+                Some(active_subscription),
+                Some(topups),
+            ),
             (Ok(user), Ok(active_student_discount), _, _) => GetAccountRes::new(
                 Some(user.remove_password_field()),
                 Some(active_student_discount),
                 None,
                 None,
             ),
+
             (Ok(user), _, Ok(active_subscription), _) => GetAccountRes::new(
                 Some(user.remove_password_field()),
                 None,
@@ -91,8 +104,10 @@ impl User {
 
             (Ok(user), _, _, Ok(topups)) => {
                 GetAccountRes::new(Some(user.remove_password_field()), None, None, Some(topups))
-            },
-            (Ok(user), _, _, _) => GetAccountRes::new(Some(user.remove_password_field()), None, None, None),
+            }
+            (Ok(user), _, _, _) => {
+                GetAccountRes::new(Some(user.remove_password_field()), None, None, None)
+            }
             (_, _, _, _) => GetAccountRes::new(None, None, None, None),
         }
     }
