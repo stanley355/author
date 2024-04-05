@@ -1,4 +1,5 @@
 use super::req::NewStudentReq;
+use super::res::StudentDiscountAvailabilityRes;
 use crate::diesel::ExpressionMethods;
 use crate::{db::PgPool, schema::students};
 
@@ -81,5 +82,16 @@ impl Student {
             )
             .order_by(students::created_at.desc())
             .get_result::<Student>(&conn)
+    }
+
+    pub fn check_discount_availability(self) -> StudentDiscountAvailabilityRes {
+        let free_disc_timestamp = self.free_discount_end_at.timestamp();
+        let half_disc_timestamp = self.half_discount_end_at.timestamp();
+        let current_timestamp = Utc::now().timestamp();
+        StudentDiscountAvailabilityRes {
+            is_student: self.student_application_valid,
+            is_free_discount: free_disc_timestamp > current_timestamp,
+            is_half_discount: half_disc_timestamp > current_timestamp
+        }
     }
 }
