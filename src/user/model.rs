@@ -48,23 +48,9 @@ impl User {
             .get_result::<User>(&conn)
     }
 
-    pub fn fetch_user_student_data(pool: &web::Data<PgPool>, user_id: &str) -> Result<Student, ()> {
-        match Student::find_active_discount(pool, user_id) {
-            Ok(student) => {
-                let student_disc_tuple = student.clone().check_discount_availability().to_tuple();
-
-                match student_disc_tuple {
-                    (true, _, true) => Ok(student),
-                    _ => Err(()),
-                }
-            }
-            Err(_) => Err(()),
-        }
-    }
-
     pub fn fetch_account_page_data(pool: &web::Data<PgPool>, user_id: &str) -> GetAccountRes {
         let user_query = Self::find_by_id(pool, user_id);
-        let active_student_discount_query = Self::fetch_user_student_data(pool, user_id);
+        let active_student_discount_query = Student::find_active_discount(pool, user_id);
         let active_subscription_query = Subscription::find_active_subscription(pool, user_id);
         let topups_query = TopUp::find_user_topups(pool, user_id);
 
