@@ -4,7 +4,7 @@ use crate::{db::PgPool, schema::students};
 
 use actix_web::web;
 use chrono::{Duration, NaiveDateTime, Utc};
-use diesel::{QueryResult, RunQueryDsl};
+use diesel::{QueryResult, RunQueryDsl, BoolExpressionMethods, QueryDsl};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -62,6 +62,24 @@ impl Student {
         let conn = pool.get().unwrap();
         diesel::insert_into(students::table)
             .values(data)
+            .get_result::<Student>(&conn)
+    }
+
+    pub fn find_active_discount(
+        pool: &web::Data<PgPool>,
+        user_id: &str,
+    ) -> QueryResult<Student> {
+        let user_id = Uuid::parse_str(user_id).unwrap();
+        let conn = pool.get().unwrap();
+
+        students::table
+            .filter(
+                students::user_id
+                    .eq(user_id)
+                    .and(students::student_application_valid.eq(true))
+                    .and(students::half_discount_end_at.gt(diesel::dsl::sql("now()"))),
+            )
+            .order_by(students::created_at.desc())
             .get_result::<Student>(&conn)
     }
 }

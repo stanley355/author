@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{subscription::model::Subscription, topup::model::TopUp};
+use crate::{student::model::Student, subscription::model::Subscription, topup::model::TopUp};
 
 use super::model::UserWithoutPassword;
 
@@ -19,6 +19,7 @@ pub struct UserLoginRes {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct GetAccountRes {
     pub user: Option<UserWithoutPassword>,
+    pub active_student_discount: Option<Student>,
     pub active_subscription: Option<Subscription>,
     pub topups: Option<Vec<TopUp>>,
 }
@@ -26,11 +27,13 @@ pub struct GetAccountRes {
 impl GetAccountRes {
     pub fn new(
         user: Option<UserWithoutPassword>,
+        active_student_discount: Option<Student>,
         active_subscription: Option<Subscription>,
         topups: Option<Vec<TopUp>>,
     ) -> Self {
         GetAccountRes {
             user,
+            active_student_discount,
             active_subscription,
             topups,
         }
