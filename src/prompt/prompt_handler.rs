@@ -1,9 +1,8 @@
 use super::model::Prompt;
 use super::req::{NewImageToTextPromptReq, NewPromptReq, NewTextToSpeechPromptReq, PromptType};
-use crate::{
-    db::PgPool, subscription::model::Subscription, user::model::User,
-    util::web_response::WebErrorResponse,
-};
+use crate::student::model::Student;
+use crate::util::http_error_response::HttpErrorResponse;
+use crate::{db::PgPool, subscription::model::Subscription, user::model::User};
 use actix_web::{web, HttpResponse};
 
 pub enum PromptHandler {
@@ -14,6 +13,26 @@ pub enum PromptHandler {
 
 impl PromptHandler {
     pub async fn new(self, pool: web::Data<PgPool>, user_id: &str) -> HttpResponse {
+        let student_result = Student::find_active_discount(&pool, user_id);
+
+        match student_result {
+            Ok(student) => {
+                let student_disc = student.check_discount_availability();
+
+                match (student_disc.is_student, student_disc.is_free_discount) {
+                    (true, true) => Self::has_subscription_response(self, pool, false).await,
+                    (_, _) => Self::is_not_student_response(self, pool, user_id).await,
+                }
+            }
+            Err(_) => Self::is_not_student_response(self, pool, user_id).await,
+        }
+    }
+
+    pub async fn is_not_student_response(
+        self,
+        pool: web::Data<PgPool>,
+        user_id: &str,
+    ) -> HttpResponse {
         let subscription_result = Subscription::find_active_subscription(&pool, user_id);
 
         match subscription_result {
@@ -27,8 +46,8 @@ impl PromptHandler {
                         false => Self::monthly_prompt_response(self, pool).await,
                     },
                     Err(err) => {
-                        let err_res = WebErrorResponse::server_error(err, "User not found");
-                        return HttpResponse::BadRequest().json(err_res);
+                        let msg = "User not found";
+                        HttpErrorResponse::new(None, err.to_string(), msg).response()
                     }
                 }
             }
