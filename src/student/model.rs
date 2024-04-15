@@ -5,7 +5,7 @@ use crate::{db::PgPool, schema::students};
 
 use actix_web::web;
 use chrono::{Duration, NaiveDateTime, Utc};
-use diesel::{QueryResult, RunQueryDsl, BoolExpressionMethods, QueryDsl};
+use diesel::{BoolExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -66,10 +66,7 @@ impl Student {
             .get_result::<Student>(&conn)
     }
 
-    pub fn find_active_discount(
-        pool: &web::Data<PgPool>,
-        user_id: &str,
-    ) -> QueryResult<Student> {
+    pub fn find_active_discount(pool: &web::Data<PgPool>, user_id: &str) -> QueryResult<Student> {
         let user_id = Uuid::parse_str(user_id).unwrap();
         let conn = pool.get().unwrap();
 
@@ -91,7 +88,20 @@ impl Student {
         StudentDiscountAvailabilityRes {
             is_student: self.student_application_valid,
             is_free_discount: free_disc_timestamp > current_timestamp,
-            is_half_discount: half_disc_timestamp > current_timestamp
+            is_half_discount: half_disc_timestamp > current_timestamp,
         }
+    }
+
+    pub fn find_student_college_subscription(
+        pool: &web::Data<PgPool>,
+        user_id: &str,
+    ) -> QueryResult<Student> {
+        let user_id = Uuid::parse_str(user_id).unwrap();
+        let conn = pool.get().unwrap();
+
+        students::table
+            .filter(students::user_id.eq(user_id).and(students::institution_level.eq("College")))
+            .order_by(students::created_at.desc())
+            .get_result::<Student>(&conn)
     }
 }

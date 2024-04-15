@@ -16,13 +16,24 @@ async fn new_student(
         return HttpErrorResponse::new(Some(400), msg.to_string(), msg).response();
     }
 
-    let new_student_result = Student::insert_one(pool, new_student_req.into_inner());
+    let student_college_subscription =
+        Student::find_student_college_subscription(&pool, &new_student_req.user_id);
 
-    match new_student_result {
-        Ok(student) => HttpResponse::Ok().json(student),
-        Err(err) => {
-            let msg = "Fail to add student, please try again";
-            HttpErrorResponse::new(None, err.to_string(), msg).response()
+    match student_college_subscription {
+        Ok(_) => {
+            let msg = "Inelligible for student discount. User had had college subscription.";
+            return HttpErrorResponse::new(Some(400), msg.to_string(), msg).response();
+        }
+        Err(_) => {
+            let new_student_result = Student::insert_one(pool, new_student_req.into_inner());
+
+            match new_student_result {
+                Ok(student) => HttpResponse::Ok().json(student),
+                Err(err) => {
+                    let msg = "Fail to add student, please try again";
+                    HttpErrorResponse::new(None, err.to_string(), msg).response()
+                }
+            }
         }
     }
 }
