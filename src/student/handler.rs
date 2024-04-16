@@ -2,6 +2,7 @@ use actix_web::{get, post, web, HttpResponse};
 
 use super::model::Student;
 use super::req::*;
+use super::res::StudentDiscountAvailabilityRes;
 use crate::db::PgPool;
 use crate::user::req::UserIdReq;
 use crate::util::http_error_response::HttpErrorResponse;
@@ -47,9 +48,14 @@ async fn check_discount_availability(
 
     match student_availability_result {
         Ok(student) => HttpResponse::Ok().json(student.check_discount_availability()),
-        Err(err) => {
-            let msg = "Fail to check, please try again";
-            HttpErrorResponse::new(None, err.to_string(), msg).response()
+        Err(_) => {
+            let student_availability_default = StudentDiscountAvailabilityRes {
+                is_student: false,
+                is_free_discount: false,
+                is_half_discount: false, 
+                can_reapply: true
+            };
+            HttpResponse::Ok().json(student_availability_default)
         }
     }
 }
