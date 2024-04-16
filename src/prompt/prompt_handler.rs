@@ -13,7 +13,7 @@ pub enum PromptHandler {
 
 impl PromptHandler {
     pub async fn new(self, pool: web::Data<PgPool>, user_id: &str) -> HttpResponse {
-        let student_result = Student::find_active_discount(&pool, user_id);
+        let student_result = Student::find_active_application(&pool, user_id);
 
         match student_result {
             Ok(student) => {

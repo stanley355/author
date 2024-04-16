@@ -54,7 +54,7 @@ impl TopUp {
         pool: &web::Data<PgPool>,
         body: &web::Json<TopupPremiumReq>,
     ) -> f64 {
-        let student_disc_check = Student::find_active_discount(pool, &body.user_id);
+        let student_disc_check = Student::find_active_application(pool, &body.user_id);
 
         match student_disc_check {
             Ok(student) => {

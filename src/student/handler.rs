@@ -43,7 +43,7 @@ async fn check_discount_availability(
     pool: web::Data<PgPool>,
     query: web::Query<UserIdReq>,
 ) -> HttpResponse {
-    let student_availability_result = Student::find_active_discount(&pool, &query.user_id);
+    let student_availability_result = Student::find_last_application(&pool, &query.user_id);
 
     match student_availability_result {
         Ok(student) => HttpResponse::Ok().json(student.check_discount_availability()),
