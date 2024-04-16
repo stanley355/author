@@ -106,6 +106,7 @@ impl Student {
             is_student: self.student_application_valid,
             is_free_discount: free_disc_timestamp > current_timestamp,
             is_half_discount: half_disc_timestamp > current_timestamp,
+            can_reapply: self.institution_level != "College"
         }
     }
 
