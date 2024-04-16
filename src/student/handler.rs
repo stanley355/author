@@ -53,7 +53,7 @@ async fn check_discount_availability(
                 is_student: false,
                 is_free_discount: false,
                 is_half_discount: false, 
-                can_reapply: true
+                last_institution_level: "".to_string()
             };
             HttpResponse::Ok().json(student_availability_default)
         }

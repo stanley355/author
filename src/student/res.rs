@@ -5,5 +5,5 @@ pub struct StudentDiscountAvailabilityRes {
   pub is_student: bool,
   pub is_free_discount: bool,
   pub is_half_discount: bool,
-  pub can_reapply: bool
+  pub last_institution_level: String
 }
