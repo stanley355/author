@@ -1,18 +1,6 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    documents (id) {
-        id -> Uuid,
-        user_id -> Uuid,
-        created_at -> Timestamp,
-        updated_at -> Timestamp,
-        name -> Varchar,
-        content -> Nullable<Text>,
-        checkbot_completion -> Nullable<Text>,
-    }
-}
-
-diesel::table! {
     prompts (id) {
         id -> Int4,
         user_id -> Uuid,
@@ -25,6 +13,24 @@ diesel::table! {
         total_cost -> Float8,
         instruction -> Varchar,
         prompt_type -> Nullable<Varchar>,
+    }
+}
+
+diesel::table! {
+    students (id) {
+        id -> Uuid,
+        user_id -> Uuid,
+        student_id -> Varchar,
+        student_email -> Nullable<Varchar>,
+        student_card_img_url -> Nullable<Varchar>,
+        institution_level -> Varchar,
+        institution_name -> Varchar,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+        free_discount_end_at -> Timestamp,
+        half_discount_end_at -> Timestamp,
+        student_application_valid -> Bool,
+        student_application_invalid_reason -> Nullable<Varchar>,
     }
 }
 
@@ -64,15 +70,15 @@ diesel::table! {
     }
 }
 
-diesel::joinable!(documents -> users (user_id));
 diesel::joinable!(prompts -> users (user_id));
+diesel::joinable!(students -> users (user_id));
 diesel::joinable!(subscriptions -> topups (topup_id));
 diesel::joinable!(subscriptions -> users (user_id));
 diesel::joinable!(topups -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
-    documents,
     prompts,
+    students,
     subscriptions,
     topups,
     users,

@@ -8,6 +8,7 @@ use super::req::GmailLoginReq;
 use super::res::{GetAccountRes, UserLoginRes};
 use crate::db::PgPool;
 use crate::schema::users;
+use crate::student::model::Student;
 use crate::subscription::model::Subscription;
 use crate::topup::model::TopUp;
 use crate::util::password::Password;
@@ -49,25 +50,65 @@ impl User {
 
     pub fn fetch_account_page_data(pool: &web::Data<PgPool>, user_id: &str) -> GetAccountRes {
         let user_query = Self::find_by_id(pool, user_id);
+        let active_student_discount_query = Student::find_active_application(pool, user_id);
         let active_subscription_query = Subscription::find_active_subscription(pool, user_id);
         let topups_query = TopUp::find_user_topups(pool, user_id);
 
-        match (user_query, active_subscription_query, topups_query) {
-            (Ok(user), Ok(active_subscription), Ok(topups)) => GetAccountRes::new(
+        match (
+            user_query,
+            active_student_discount_query,
+            active_subscription_query,
+            topups_query,
+        ) {
+            (Ok(user), Ok(active_student_discount), Ok(active_subscription), Ok(topups)) => {
+                GetAccountRes::new(
+                    Some(user.remove_password_field()),
+                    Some(active_student_discount),
+                    Some(active_subscription),
+                    Some(topups),
+                )
+            }
+            (Ok(user), Ok(active_student_discount), Ok(active_subscription), _) => {
+                GetAccountRes::new(
+                    Some(user.remove_password_field()),
+                    Some(active_student_discount),
+                    Some(active_subscription),
+                    None,
+                )
+            }
+            (Ok(user), Ok(active_student_discount), _, Ok(topups)) => GetAccountRes::new(
                 Some(user.remove_password_field()),
+                Some(active_student_discount),
+                None,
+                Some(topups),
+            ),
+            (Ok(user), _, Ok(active_subscription), Ok(topups)) => GetAccountRes::new(
+                Some(user.remove_password_field()),
+                None,
                 Some(active_subscription),
                 Some(topups),
             ),
-            (Ok(user), Ok(active_subscription), _) => GetAccountRes::new(
+            (Ok(user), Ok(active_student_discount), _, _) => GetAccountRes::new(
                 Some(user.remove_password_field()),
+                Some(active_student_discount),
+                None,
+                None,
+            ),
+
+            (Ok(user), _, Ok(active_subscription), _) => GetAccountRes::new(
+                Some(user.remove_password_field()),
+                None,
                 Some(active_subscription),
                 None,
             ),
-            (Ok(user), _, Ok(topups)) => {
-                GetAccountRes::new(Some(user.remove_password_field()), None, Some(topups))
+
+            (Ok(user), _, _, Ok(topups)) => {
+                GetAccountRes::new(Some(user.remove_password_field()), None, None, Some(topups))
             }
-            (Ok(user), _, _) => GetAccountRes::new(Some(user.remove_password_field()), None, None),
-            (_, _, _) => GetAccountRes::new(None, None, None),
+            (Ok(user), _, _, _) => {
+                GetAccountRes::new(Some(user.remove_password_field()), None, None, None)
+            }
+            (_, _, _, _) => GetAccountRes::new(None, None, None, None),
         }
     }
 

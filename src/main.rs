@@ -9,7 +9,6 @@ use std::env;
 use actix_files::Files;
 
 mod db;
-mod document;
 mod openai;
 mod prompt;
 mod schema;
@@ -17,6 +16,7 @@ mod subscription;
 mod topup;
 mod user;
 mod util;
+mod student;
 
 async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
     HttpServer::new(move || {
@@ -29,7 +29,7 @@ async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
             .service(web::scope("/v1/users").configure(user::handler::route))
             .service(web::scope("/v1/prompts").configure(prompt::handler::route))
             .service(web::scope("/v1/topups").configure(topup::handler::route))
-            .service(web::scope("/v1/documents").configure(document::handler::route))
+            .service(web::scope("/v1/students").configure(student::handler::route))
     })
     .bind(address)?
     .run()
