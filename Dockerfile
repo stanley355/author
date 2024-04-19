@@ -15,10 +15,10 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 WORKDIR /app
 
 # Copy project files
-COPY . .
+COPY . /app/
 
-# Build the project
 RUN cargo build --release --all-features
+# Build the project
 
 # Stage 2: Runtime Stage
 FROM ubuntu:22.04 as runner
