@@ -1,18 +1,33 @@
-# Stage 1 (Builder)
-FROM alpine:3.17 AS builder
+# Stage 1: Build Stage
+FROM ubuntu:22.04 as builder
 
-RUN apk add --no-cache rust cargo postgresql-dev
+# Install necessary dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    build-essential \
+    curl
 
+# Install Rust
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Set working directory
 WORKDIR /app
-COPY Cargo.toml ./
 
-# Stage 2 (Final)
-FROM alpine:3.17
+# Copy project files
+COPY . .
 
-RUN apk add --no-cache curl
+# Build the project
+RUN cargo build --release --all-features
 
-WORKDIR /app
-COPY --from=builder /app/target/release/author .
+# Stage 2: Runtime Stage
+FROM ubuntu:22.04 as runner
 
+# Copy built artifacts from the builder stage
+COPY --from=builder /app/target/release/author /app/target/release/author
+
+# Expose port
 EXPOSE 8080
-ENTRYPOINT ["/app/author"]
+
+# Set entrypoint
+ENTRYPOINT ["/app/target/release/author"]
