@@ -15,7 +15,7 @@ RUN cargo build --release --all-features
 FROM ubuntu:22.04 as runner
 
 RUN apt-get update && \
-    apt-get install -y libpq-dev
+    apt-get install -y libpq-dev build-essential curl
 
 # Copy the build artifact from the builder stage
 COPY --from=builder /app/target/release/author /app/author
