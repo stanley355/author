@@ -1,41 +1,23 @@
-# Stage 1: Builder
-FROM rust:slim as builder
+FROM ubuntu:22.04 as builder
 
-# Install dependencies
-RUN apt-get update && \
-    apt-get install -y libpq-dev build-essential curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install libpq-dev build-essential curl -y
 
-# Install Rust (assuming this is necessary beyond the base rust image)
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-# Copy source code
 WORKDIR /app
 COPY . /app/
 
-# Build
 RUN cargo build --release --all-features
 
-# Remove unnecessary build files
-RUN rm -rf /usr/local/cargo/git /usr/local/cargo/registry
-
-# Stage 2: Runtime
-FROM debian:buster-slim
-
-# Install runtime libraries
-RUN apt-get update && \
-    apt-get install -y libpq5 && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+FROM ubuntu:22.04 as runner 
 
 # Copy the build artifact from the builder stage
-COPY --from=builder /app/target/release/author /app/author
+COPY --from=builder /app/target/release/author .
 
-# Set the working directory
-WORKDIR /app
+RUN echo "LIB LIB LIB LIB LIB"
+RUN find / -name libpq.so.5
 
-# Expose and command
 EXPOSE 8080
-CMD ["./author"]
+ENTRYPOINT /app/target/release/author
