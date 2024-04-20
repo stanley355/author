@@ -7,7 +7,7 @@ on:
 
 jobs:
   build_and_test:
-    name: Rust Authentication project
+    name: Author Production Workflow
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
