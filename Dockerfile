@@ -2,7 +2,6 @@ FROM ubuntu:22.04 as builder
 
 RUN apt-get update && \
     apt-get install -y libpq-dev build-essential curl && \
-    apt-get clean
 
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
