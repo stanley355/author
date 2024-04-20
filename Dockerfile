@@ -20,4 +20,5 @@ RUN echo "LIB LIB LIB LIB LIB"
 RUN find / -name libpq.so.5
 
 EXPOSE 8080
-ENTRYPOINT /app/target/release/author
+# ENTRYPOINT /app/target/release/author
+CMD ["./author"]
