@@ -18,7 +18,7 @@ RUN apt-get update && \
     apt-get install -y libpq-dev
 
 # Copy the build artifact from the builder stage
-COPY --from=builder /app/target/release/author /app
+COPY --from=builder /app/target/release/author /app/author
 
 EXPOSE 8080
 ENTRYPOINT /app/author
