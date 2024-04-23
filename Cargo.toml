@@ -10,9 +10,9 @@ actix-cors = "0.6.4"
 actix-files = "0.6.5"
 actix-web = { version = "4", features = ["openssl"] }
 bcrypt = "0.14.0"
-chrono = { version ="0.4.22", features= ["serde"] }
+chrono = { version ="0.4.38", features= ["serde"] }
 dotenv = "0.15"
-diesel = { version = "1.4.4", features = ["postgres", "uuidv07", "r2d2", "chrono"] }
+diesel = { version = "1.4.8", features = ["postgres", "uuidv07", "r2d2", "chrono"] }
 jsonwebtoken = "8.3.0"
 openssl = { version = "0.10", features = ["vendored"] }
 serde = { version = "1.0", features = ["derive"] }
