@@ -2,21 +2,22 @@
 extern crate diesel;
 
 use actix_cors::Cors;
+use actix_files::Files;
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
 use dotenv::dotenv;
 use std::env;
-use actix_files::Files;
 
 mod db;
 mod openai;
 mod prompt;
 mod schema;
+mod student;
 mod subscription;
 mod topup;
 mod user;
 mod util;
-mod student;
+mod v2;
 
 async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
     HttpServer::new(move || {
@@ -30,6 +31,7 @@ async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
             .service(web::scope("/v1/prompts").configure(prompt::handler::route))
             .service(web::scope("/v1/topups").configure(topup::handler::route))
             .service(web::scope("/v1/students").configure(student::handler::route))
+            .service(web::scope("/v2/users").configure(v2::user::controller::route))
     })
     .bind(address)?
     .run()
