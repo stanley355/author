@@ -65,7 +65,7 @@ impl Prompt {
         new_prompt_req: &web::Json<NewPromptReq>,
         openai_chat_res: &OpenAiChatRes,
     ) -> QueryResult<Prompt> {
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&new_prompt_req.user_id).unwrap();
         let prompt_text = format!(
             "{} {}",
@@ -85,7 +85,7 @@ impl Prompt {
 
         diesel::insert_into(prompts::table)
             .values(data)
-            .get_result(&conn)
+            .get_result(&mut conn)
     }
 
     pub async fn new_prompt_response(
@@ -112,7 +112,7 @@ impl Prompt {
         user_id: &str,
         prompt_type: &PromptType,
     ) -> QueryResult<i64> {
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(user_id).unwrap();
 
         prompts::table
@@ -126,7 +126,7 @@ impl Prompt {
                     )),
             )
             .count()
-            .get_result(&conn)
+            .get_result(&mut conn)
     }
 
     pub async fn new_monthly_prompt(
@@ -175,7 +175,7 @@ impl Prompt {
         pool: &web::Data<PgPool>,
         new_prompt_req: &web::Json<NewImageToTextPromptReq>,
     ) -> QueryResult<Prompt> {
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&new_prompt_req.user_id).unwrap();
 
         let data = (
@@ -191,7 +191,7 @@ impl Prompt {
 
         diesel::insert_into(prompts::table)
             .values(data)
-            .get_result(&conn)
+            .get_result(&mut conn)
     }
 
     pub async fn new_image_to_text_response(
@@ -214,7 +214,7 @@ impl Prompt {
         pool: &web::Data<PgPool>,
         req: &web::Json<UpdateImageToTextPromptReq>,
     ) -> QueryResult<Prompt> {
-        let conn = &pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
 
         let completion_token = req.completion_text.split(" ").collect::<Vec<&str>>().len();
         let updated_column = (
@@ -226,7 +226,7 @@ impl Prompt {
         diesel::update(prompts::table)
             .filter(prompts::id.eq(&req.prompt_id))
             .set(updated_column)
-            .get_result(conn)
+            .get_result(&mut conn)
     }
 
     pub async fn update_image_to_text_response(
@@ -256,7 +256,7 @@ impl Prompt {
         pool: &web::Data<PgPool>,
         new_prompt_req: &web::Json<NewTextToSpeechPromptReq>,
     ) -> QueryResult<Prompt> {
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&new_prompt_req.user_id).unwrap();
         let total_token = &new_prompt_req
             .user_prompt
@@ -277,7 +277,7 @@ impl Prompt {
 
         diesel::insert_into(prompts::table)
             .values(data)
-            .get_result(&conn)
+            .get_result(&mut conn)
     }
 
     pub async fn new_text_to_speech_response(

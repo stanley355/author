@@ -60,10 +60,10 @@ impl Student {
             (students::half_discount_end_at.eq(half_disc_end_at)),
         );
 
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
         diesel::insert_into(students::table)
             .values(data)
-            .get_result::<Student>(&conn)
+            .get_result::<Student>(&mut conn)
     }
 
     pub fn find_active_application(
@@ -71,7 +71,7 @@ impl Student {
         user_id: &str,
     ) -> QueryResult<Student> {
         let user_id = Uuid::parse_str(user_id).unwrap();
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
 
         students::table
             .filter(
@@ -81,12 +81,12 @@ impl Student {
                     .and(students::half_discount_end_at.gt(diesel::dsl::sql("now()"))),
             )
             .order_by(students::created_at.desc())
-            .get_result::<Student>(&conn)
+            .get_result::<Student>(&mut conn)
     }
 
     pub fn find_last_application(pool: &web::Data<PgPool>, user_id: &str) -> QueryResult<Student> {
         let user_id = Uuid::parse_str(user_id).unwrap();
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
 
         students::table
             .filter(
@@ -95,12 +95,12 @@ impl Student {
                     .and(students::student_application_valid.eq(true)),
             )
             .order_by(students::created_at.desc())
-            .get_result::<Student>(&conn)
+            .get_result::<Student>(&mut conn)
     }
 
     pub fn check_discount_availability(self) -> StudentDiscountAvailabilityRes {
-        let free_disc_timestamp = self.free_discount_end_at.timestamp();
-        let half_disc_timestamp = self.half_discount_end_at.timestamp();
+        let free_disc_timestamp = self.free_discount_end_at.and_utc().timestamp();
+        let half_disc_timestamp = self.half_discount_end_at.and_utc().timestamp();
         let current_timestamp = Utc::now().timestamp();
         StudentDiscountAvailabilityRes {
             is_student: self.student_application_valid,
@@ -115,7 +115,7 @@ impl Student {
         user_id: &str,
     ) -> QueryResult<Student> {
         let user_id = Uuid::parse_str(user_id).unwrap();
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
 
         students::table
             .filter(
@@ -124,6 +124,6 @@ impl Student {
                     .and(students::institution_level.eq("College")),
             )
             .order_by(students::created_at.desc())
-            .get_result::<Student>(&conn)
+            .get_result::<Student>(&mut conn)
     }
 }

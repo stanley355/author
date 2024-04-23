@@ -22,7 +22,7 @@ impl TopUp {
         pool: &web::Data<PgPool>,
         body: &web::Json<TopupPayasyougoReq>,
     ) -> QueryResult<TopUp> {
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
         let data = (
             (topups::user_id.eq(uuid)),
@@ -31,7 +31,7 @@ impl TopUp {
 
         diesel::insert_into(topups::table)
             .values(data)
-            .get_result(&conn)
+            .get_result(&mut conn)
     }
 
     pub fn calc_timely_price(duration: &TopupPremiumDuration, is_student: bool) -> f64 {
@@ -77,7 +77,7 @@ impl TopUp {
     ) -> QueryResult<TopUp> {
         let price = Self::check_premium_price(pool, body);
 
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
 
         let data = (
@@ -88,26 +88,26 @@ impl TopUp {
 
         diesel::insert_into(topups::table)
             .values(data)
-            .get_result(&conn)
+            .get_result(&mut conn)
     }
 
     pub fn find_user_topups(pool: &web::Data<PgPool>, user_id: &str) -> QueryResult<Vec<TopUp>> {
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&user_id).unwrap();
         topups::table
             .filter(topups::user_id.eq(uuid))
             .order_by(topups::created_at.desc())
             .limit(5)
-            .get_results::<TopUp>(&conn)
+            .get_results::<TopUp>(&mut conn)
     }
 
     pub fn update_paid_topup(pool: &web::Data<PgPool>, body: &TopupPaidReq) -> QueryResult<TopUp> {
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
         let topup_id = uuid::Uuid::parse_str(&body.id).unwrap();
 
         diesel::update(topups::table)
             .filter(topups::id.eq(topup_id))
             .set(topups::paid.eq(true))
-            .get_result(&conn)
+            .get_result(&mut conn)
     }
 }
