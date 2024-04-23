@@ -46,7 +46,7 @@ impl Subscription {
         body: &web::Json<TopupPremiumReq>,
         topup: &TopUp,
     ) -> QueryResult<Subscription> {
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
 
         let end_timestamp = Self::calc_end_timestamp(&body.duration);
 
@@ -59,19 +59,19 @@ impl Subscription {
 
         diesel::insert_into(subscriptions::table)
             .values(data)
-            .get_result(&conn)
+            .get_result(&mut conn)
     }
 
     pub fn update_paid_subscription(
         pool: &web::Data<PgPool>,
         topup_id: &uuid::Uuid,
     ) -> QueryResult<Subscription> {
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
 
         diesel::update(subscriptions::table)
             .filter(subscriptions::topup_id.eq(topup_id))
             .set(subscriptions::paid.eq(true))
-            .get_result(&conn)
+            .get_result(&mut conn)
     }
 
     // select * from subscriptions where paid=true order by created_at DESC limit 1;
@@ -79,7 +79,7 @@ impl Subscription {
         pool: &web::Data<PgPool>,
         user_id: &str,
     ) -> QueryResult<Subscription> {
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(user_id).unwrap();
 
         subscriptions::table
@@ -91,6 +91,6 @@ impl Subscription {
                 ),
             )
             .order_by(subscriptions::created_at.desc())
-            .get_result::<Subscription>(&conn)
+            .get_result::<Subscription>(&mut conn)
     }
 }
