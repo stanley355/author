@@ -4,7 +4,6 @@ use actix_web::{
 };
 use std::{env, future, pin::Pin};
 
-// type LocalBoxFuture<T> = Pin<Box<dyn Future<Output = T> + 'static>>;
 type PinBoxFuture<R, E> = Pin<Box<dyn future::Future<Output = Result<R, E>>>>;
 
 #[derive(Clone, Copy)]
