@@ -7,7 +7,8 @@ async fn new_prompt(
     pool: web::Data<PgPool>,
     body: web::Json<NewPromptRequestBody>,
 ) -> HttpResponse {
-    let _prompt_payment = User::check_prompt_payment(&pool, &body.user_id, &body.prompt_type);
+    let prompt_payment = User::check_prompt_payment(&pool, &body.user_id, &body.prompt_type);
+    println!("{:?}", prompt_payment);
     HttpResponse::Ok().body("".to_string())
 }
 
