@@ -49,10 +49,10 @@ impl User {
         if let Ok(count) = Prompt::count_user_monthly_count(pool, user_id, prompt_type) {
             return match count < 5 {
                 true => PromptPayment::MonthlyQuota,
-                false => PromptPayment::NotAvailable,
+                false => PromptPayment::PaymentRequired,
             };
         }
 
-        PromptPayment::NotAvailable
+        PromptPayment::PaymentRequired
     }
 }

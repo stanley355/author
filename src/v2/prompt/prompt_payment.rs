@@ -4,5 +4,5 @@ pub enum PromptPayment {
   Subscription, 
   Balance, 
   MonthlyQuota,
-  NotAvailable
+  PaymentRequired 
 }

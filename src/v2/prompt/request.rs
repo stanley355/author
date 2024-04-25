@@ -3,7 +3,7 @@ use std::fmt;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum PromptType {
-  Chat
+    Instruction,
 }
 
 impl fmt::Display for PromptType {
@@ -16,6 +16,6 @@ impl fmt::Display for PromptType {
 pub struct NewPromptRequestBody {
     pub user_id: String,
     pub prompt_type: PromptType,
-    // pub system_prompt: Option<String>,
-    // pub user_prompt: Option<String>,
+    pub system_content: String,
+    pub user_content: String,
 }

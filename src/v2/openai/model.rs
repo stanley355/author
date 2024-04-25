@@ -1,13 +1,13 @@
-use serde::{Deserialize, Serialize};
-use std::env;
+use reqwest::header::HeaderMap;
+use serde::{de::DeserializeOwned, Serialize};
+use std::{env, fmt::Debug};
 
 #[derive(Debug, Clone)]
 pub enum OpenAiEndpointType {
-    Chat,
+    ChatCompletion,
 }
 
-#[derive(Debug, Clone)]
-pub struct OpenAi<D> {
+pub struct OpenAi<D: Serialize> {
     base_api_url: String,
     endpoint_path: String,
     authorization_header: String,
@@ -15,7 +15,7 @@ pub struct OpenAi<D> {
     data: D,
 }
 
-impl<D> OpenAi<D> {
+impl<D: Serialize> OpenAi<D> {
     pub fn new(endpoint_type: OpenAiEndpointType, data: D) -> Self {
         let openai_url = env::var("OPENAI_URL").expect("Missing OpenAi Url");
         let openai_key = &env::var("OPENAI_API_KEY").unwrap();
@@ -32,7 +32,28 @@ impl<D> OpenAi<D> {
 
     pub fn match_endpoint_path(endpoint_type: &OpenAiEndpointType) -> String {
         match endpoint_type {
-            OpenAiEndpointType::Chat => "v1/chat/completions".to_string(),
+            OpenAiEndpointType::ChatCompletion => "v1/chat/completions".to_string(),
+        }
+    }
+
+    pub async fn request<B: DeserializeOwned>(self) -> Result<B, reqwest::Error> {
+        let url = format!("{}{}", self.base_api_url, self.endpoint_path);
+
+        let mut headers = HeaderMap::new();
+        headers.insert("Authorization", self.authorization_header.parse().unwrap());
+
+        let client = reqwest::Client::new();
+
+        let openai_res = client
+            .post(url)
+            .headers(headers)
+            .json(&self.data)
+            .send()
+            .await;
+
+        match openai_res {
+            Ok(response) => response.json::<B>().await,
+            Err(err) => Err(err),
         }
     }
 }
