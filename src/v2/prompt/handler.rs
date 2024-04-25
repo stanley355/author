@@ -13,7 +13,21 @@ async fn new_prompt(
     let prompt_payment = User::check_prompt_payment(&pool, &body.user_id, &body.prompt_type);
 
     return match prompt_payment {
-        PromptPayment::PaymentRequired=> HttpErrorResponse::payment_required(),
+        PromptPayment::PaymentRequired => HttpErrorResponse::payment_required(),
+        PromptPayment::Balance => {
+            let prompt_result = Prompt::new_instruct(&pool, &body).await;
+
+            match prompt_result {
+                Ok(prompt) => {
+                    // Reduce user balance credit by 0.5 per token
+                    let user_cost = prompt.total_cost / 2.0;
+                    let _user = User::reduce_balance(&pool, &body.user_id, &user_cost);
+
+                    HttpResponse::Ok().json(prompt)
+                }
+                Err(msg) => HttpErrorResponse::internal_server_error(msg),
+            }
+        }
         _ => {
             let prompt_result = Prompt::new_instruct(&pool, &body).await;
 

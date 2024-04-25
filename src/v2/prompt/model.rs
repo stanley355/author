@@ -69,6 +69,7 @@ impl Prompt {
             (prompts::prompt_text.eq(prompt_text)),
             (prompts::completion_text.eq(&openai_chat_res.choices[0].message.content)),
             (prompts::total_token.eq(openai_chat_res.usage.total_tokens as i32)),
+            (prompts::total_cost.eq(openai_chat_res.usage.total_tokens as f64)),
             (prompts::prompt_type.eq(prompt_type)),
         );
 

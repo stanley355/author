@@ -41,7 +41,7 @@ impl User {
         }
 
         if let Ok(user) = User::find(pool, user_id) {
-            if user.balance >= 0.0 {
+            if user.balance > 0.0 {
                 return PromptPayment::Balance;
             };
         }
@@ -54,5 +54,19 @@ impl User {
         }
 
         PromptPayment::PaymentRequired
+    }
+
+    pub fn reduce_balance(
+        pool: &web::Data<PgPool>,
+        user_id: &str,
+        reduce_amount: &f64,
+    ) -> QueryResult<User> {
+        let mut conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(user_id).unwrap();
+
+        diesel::update(users::table)
+            .filter(users::id.eq(uuid))
+            .set(users::dsl::balance.eq(users::dsl::balance - reduce_amount))
+            .get_result(&mut conn)
     }
 }
