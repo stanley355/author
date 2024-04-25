@@ -18,12 +18,12 @@ pub struct Student {
     updated_at: NaiveDateTime,
     free_discount_end_at: NaiveDateTime,
     half_discount_end_at: NaiveDateTime,
-    student_application_valid: bool,
+    pub student_application_valid: bool,
     student_application_invalid_reason: Option<String>,
 }
 
 impl Student {
-    pub fn find_active(pool: &web::Data<PgPool>, user_id: &str) -> QueryResult<Student> {
+    pub fn find_free_discount(pool: &web::Data<PgPool>, user_id: &str) -> QueryResult<Student> {
         let id = uuid::Uuid::parse_str(user_id).unwrap();
         let mut conn = pool.get().unwrap();
 
@@ -31,8 +31,7 @@ impl Student {
             .filter(
                 students::user_id
                     .eq(id)
-                    .and(students::student_application_valid.eq(true))
-                    .and(students::half_discount_end_at.gt(diesel::dsl::sql("now()"))),
+                    .and(students::free_discount_end_at.gt(diesel::dsl::sql("now()"))),
             )
             .order_by(students::created_at.desc())
             .get_result::<Student>(&mut conn)
