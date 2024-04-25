@@ -1,25 +1,24 @@
 use actix_web::web;
 use chrono::NaiveDateTime;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
-use serde::{Deserialize, Serialize};
 
 use crate::{db::PgPool, schema::students};
 
 #[derive(Queryable, Debug, Clone)]
 pub struct Student {
-    id: uuid::Uuid,
-    user_id: uuid::Uuid,
-    student_id: String,
-    student_email: Option<String>,
-    student_card_img_url: Option<String>,
-    institution_level: String,
-    institution_name: String,
-    created_at: NaiveDateTime,
-    updated_at: NaiveDateTime,
-    free_discount_end_at: NaiveDateTime,
-    half_discount_end_at: NaiveDateTime,
+    pub id: uuid::Uuid,
+    pub user_id: uuid::Uuid,
+    pub student_id: String,
+    pub student_email: Option<String>,
+    pub student_card_img_url: Option<String>,
+    pub institution_level: String,
+    pub institution_name: String,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub free_discount_end_at: NaiveDateTime,
+    pub half_discount_end_at: NaiveDateTime,
     pub student_application_valid: bool,
-    student_application_invalid_reason: Option<String>,
+    pub student_application_invalid_reason: Option<String>,
 }
 
 impl Student {

@@ -16,6 +16,6 @@ impl fmt::Display for PromptType {
 pub struct NewPromptRequestBody {
     pub user_id: String,
     pub prompt_type: PromptType,
-    pub system_prompt: String,
-    pub user_prompt: String,
+    // pub system_prompt: Option<String>,
+    // pub user_prompt: Option<String>,
 }

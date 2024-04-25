@@ -1,7 +1,9 @@
 use actix_web::web;
 use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 
+use crate::v2::prompt::model::Prompt;
 use crate::v2::prompt::prompt_payment::PromptPayment;
+use crate::v2::prompt::request::PromptType;
 use crate::v2::student::model::Student;
 use crate::v2::subscription::model::Subscription;
 use crate::{db::PgPool, schema::users};
@@ -25,7 +27,11 @@ impl User {
             .get_result::<User>(&mut conn)
     }
 
-    pub fn check_prompt_payment(pool: &web::Data<PgPool>, user_id: &str) -> PromptPayment {
+    pub fn check_prompt_payment(
+        pool: &web::Data<PgPool>,
+        user_id: &str,
+        prompt_type: &PromptType,
+    ) -> PromptPayment {
         if let Ok(_) = Student::find_free_discount(pool, user_id) {
             return PromptPayment::Student;
         }
@@ -37,6 +43,13 @@ impl User {
         if let Ok(user) = User::find(pool, user_id) {
             if user.balance >= 0.0 {
                 return PromptPayment::Balance;
+            };
+        }
+
+        if let Ok(count) = Prompt::count_user_monthly_count(pool, user_id, prompt_type) {
+            return match count < 5 {
+                true => PromptPayment::MonthlyQuota,
+                false => PromptPayment::NotAvailable,
             };
         }
 

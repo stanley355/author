@@ -1,10 +1,8 @@
 use crate::{db::PgPool, schema::subscriptions};
 use actix_web::web;
-use chrono::{Duration, NaiveDateTime, Utc};
 use diesel::{
     BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
 };
-use serde::{Deserialize, Serialize};
 
 #[derive(Queryable, Debug, Clone)]
 pub struct Subscription {
@@ -20,10 +18,7 @@ pub struct Subscription {
 }
 
 impl Subscription {
-    pub fn find_active(
-        pool: &web::Data<PgPool>,
-        user_id: &str,
-    ) -> QueryResult<Subscription> {
+    pub fn find_active(pool: &web::Data<PgPool>, user_id: &str) -> QueryResult<Subscription> {
         let mut conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(user_id).unwrap();
 
