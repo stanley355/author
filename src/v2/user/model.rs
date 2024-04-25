@@ -1,25 +1,45 @@
 use actix_web::web;
-use serde::{Deserialize, Serialize};
+use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 
-use crate::db::PgPool;
+use crate::v2::prompt::prompt_payment::PromptPayment;
 use crate::v2::student::model::Student;
+use crate::v2::subscription::model::Subscription;
+use crate::{db::PgPool, schema::users};
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Queryable, Debug, Clone)]
 pub struct User {
     pub id: uuid::Uuid,
     pub fullname: String,
     pub email: String,
     pub password: String,
     pub phone_number: Option<String>,
-    pub balance: f32,
+    pub balance: f64,
 }
 
 impl User {
-    pub fn has_prompt_quota(pool: &web::Data<PgPool>, user_id: &str) -> bool {
-        if let Ok(student) = Student::find_free_discount(pool, user_id) {
-            return true;
+    pub fn find(pool: &web::Data<PgPool>, user_id: &str) -> QueryResult<User> {
+        let mut conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(user_id).unwrap();
+        users::table
+            .filter(users::id.eq(uuid))
+            .get_result::<User>(&mut conn)
+    }
+
+    pub fn check_prompt_payment(pool: &web::Data<PgPool>, user_id: &str) -> PromptPayment {
+        if let Ok(_) = Student::find_free_discount(pool, user_id) {
+            return PromptPayment::Student;
         }
 
-        false
+        if let Ok(_) = Subscription::find_active(pool, user_id) {
+            return PromptPayment::Subscription;
+        }
+
+        if let Ok(user) = User::find(pool, user_id) {
+            if user.balance >= 0.0 {
+                return PromptPayment::Balance;
+            };
+        }
+
+        PromptPayment::NotAvailable
     }
 }
