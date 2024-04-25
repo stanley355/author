@@ -24,7 +24,6 @@ async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
         App::new()
             .wrap(Cors::default())
             .wrap(Logger::default())
-            // .wrap(util::bearer::BearerTokenMiddleware)
             .wrap(v2::middleware::author_middleware::AuthorMiddleware)
             .app_data(web::Data::new(pool.clone()))
             .service(Files::new("/v1/files", "/tmp"))
