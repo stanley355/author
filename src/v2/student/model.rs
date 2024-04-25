@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{db::PgPool, schema::students};
 
-#[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
+#[derive(Queryable, Debug, Clone)]
 pub struct Student {
     id: uuid::Uuid,
     user_id: uuid::Uuid,
