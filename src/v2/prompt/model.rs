@@ -57,7 +57,6 @@ impl Prompt {
     ) -> QueryResult<Prompt> {
         let mut conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
-        let prompt_text = format!("{} {}", &body.system_content, &body.user_content);
 
         let prompt_type = &body.prompt_type.to_string();
 
@@ -66,7 +65,7 @@ impl Prompt {
             (prompts::instruction.eq(&body.system_content)),
             (prompts::prompt_token.eq(openai_chat_res.usage.prompt_tokens as i32)),
             (prompts::completion_token.eq(openai_chat_res.usage.completion_tokens as i32)),
-            (prompts::prompt_text.eq(prompt_text)),
+            (prompts::prompt_text.eq(&body.user_content)),
             (prompts::completion_text.eq(&openai_chat_res.choices[0].message.content)),
             (prompts::total_token.eq(openai_chat_res.usage.total_tokens as i32)),
             (prompts::total_cost.eq(openai_chat_res.usage.total_tokens as f64)),

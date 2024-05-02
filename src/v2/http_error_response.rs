@@ -4,14 +4,14 @@ use serde::Serialize;
 #[derive(Debug, Clone, Serialize)]
 pub struct HttpErrorResponse {
     status: u16,
-    error_message: String,
+    status_text: String,
 }
 
 impl HttpErrorResponse {
-    pub fn new(status: u16, error_message: String) -> Self {
+    pub fn new(status: u16, status_text: String) -> Self {
         Self {
             status,
-            error_message,
+            status_text,
         }
     }
 

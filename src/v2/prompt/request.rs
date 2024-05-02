@@ -3,7 +3,8 @@ use std::fmt;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum PromptType {
-    Instruction,
+    Translate,
+    GrammarCheck
 }
 
 impl fmt::Display for PromptType {
