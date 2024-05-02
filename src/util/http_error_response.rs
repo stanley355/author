@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct HttpErrorResponse {
-    status: u16,
-    error: String,
-    message: String,
+    pub status: u16,
+    pub error: String,
+    pub message: String,
 }
 
 impl HttpErrorResponse {

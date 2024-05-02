@@ -35,17 +35,17 @@ pub struct UserWithoutPassword {
 
 impl User {
     pub fn find_by_email(pool: &web::Data<PgPool>, email: &str) -> QueryResult<User> {
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
         users::table
             .filter(users::email.eq(email))
-            .get_result::<User>(&conn)
+            .get_result::<User>(&mut conn)
     }
     pub fn find_by_id(pool: &web::Data<PgPool>, id: &str) -> QueryResult<User> {
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(id).unwrap();
         users::table
             .filter(users::id.eq(uuid))
-            .get_result::<User>(&conn)
+            .get_result::<User>(&mut conn)
     }
 
     pub fn fetch_account_page_data(pool: &web::Data<PgPool>, user_id: &str) -> GetAccountRes {
@@ -116,7 +116,7 @@ impl User {
         pool: &web::Data<PgPool>,
         body: web::Json<GmailLoginReq>,
     ) -> QueryResult<User> {
-        let conn = pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
         let password = Password::generate_random_hash();
         let data = (
             (users::fullname.eq(&body.fullname)),
@@ -126,7 +126,7 @@ impl User {
 
         diesel::insert_into(users::table)
             .values(data)
-            .get_result(&conn)
+            .get_result(&mut conn)
     }
 
     pub fn remove_password_field(&self) -> UserWithoutPassword {
@@ -166,12 +166,12 @@ impl User {
         topup_id: uuid::Uuid,
         topup_amount: f64,
     ) -> QueryResult<User> {
-        let conn = &pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
 
         diesel::update(users::table)
             .filter(users::id.eq(topup_id))
             .set(users::dsl::balance.eq(users::dsl::balance + topup_amount))
-            .get_result(conn)
+            .get_result(&mut conn)
     }
 
     pub fn reduce_balance(
@@ -179,11 +179,11 @@ impl User {
         user_id: uuid::Uuid,
         reduce_amount: f64,
     ) -> QueryResult<User> {
-        let conn = &pool.get().unwrap();
+        let mut conn = pool.get().unwrap();
 
         diesel::update(users::table)
             .filter(users::id.eq(user_id))
             .set(users::dsl::balance.eq(users::dsl::balance - reduce_amount))
-            .get_result(conn)
+            .get_result(&mut conn)
     }
 }
