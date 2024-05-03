@@ -8,6 +8,8 @@ use crate::v2::student::model::Student;
 use crate::v2::subscription::model::Subscription;
 use crate::{db::PgPool, schema::users};
 
+use super::request::LoginGmailRequestBody;
+
 #[derive(Queryable, Debug, Clone)]
 pub struct User {
     pub id: uuid::Uuid,
@@ -27,13 +29,6 @@ impl User {
             .get_result::<User>(&mut conn)
     }
 
-    pub fn find_by_email(pool: &web::Data<PgPool>, email: &str) -> QueryResult<User> {
-        let mut conn = pool.get().unwrap();
-        users::table
-            .filter(users::email.eq(email))
-            .get_result::<User>(&mut conn)
-    }
-
     pub fn check_prompt_payment(
         pool: &web::Data<PgPool>,
         user_id: &str,
@@ -47,7 +42,7 @@ impl User {
             return PromptPayment::Subscription;
         }
 
-        if let Ok(user) = User::find(pool, user_id) {
+        if let Ok(user) = Self::find(pool, user_id) {
             if user.balance > 0.0 {
                 return PromptPayment::Balance;
             };
@@ -74,6 +69,29 @@ impl User {
         diesel::update(users::table)
             .filter(users::id.eq(uuid))
             .set(users::dsl::balance.eq(users::dsl::balance - reduce_amount))
+            .get_result(&mut conn)
+    }
+
+    pub fn find_by_email(pool: &web::Data<PgPool>, email: &str) -> QueryResult<User> {
+        let mut conn = pool.get().unwrap();
+        users::table
+            .filter(users::email.eq(email))
+            .get_result::<User>(&mut conn)
+    }
+
+    pub fn insert_one_by_gmail(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<LoginGmailRequestBody>,
+    ) -> QueryResult<User> {
+        let mut conn = pool.get().unwrap();
+        let data = (
+            (users::fullname.eq(&body.fullname)),
+            (users::email.eq(&body.email)),
+            (users::password.eq("")),
+        );
+
+        diesel::insert_into(users::table)
+            .values(data)
             .get_result(&mut conn)
     }
 }
