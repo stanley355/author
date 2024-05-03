@@ -24,4 +24,9 @@ impl HttpErrorResponse {
         let error = Self::new(402, "Payment Required".to_string());
         HttpResponse::PaymentRequired().json(error)
     }
+
+    pub fn bad_request(error_message: String) -> HttpResponse {
+        let error = Self::new(400, error_message);
+        HttpResponse::PaymentRequired().json(error)
+    }
 }
