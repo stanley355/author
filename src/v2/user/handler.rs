@@ -10,27 +10,26 @@ async fn login_gmail(
     pool: web::Data<PgPool>,
     body: web::Json<LoginGmailRequestBody>,
 ) -> HttpResponse {
-    let user_result = User::find_by_email(&pool, &body.email);
+    let is_email_valid = User::check_email_valid(&body.email);
+    if is_email_valid == false {
+        return HttpErrorResponse::bad_request("Invalid Email".to_string());
+    }
 
-    match user_result {
-        Ok(user) => {
-            let token = UserInsensitive::new(user).jwt_tokenize();
+    let user_result = User::find_by_email(&pool, &body.email);
+    if let Ok(user) = user_result {
+        let token = UserInsensitive::new(user).jwt_tokenize();
+        let login_response = LoginResponse::new(token);
+        return HttpResponse::Ok().json(login_response)
+    }
+
+    let new_user_result = User::insert_one_by_gmail(&pool, &body);
+    match new_user_result {
+        Ok(new_user) => {
+            let token = UserInsensitive::new(new_user).jwt_tokenize();
             let login_response = LoginResponse::new(token);
             HttpResponse::Ok().json(login_response)
         }
-
-        Err(_) => {
-            let new_user_result = User::insert_one_by_gmail(&pool, &body);
-
-            match new_user_result {
-                Ok(new_user) => {
-                    let token = UserInsensitive::new(new_user).jwt_tokenize();
-                    let login_response = LoginResponse::new(token);
-                    HttpResponse::Ok().json(login_response)
-                }
-                Err(err) => return HttpErrorResponse::bad_request(err.to_string()),
-            }
-        }
+        Err(err) => return HttpErrorResponse::bad_request(err.to_string()),
     }
 }
 

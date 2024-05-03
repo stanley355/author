@@ -29,6 +29,35 @@ impl User {
             .get_result::<User>(&mut conn)
     }
 
+
+    pub fn find_by_email(pool: &web::Data<PgPool>, email: &str) -> QueryResult<User> {
+        let mut conn = pool.get().unwrap();
+        users::table
+            .filter(users::email.eq(email))
+            .get_result::<User>(&mut conn)
+    }
+
+    pub fn check_email_valid(email: &str) -> bool {
+        let re = regex::Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").unwrap();
+        re.is_match(email)
+    }
+
+    pub fn insert_one_by_gmail(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<LoginGmailRequestBody>,
+    ) -> QueryResult<User> {
+        let mut conn = pool.get().unwrap();
+        let data = (
+            (users::fullname.eq(&body.fullname)),
+            (users::email.eq(&body.email)),
+            (users::password.eq("")),
+        );
+
+        diesel::insert_into(users::table)
+            .values(data)
+            .get_result(&mut conn)
+    }
+
     pub fn check_prompt_payment(
         pool: &web::Data<PgPool>,
         user_id: &str,
@@ -72,26 +101,4 @@ impl User {
             .get_result(&mut conn)
     }
 
-    pub fn find_by_email(pool: &web::Data<PgPool>, email: &str) -> QueryResult<User> {
-        let mut conn = pool.get().unwrap();
-        users::table
-            .filter(users::email.eq(email))
-            .get_result::<User>(&mut conn)
-    }
-
-    pub fn insert_one_by_gmail(
-        pool: &web::Data<PgPool>,
-        body: &web::Json<LoginGmailRequestBody>,
-    ) -> QueryResult<User> {
-        let mut conn = pool.get().unwrap();
-        let data = (
-            (users::fullname.eq(&body.fullname)),
-            (users::email.eq(&body.email)),
-            (users::password.eq("")),
-        );
-
-        diesel::insert_into(users::table)
-            .values(data)
-            .get_result(&mut conn)
-    }
 }
