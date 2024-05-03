@@ -27,6 +27,13 @@ impl User {
             .get_result::<User>(&mut conn)
     }
 
+    pub fn find_by_email(pool: &web::Data<PgPool>, email: &str) -> QueryResult<User> {
+        let mut conn = pool.get().unwrap();
+        users::table
+            .filter(users::email.eq(email))
+            .get_result::<User>(&mut conn)
+    }
+
     pub fn check_prompt_payment(
         pool: &web::Data<PgPool>,
         user_id: &str,

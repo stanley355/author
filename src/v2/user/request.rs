@@ -2,6 +2,6 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct FindUserQuery {
-  id: Option<String>,
-  email: Option<String>
+  pub id: Option<String>,
+  pub email: Option<String>
 }
