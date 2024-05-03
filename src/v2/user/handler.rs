@@ -1,40 +1,28 @@
 use super::model::User;
-use super::request::FindUserQuery;
+use super::response::LoginResponse;
 use super::user_insensitive::UserInsensitive;
+use crate::v2::user::request::LoginGmailRequestBody;
 use crate::{db::PgPool, v2::http_error_response::HttpErrorResponse};
+use actix_web::{post, web, HttpResponse};
 
-use actix_web::{get, web, HttpResponse};
+#[post("/login/gmail")]
+async fn login_gmail(
+    pool: web::Data<PgPool>,
+    data: web::Data<LoginGmailRequestBody>,
+) -> HttpResponse {
+    let user_result = User::find_by_email(&pool, &data.email);
 
-#[get("")]
-async fn find_user(pool: web::Data<PgPool>, query: web::Query<FindUserQuery>) -> HttpResponse {
-
-    if let Some(id) = &query.id {
-        let user_result = User::find(&pool, id);
-
-        match user_result {
-            Ok(user) => {
-                let user_insensitive = UserInsensitive::new(user);
-                return HttpResponse::Ok().json(user_insensitive);
-            }
-            Err(_) => return HttpErrorResponse::bad_request("User not found".to_string()),
+    match user_result {
+        Ok(user) => {
+            let token = UserInsensitive::new(user).jwt_tokenize();
+            let login_response = LoginResponse::new(token);
+            HttpResponse::Ok().json(login_response)
         }
+
+        Err(err) => return HttpErrorResponse::bad_request(err.to_string()),
     }
-
-    if let Some(email) = &query.email {
-        let user_result = User::find_by_email(&pool, email);
-
-        match user_result {
-            Ok(user) => {
-                let user_insensitive = UserInsensitive::new(user);
-                return HttpResponse::Ok().json(user_insensitive);
-            }
-            Err(_) => return HttpErrorResponse::bad_request("User not found".to_string()),
-        }
-    }
-
-    HttpErrorResponse::bad_request("Missing id or email query".to_string())
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(find_user);
+    config.service(login_gmail);
 }
