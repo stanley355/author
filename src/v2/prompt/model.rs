@@ -132,6 +132,7 @@ impl Prompt {
         body: &web::Json<UpdateImageToTextRequestBody>,
     ) -> Result<Prompt, String> {
         let mut conn = pool.get().unwrap();
+        let user_id = uuid::Uuid::parse_str(&body.user_id).unwrap();
 
         let completion_token = body.completion_text.split(" ").collect::<Vec<&str>>().len();
         let updated_column = (
@@ -142,7 +143,11 @@ impl Prompt {
         );
 
         let update_result = diesel::update(prompts::table)
-            .filter(prompts::id.eq(&body.prompt_id))
+            .filter(
+                prompts::id
+                    .eq(&body.prompt_id)
+                    .and(prompts::user_id.eq(user_id)),
+            )
             .set(updated_column)
             .get_result(&mut conn);
 

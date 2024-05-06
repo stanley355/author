@@ -1,11 +1,10 @@
+use super::request::{PromptType, UpdateImageToTextRequestBody};
 use crate::v2::http_error_response::HttpErrorResponse;
 use crate::v2::prompt::model::Prompt;
 use crate::v2::prompt::prompt_payment::PromptPayment;
 use crate::v2::prompt::request::NewPromptRequestBody;
 use crate::{db::PgPool, v2::user::model::User};
-use super::request::{PromptType, UpdateImageToTextRequestBody};
 use actix_web::{post, put, web, HttpResponse};
-
 
 #[post("/")]
 async fn new_prompt(
@@ -63,7 +62,6 @@ async fn update_image_to_text_prompt(
         Ok(prompt) => {
             let prompt_payment =
                 User::check_prompt_payment(&pool, &body.user_id, &PromptType::ImageToText);
-
             if let PromptPayment::Balance = prompt_payment {
                 let _user = User::reduce_balance(&pool, &body.user_id, &prompt.total_cost);
             }
@@ -75,5 +73,7 @@ async fn update_image_to_text_prompt(
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(new_prompt);
+    config
+        .service(new_prompt)
+        .service(update_image_to_text_prompt);
 }
