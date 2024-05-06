@@ -1,4 +1,3 @@
-
 use super::request::PromptType;
 use crate::schema::prompts;
 use crate::v2::openai::chat_model::{OpenAiChat, OpenAiChatResponse};
@@ -96,6 +95,35 @@ impl Prompt {
                 }
             }
             Err(reqwest_error) => Err(reqwest_error.to_string()),
+        }
+    }
+
+    pub fn new_image_to_text(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<NewPromptRequestBody>,
+    ) -> Result<Prompt, String> {
+        let mut conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
+
+        let data = (
+            (prompts::user_id.eq(uuid)),
+            (prompts::instruction.eq("Image to text".to_string())),
+            (prompts::prompt_token.eq(0)),
+            (prompts::completion_token.eq(0)),
+            (prompts::prompt_text.eq("Image to text".to_string())),
+            (prompts::completion_text.eq("".to_string())),
+            (prompts::total_token.eq(0)),
+            (prompts::total_cost.eq(0.0)),
+            (prompts::prompt_type.eq(body.prompt_type.to_string())),
+        );
+
+        let insert_result = diesel::insert_into(prompts::table)
+            .values(data)
+            .get_result(&mut conn);
+
+        match insert_result {
+            Ok(prompt) => Ok(prompt),
+            Err(diesel_error) => Err(diesel_error.to_string()),
         }
     }
 }

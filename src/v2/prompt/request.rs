@@ -4,7 +4,8 @@ use std::fmt;
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum PromptType {
     Translate,
-    GrammarCheck
+    GrammarCheck,
+    ImageToText
 }
 
 impl fmt::Display for PromptType {
