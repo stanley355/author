@@ -8,6 +8,7 @@ use crate::v2::prompt::prompt_payment::PromptPayment;
 use crate::v2::prompt::request::PromptType;
 use crate::v2::student::model::Student;
 use crate::v2::subscription::model::Subscription;
+use crate::v2::topup::model::TopUp;
 use crate::{db::PgPool, schema::users};
 
 #[derive(Queryable, Debug, Clone)]
@@ -107,9 +108,14 @@ impl User {
         let user_result = Self::find(pool, user_id);
         let student_result = Student::find_active_discount(pool, user_id);
         let subscription_result = Subscription::find_active(pool, user_id);
+        let topups_result = TopUp::get_recently_paid(pool, user_id);
 
-        let account_page_data =
-            AccountPageDataResponse::new(user_result, student_result, subscription_result);
+        let account_page_data = AccountPageDataResponse::new(
+            user_result,
+            student_result,
+            subscription_result,
+            topups_result,
+        );
         return account_page_data;
     }
 }
