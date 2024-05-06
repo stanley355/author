@@ -34,10 +34,10 @@ async fn login_gmail(
     }
 }
 
-#[get("/account")]
-async fn get_account_page_data(pool: web::Data<PgPool>, query: web::Query<AccountPageDataRequestQuery>) {
-    ()
-}
+// #[get("/account")]
+// async fn get_account_page_data(pool: web::Data<PgPool>, query: web::Query<AccountPageDataRequestQuery>) {
+//     ()
+// }
 
 pub fn route(config: &mut web::ServiceConfig) {
     config.service(login_gmail);
