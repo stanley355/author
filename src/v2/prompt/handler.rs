@@ -3,9 +3,9 @@ use crate::v2::prompt::model::Prompt;
 use crate::v2::prompt::prompt_payment::PromptPayment;
 use crate::v2::prompt::request::NewPromptRequestBody;
 use crate::{db::PgPool, v2::user::model::User};
-use actix_web::{post, web, HttpResponse};
+use super::request::{PromptType, UpdateImageToTextRequestBody};
+use actix_web::{post, put, web, HttpResponse};
 
-use super::request::PromptType;
 
 #[post("/")]
 async fn new_prompt(
@@ -50,6 +50,28 @@ async fn new_prompt(
             }
         }
     };
+}
+
+#[put("/image-to-text/")]
+async fn update_image_to_text_prompt(
+    pool: web::Data<PgPool>,
+    body: web::Json<UpdateImageToTextRequestBody>,
+) -> HttpResponse {
+    let update_result = Prompt::update_image_to_text(&pool, &body);
+
+    match update_result {
+        Ok(prompt) => {
+            let prompt_payment =
+                User::check_prompt_payment(&pool, &body.user_id, &PromptType::ImageToText);
+
+            if let PromptPayment::Balance = prompt_payment {
+                let _user = User::reduce_balance(&pool, &body.user_id, &prompt.total_cost);
+            }
+
+            HttpResponse::Ok().json(prompt)
+        }
+        Err(msg) => HttpErrorResponse::internal_server_error(msg),
+    }
 }
 
 pub fn route(config: &mut web::ServiceConfig) {

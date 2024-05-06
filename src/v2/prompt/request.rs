@@ -1,11 +1,11 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::fmt;
 
 #[derive(Debug, Clone, Deserialize)]
 pub enum PromptType {
     Translate,
     GrammarCheck,
-    ImageToText
+    ImageToText,
 }
 
 impl fmt::Display for PromptType {
@@ -26,5 +26,5 @@ pub struct NewPromptRequestBody {
 pub struct UpdateImageToTextRequestBody {
     pub user_id: String,
     pub prompt_id: i32,
-    pub completion_text: String
+    pub completion_text: String,
 }
