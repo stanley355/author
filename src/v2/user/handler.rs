@@ -1,9 +1,10 @@
 use super::model::User;
+use super::request::AccountPageDataRequestQuery;
 use super::response::LoginResponse;
 use super::user_insensitive::UserInsensitive;
 use crate::v2::user::request::LoginGmailRequestBody;
 use crate::{db::PgPool, v2::http_error_response::HttpErrorResponse};
-use actix_web::{post, web, HttpResponse};
+use actix_web::{get, post, web, HttpResponse};
 
 #[post("/login/gmail/")]
 async fn login_gmail(
@@ -31,6 +32,11 @@ async fn login_gmail(
         }
         Err(err) => return HttpErrorResponse::bad_request(err.to_string()),
     }
+}
+
+#[get("/account")]
+async fn get_account_page_data(pool: web::Data<PgPool>, query: web::Query<AccountPageDataRequestQuery>) {
+    ()
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
