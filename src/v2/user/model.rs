@@ -104,8 +104,9 @@ impl User {
 
     pub fn get_account_page_data(pool: &web::Data<PgPool>, user_id: &str) -> AccountPageDataResponse {
         let user_result = Self::find(pool, user_id);
+        let student_result = Student::find_active_discount(pool, user_id);
 
-        let account_page_data = AccountPageDataResponse::new(user_result);
+        let account_page_data = AccountPageDataResponse::new(user_result, student_result);
         return account_page_data
     }
 

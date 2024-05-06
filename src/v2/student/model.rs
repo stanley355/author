@@ -36,4 +36,18 @@ impl Student {
             .order_by(students::created_at.desc())
             .get_result::<Student>(&mut conn)
     }
+
+    pub fn find_active_discount(pool: &web::Data<PgPool>, user_id: &str) -> QueryResult<Student> {
+        let id = uuid::Uuid::parse_str(user_id).unwrap();
+        let mut conn = pool.get().unwrap();
+
+        students::table
+            .filter(
+                students::user_id
+                    .eq(id)
+                    .and(students::half_discount_end_at.gt(diesel::dsl::sql("now()"))),
+            )
+            .order_by(students::created_at.desc())
+            .get_result::<Student>(&mut conn)
+    }
 }
