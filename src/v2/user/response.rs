@@ -1,7 +1,8 @@
+use diesel::QueryResult;
 use serde::Serialize;
 
-use super::user_insensitive::UserInsensitive;
-use crate::v2::{student::model::Student, subscription::model::Subscription};
+use super::{model::User, user_insensitive::UserInsensitive};
+use crate::v2::{student::model::Student, subscription::model::Subscription, topup::model::TopUp};
 
 #[derive(Debug, Serialize)]
 pub struct LoginResponse {
@@ -14,9 +15,21 @@ impl LoginResponse {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct AccountPageDataResponse {
-    pub user: UserInsensitive,
+    pub user: Option<UserInsensitive>,
     pub active_student_discount: Option<Student>,
     pub active_subscription: Option<Subscription>,
+    pub topups: Vec<TopUp>,
+}
+
+impl AccountPageDataResponse {
+    pub fn new(user_result: QueryResult<User>) -> Self {
+        Self {
+            user: None,
+            active_student_discount: None,
+            active_subscription: None,
+            topups: Vec::new()
+        }
+    }
 }

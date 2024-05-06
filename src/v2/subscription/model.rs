@@ -3,8 +3,9 @@ use actix_web::web;
 use diesel::{
     BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
 };
+use serde::Serialize;
 
-#[derive(Queryable, Debug, Clone)]
+#[derive(Queryable, Debug, Serialize)]
 pub struct Subscription {
     pub id: uuid::Uuid,
     pub user_id: uuid::Uuid,

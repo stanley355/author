@@ -6,7 +6,7 @@ pub struct LoginGmailRequestBody {
     pub email: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct AccountPageDataRequestQuery {
     pub id: String
 }

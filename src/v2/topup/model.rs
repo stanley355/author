@@ -1,5 +1,7 @@
+use serde::Serialize;
 
-#[derive(Debug)]
+
+#[derive(Debug, Serialize)]
 pub struct TopUp {
     pub id: uuid::Uuid,
     pub user_id: uuid::Uuid,

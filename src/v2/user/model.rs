@@ -9,6 +9,7 @@ use crate::v2::subscription::model::Subscription;
 use crate::{db::PgPool, schema::users};
 
 use super::request::LoginGmailRequestBody;
+use super::response::AccountPageDataResponse;
 
 #[derive(Queryable, Debug, Clone)]
 pub struct User {
@@ -99,6 +100,13 @@ impl User {
             .filter(users::id.eq(uuid))
             .set(users::dsl::balance.eq(users::dsl::balance - reduce_amount))
             .get_result(&mut conn)
+    }
+
+    pub fn get_account_page_data(pool: &web::Data<PgPool>, user_id: &str) -> AccountPageDataResponse {
+        let user_result = Self::find(pool, user_id);
+
+        let account_page_data = AccountPageDataResponse::new(user_result);
+        return account_page_data
     }
 
 }

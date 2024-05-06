@@ -20,7 +20,7 @@ async fn login_gmail(
     if let Ok(user) = user_result {
         let token = UserInsensitive::new(user).jwt_tokenize();
         let login_response = LoginResponse::new(token);
-        return HttpResponse::Ok().json(login_response)
+        return HttpResponse::Ok().json(login_response);
     }
 
     let new_user_result = User::insert_one_by_gmail(&pool, &body);
@@ -34,11 +34,16 @@ async fn login_gmail(
     }
 }
 
-// #[get("/account")]
-// async fn get_account_page_data(pool: web::Data<PgPool>, query: web::Query<AccountPageDataRequestQuery>) {
-//     ()
-// }
+#[get("/account")]
+async fn get_account_page_data(
+    pool: web::Data<PgPool>,
+    query: web::Query<AccountPageDataRequestQuery>,
+) -> HttpResponse {
+    let account_page_data = User::get_account_page_data(&pool, &query.id);
+
+    HttpResponse::Ok().json(account_page_data)
+}
 
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(login_gmail);
+    config.service(login_gmail).service(get_account_page_data);
 }

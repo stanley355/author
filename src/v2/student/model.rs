@@ -1,10 +1,11 @@
 use actix_web::web;
 use chrono::NaiveDateTime;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
+use serde::Serialize;
 
 use crate::{db::PgPool, schema::students};
 
-#[derive(Queryable, Debug, Clone)]
+#[derive(Queryable, Debug, Serialize)]
 pub struct Student {
     pub id: uuid::Uuid,
     pub user_id: uuid::Uuid,
