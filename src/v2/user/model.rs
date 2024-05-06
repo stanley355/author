@@ -1,15 +1,14 @@
 use actix_web::web;
 use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 
+use super::account_page::AccountPageDataResponse;
+use super::request::LoginGmailRequestBody;
 use crate::v2::prompt::model::Prompt;
 use crate::v2::prompt::prompt_payment::PromptPayment;
 use crate::v2::prompt::request::PromptType;
 use crate::v2::student::model::Student;
 use crate::v2::subscription::model::Subscription;
 use crate::{db::PgPool, schema::users};
-
-use super::request::LoginGmailRequestBody;
-use super::response::AccountPageDataResponse;
 
 #[derive(Queryable, Debug, Clone)]
 pub struct User {
@@ -29,7 +28,6 @@ impl User {
             .filter(users::id.eq(uuid))
             .get_result::<User>(&mut conn)
     }
-
 
     pub fn find_by_email(pool: &web::Data<PgPool>, email: &str) -> QueryResult<User> {
         let mut conn = pool.get().unwrap();
@@ -102,12 +100,16 @@ impl User {
             .get_result(&mut conn)
     }
 
-    pub fn get_account_page_data(pool: &web::Data<PgPool>, user_id: &str) -> AccountPageDataResponse {
+    pub fn get_account_page_data(
+        pool: &web::Data<PgPool>,
+        user_id: &str,
+    ) -> AccountPageDataResponse {
         let user_result = Self::find(pool, user_id);
         let student_result = Student::find_active_discount(pool, user_id);
+        let subscription_result = Subscription::find_active(pool, user_id);
 
-        let account_page_data = AccountPageDataResponse::new(user_result, student_result);
-        return account_page_data
+        let account_page_data =
+            AccountPageDataResponse::new(user_result, student_result, subscription_result);
+        return account_page_data;
     }
-
 }
