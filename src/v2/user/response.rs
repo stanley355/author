@@ -26,10 +26,13 @@ pub struct AccountPageDataResponse {
 impl AccountPageDataResponse {
     pub fn new(user_result: QueryResult<User>) -> Self {
         Self {
-            user: None,
+            user: match user_result {
+                Ok(user) => Some(UserInsensitive::new(user)),
+                Err(_) => None,
+            },
             active_student_discount: None,
             active_subscription: None,
-            topups: Vec::new()
+            topups: Vec::new(),
         }
     }
 }
