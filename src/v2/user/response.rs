@@ -10,3 +10,4 @@ impl LoginResponse {
         Self { token }
     }
 }
+
