@@ -157,7 +157,7 @@ impl Prompt {
         }
     }
 
-    pub fn new_text_to_speech(
+    pub fn new_text_to_speech_insert(
         pool: &web::Data<PgPool>,
         body: &web::Json<NewPromptRequestBody>,
     ) -> Result<Prompt, String> {

@@ -5,6 +5,7 @@ use std::{env, fmt::Debug};
 #[derive(Debug, Clone)]
 pub enum OpenAiEndpointType {
     ChatCompletion,
+    AudioSpeech
 }
 
 pub struct OpenAi<D: Serialize> {
@@ -33,6 +34,7 @@ impl<D: Serialize> OpenAi<D> {
     pub fn match_endpoint_path(endpoint_type: &OpenAiEndpointType) -> String {
         match endpoint_type {
             OpenAiEndpointType::ChatCompletion => "v1/chat/completions".to_string(),
+            OpenAiEndpointType::AudioSpeech => "v1/audio/speech".to_string()
         }
     }
 
