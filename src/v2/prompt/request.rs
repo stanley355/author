@@ -29,3 +29,9 @@ pub struct UpdateImageToTextRequestBody {
     pub prompt_id: i32,
     pub completion_text: String,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct DeleteTtsFileQuery{
+    pub prompt_id: i32,
+}
+
