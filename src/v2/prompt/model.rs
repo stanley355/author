@@ -1,5 +1,6 @@
 use super::request::{PromptType, UpdateImageToTextRequestBody};
 use crate::schema::prompts;
+use crate::v2::openai::audio_model::OpenAiAudioSpeech;
 use crate::v2::openai::chat_model::{OpenAiChat, OpenAiChatResponse};
 use crate::v2::openai::model::OpenAiEndpointType;
 use crate::v2::prompt::request::NewPromptRequestBody;
@@ -67,7 +68,7 @@ impl Prompt {
             (prompts::prompt_text.eq(&body.user_content)),
             (prompts::completion_text.eq(&openai_chat_res.choices[0].message.content)),
             (prompts::total_token.eq(openai_chat_res.usage.total_tokens as i32)),
-            (prompts::total_cost.eq(openai_chat_res.usage.total_tokens as f64)),
+            (prompts::total_cost.eq((openai_chat_res.usage.total_tokens / 2) as f64)),
             (prompts::prompt_type.eq(prompt_type)),
         );
 
@@ -98,7 +99,7 @@ impl Prompt {
         }
     }
 
-    pub fn new_image_to_text(
+    pub fn new_image_to_text_insert(
         pool: &web::Data<PgPool>,
         body: &web::Json<NewPromptRequestBody>,
     ) -> Result<Prompt, String> {
@@ -127,7 +128,7 @@ impl Prompt {
         }
     }
 
-    pub fn update_image_to_text(
+    pub fn update_image_to_text_data(
         pool: &web::Data<PgPool>,
         body: &web::Json<UpdateImageToTextRequestBody>,
     ) -> Result<Prompt, String> {
@@ -154,6 +155,65 @@ impl Prompt {
         match update_result {
             Ok(prompt) => Ok(prompt),
             Err(diesel_error) => Err(diesel_error.to_string()),
+        }
+    }
+
+    pub fn new_text_to_speech_insert(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<NewPromptRequestBody>,
+    ) -> Result<Prompt, String> {
+        let mut conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
+        let prompt_token = body.user_content.split(" ").collect::<Vec<&str>>().len();
+
+        let data = (
+            (prompts::user_id.eq(uuid)),
+            (prompts::prompt_token.eq(prompt_token as i32)),
+            (prompts::completion_token.eq(0)),
+            (prompts::prompt_text.eq(&body.user_content)),
+            (prompts::completion_text.eq("".to_string())),
+            (prompts::total_token.eq(prompt_token as i32)),
+            (prompts::total_cost.eq((prompt_token / 2) as f64)),
+            (prompts::instruction.eq("Text to Speech".to_string())),
+            (prompts::prompt_type.eq(body.prompt_type.to_string())),
+        );
+
+        let insert_result = diesel::insert_into(prompts::table)
+            .values(data)
+            .get_result(&mut conn);
+
+        match insert_result {
+            Ok(prompt) => Ok(prompt),
+            Err(diesel_error) => Err(diesel_error.to_string()),
+        }
+    }
+
+    pub async fn new_text_to_speech(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<NewPromptRequestBody>,
+    ) -> Result<Prompt, String> {
+        let openai_request_body = OpenAiAudioSpeech::new(&body.user_content);
+        let openai = OpenAi::new(OpenAiEndpointType::AudioSpeech, openai_request_body);
+        let openai_result = openai.request_bytes().await;
+
+        match openai_result {
+            Ok(bytes) => {
+                let insert_result = Self::new_text_to_speech_insert(pool, body);
+                match insert_result {
+                    Ok(prompt) => {
+                        let file_name = format!("{}.mp3", &prompt.id);
+                        let file_path = format!("/tmp/{}", file_name);
+                        let file_creation = std::fs::write(file_path, &bytes);
+
+                        match file_creation {
+                            Ok(_) => Ok(prompt),
+                            Err(msg) => Err(msg.to_string()),
+                        }
+                    }
+                    Err(msg) => Err(msg),
+                }
+            }
+            Err(msg) => Err(msg.to_string()),
         }
     }
 }

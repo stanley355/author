@@ -1,10 +1,10 @@
-use super::request::{PromptType, UpdateImageToTextRequestBody};
+use super::request::{DeleteTtsFileQuery, PromptType, UpdateImageToTextRequestBody};
 use crate::v2::http_error_response::HttpErrorResponse;
 use crate::v2::prompt::model::Prompt;
 use crate::v2::prompt::prompt_payment::PromptPayment;
 use crate::v2::prompt::request::NewPromptRequestBody;
 use crate::{db::PgPool, v2::user::model::User};
-use actix_web::{post, put, web, HttpResponse};
+use actix_web::{delete, post, put, web, HttpResponse};
 
 #[post("/")]
 async fn new_prompt(
@@ -17,20 +17,22 @@ async fn new_prompt(
         PromptPayment::PaymentRequired => HttpErrorResponse::payment_required(),
         PromptPayment::Balance => {
             if let PromptType::ImageToText = &body.prompt_type {
-                let image_to_text_prompt_result = Prompt::new_image_to_text(&pool, &body);
+                let image_to_text_prompt_result = Prompt::new_image_to_text_insert(&pool, &body);
                 return match image_to_text_prompt_result {
                     Ok(prompt) => HttpResponse::Ok().json(prompt),
                     Err(msg) => HttpErrorResponse::internal_server_error(msg),
                 };
             }
 
-            let prompt_result = Prompt::new_instruct(&pool, &body).await;
+            let prompt_result = match &body.prompt_type {
+                PromptType::TextToSpeech => Prompt::new_text_to_speech(&pool, &body).await,
+                _ => Prompt::new_instruct(&pool, &body).await,
+            };
 
             match prompt_result {
                 Ok(prompt) => {
                     // Reduce user balance credit by 0.5 per token
-                    let user_cost = prompt.total_cost / 2.0;
-                    let _user = User::reduce_balance(&pool, &body.user_id, &user_cost);
+                    let _user = User::reduce_balance(&pool, &body.user_id, &prompt.total_cost);
 
                     HttpResponse::Ok().json(prompt)
                 }
@@ -39,7 +41,8 @@ async fn new_prompt(
         }
         _ => {
             let prompt_result = match &body.prompt_type {
-                PromptType::ImageToText => Prompt::new_image_to_text(&pool, &body),
+                PromptType::ImageToText => Prompt::new_image_to_text_insert(&pool, &body),
+                PromptType::TextToSpeech => Prompt::new_text_to_speech(&pool, &body).await,
                 _ => Prompt::new_instruct(&pool, &body).await,
             };
 
@@ -56,7 +59,7 @@ async fn update_image_to_text_prompt(
     pool: web::Data<PgPool>,
     body: web::Json<UpdateImageToTextRequestBody>,
 ) -> HttpResponse {
-    let update_result = Prompt::update_image_to_text(&pool, &body);
+    let update_result = Prompt::update_image_to_text_data(&pool, &body);
 
     match update_result {
         Ok(prompt) => {
@@ -72,8 +75,20 @@ async fn update_image_to_text_prompt(
     }
 }
 
+#[delete("/tts/file")]
+async fn delete_tts_file(query: web::Query<DeleteTtsFileQuery>) -> HttpResponse {
+    let file_path = format!("/tmp/{}.mp3", &query.prompt_id);
+    let file_del_result = std::fs::remove_file(file_path);
+
+    match file_del_result {
+        Ok(_) => HttpResponse::Ok().body(query.prompt_id.to_string()),
+        Err(err) => HttpErrorResponse::internal_server_error(err.to_string()),
+    }
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(new_prompt)
-        .service(update_image_to_text_prompt);
+        .service(update_image_to_text_prompt)
+        .service(delete_tts_file);
 }
