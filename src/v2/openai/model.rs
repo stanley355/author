@@ -1,3 +1,4 @@
+use actix_web::web;
 use reqwest::header::HeaderMap;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{env, fmt::Debug};
@@ -55,6 +56,27 @@ impl<D: Serialize> OpenAi<D> {
 
         match openai_res {
             Ok(response) => response.json::<B>().await,
+            Err(err) => Err(err),
+        }
+    }
+
+    pub async fn request_bytes(self) -> Result<web::Bytes, reqwest::Error> {
+        let url = format!("{}{}", self.base_api_url, self.endpoint_path);
+
+        let mut headers = HeaderMap::new();
+        headers.insert("Authorization", self.authorization_header.parse().unwrap());
+
+        let client = reqwest::Client::new();
+
+        let openai_res = client
+            .post(url)
+            .headers(headers)
+            .json(&self.data)
+            .send()
+            .await;
+
+        match openai_res {
+            Ok(response) => response.bytes().await,
             Err(err) => Err(err),
         }
     }

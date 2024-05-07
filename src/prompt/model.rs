@@ -295,7 +295,7 @@ impl Prompt {
         let _save_prompt = Self::save_text_to_speech_prompt(pool, &body);
 
         let file_req_body = OpenAiTextToSpeechReq::new(&body);
-        let file_byte_res = OpenAi::new_text_to_speech(file_req_body).await;
+        let file_byte_res: Result<web::Bytes, reqwest::Error> = OpenAi::new_text_to_speech(file_req_body).await;
 
         match file_byte_res {
             Ok(bytes) => {
