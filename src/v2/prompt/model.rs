@@ -1,5 +1,5 @@
 use super::request::{PromptType, UpdateImageToTextRequestBody};
-use crate::schema::prompts;
+use crate::schema::prompts::{self, total_token};
 use crate::v2::openai::chat_model::{OpenAiChat, OpenAiChatResponse};
 use crate::v2::openai::model::OpenAiEndpointType;
 use crate::v2::prompt::request::NewPromptRequestBody;
@@ -67,7 +67,7 @@ impl Prompt {
             (prompts::prompt_text.eq(&body.user_content)),
             (prompts::completion_text.eq(&openai_chat_res.choices[0].message.content)),
             (prompts::total_token.eq(openai_chat_res.usage.total_tokens as i32)),
-            (prompts::total_cost.eq(openai_chat_res.usage.total_tokens as f64)),
+            (prompts::total_cost.eq((openai_chat_res.usage.total_tokens / 2) as f64)),
             (prompts::prompt_type.eq(prompt_type)),
         );
 
@@ -152,6 +152,36 @@ impl Prompt {
             .get_result(&mut conn);
 
         match update_result {
+            Ok(prompt) => Ok(prompt),
+            Err(diesel_error) => Err(diesel_error.to_string()),
+        }
+    }
+
+    pub fn new_text_to_speech(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<NewPromptRequestBody>,
+    ) -> Result<Prompt, String> {
+        let mut conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
+        let prompt_token = body.user_content.split(" ").collect::<Vec<&str>>().len();
+
+        let data = (
+            (prompts::user_id.eq(uuid)),
+            (prompts::prompt_token.eq(prompt_token as i32)),
+            (prompts::completion_token.eq(0)),
+            (prompts::prompt_text.eq(&body.user_content)),
+            (prompts::completion_text.eq("".to_string())),
+            (prompts::total_token.eq(prompt_token as i32)),
+            (prompts::total_cost.eq((prompt_token / 2) as f64)),
+            (prompts::instruction.eq("Text to Speech".to_string())),
+            (prompts::prompt_type.eq(body.prompt_type.to_string())),
+        );
+
+        let insert_result = diesel::insert_into(prompts::table)
+            .values(data)
+            .get_result(&mut conn);
+
+        match insert_result {
             Ok(prompt) => Ok(prompt),
             Err(diesel_error) => Err(diesel_error.to_string()),
         }

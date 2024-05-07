@@ -24,13 +24,16 @@ async fn new_prompt(
                 };
             }
 
+            if let PromptType::TextToSpeech = &body.prompt_type {
+                
+            }
+
             let prompt_result = Prompt::new_instruct(&pool, &body).await;
 
             match prompt_result {
                 Ok(prompt) => {
                     // Reduce user balance credit by 0.5 per token
-                    let user_cost = prompt.total_cost / 2.0;
-                    let _user = User::reduce_balance(&pool, &body.user_id, &user_cost);
+                    let _user = User::reduce_balance(&pool, &body.user_id, &prompt.total_cost);
 
                     HttpResponse::Ok().json(prompt)
                 }

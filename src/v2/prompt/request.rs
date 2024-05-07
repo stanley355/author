@@ -6,6 +6,7 @@ pub enum PromptType {
     Translate,
     GrammarCheck,
     ImageToText,
+    TextToSpeech
 }
 
 impl fmt::Display for PromptType {
