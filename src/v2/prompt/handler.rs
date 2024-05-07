@@ -24,11 +24,10 @@ async fn new_prompt(
                 };
             }
 
-            if let PromptType::TextToSpeech = &body.prompt_type {
-                
-            }
-
-            let prompt_result = Prompt::new_instruct(&pool, &body).await;
+            let prompt_result = match &body.prompt_type {
+                PromptType::TextToSpeech => Prompt::new_text_to_speech(&pool, &body).await,
+                _ => Prompt::new_instruct(&pool, &body).await,
+            };
 
             match prompt_result {
                 Ok(prompt) => {
@@ -43,6 +42,7 @@ async fn new_prompt(
         _ => {
             let prompt_result = match &body.prompt_type {
                 PromptType::ImageToText => Prompt::new_image_to_text_insert(&pool, &body),
+                PromptType::TextToSpeech => Prompt::new_text_to_speech(&pool, &body).await,
                 _ => Prompt::new_instruct(&pool, &body).await,
             };
 
