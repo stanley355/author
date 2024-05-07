@@ -1,5 +1,4 @@
-
-use super::request::PromptType;
+use super::request::{PromptType, UpdateImageToTextRequestBody};
 use crate::schema::prompts;
 use crate::v2::openai::chat_model::{OpenAiChat, OpenAiChatResponse};
 use crate::v2::openai::model::OpenAiEndpointType;
@@ -10,9 +9,9 @@ use actix_web::web;
 use diesel::{
     BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
 };
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
-#[derive(Queryable, Debug, Clone, Deserialize, Serialize)]
+#[derive(Queryable, Debug, Clone, Serialize)]
 pub struct Prompt {
     pub id: i32,
     pub user_id: uuid::Uuid,
@@ -96,6 +95,65 @@ impl Prompt {
                 }
             }
             Err(reqwest_error) => Err(reqwest_error.to_string()),
+        }
+    }
+
+    pub fn new_image_to_text(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<NewPromptRequestBody>,
+    ) -> Result<Prompt, String> {
+        let mut conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
+
+        let data = (
+            (prompts::user_id.eq(uuid)),
+            (prompts::prompt_token.eq(0)),
+            (prompts::completion_token.eq(0)),
+            (prompts::prompt_text.eq("Image to text".to_string())),
+            (prompts::completion_text.eq("".to_string())),
+            (prompts::total_token.eq(0)),
+            (prompts::total_cost.eq(0.0)),
+            (prompts::instruction.eq("Image to text".to_string())),
+            (prompts::prompt_type.eq(body.prompt_type.to_string())),
+        );
+
+        let insert_result = diesel::insert_into(prompts::table)
+            .values(data)
+            .get_result(&mut conn);
+
+        match insert_result {
+            Ok(prompt) => Ok(prompt),
+            Err(diesel_error) => Err(diesel_error.to_string()),
+        }
+    }
+
+    pub fn update_image_to_text(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<UpdateImageToTextRequestBody>,
+    ) -> Result<Prompt, String> {
+        let mut conn = pool.get().unwrap();
+        let user_id = uuid::Uuid::parse_str(&body.user_id).unwrap();
+
+        let completion_token = body.completion_text.split(" ").collect::<Vec<&str>>().len();
+        let updated_column = (
+            prompts::completion_text.eq(&body.completion_text),
+            prompts::completion_token.eq(completion_token as i32),
+            prompts::total_token.eq(completion_token as i32),
+            prompts::total_cost.eq((completion_token / 2) as f64),
+        );
+
+        let update_result = diesel::update(prompts::table)
+            .filter(
+                prompts::id
+                    .eq(&body.prompt_id)
+                    .and(prompts::user_id.eq(user_id)),
+            )
+            .set(updated_column)
+            .get_result(&mut conn);
+
+        match update_result {
+            Ok(prompt) => Ok(prompt),
+            Err(diesel_error) => Err(diesel_error.to_string()),
         }
     }
 }
