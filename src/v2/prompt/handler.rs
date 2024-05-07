@@ -17,7 +17,7 @@ async fn new_prompt(
         PromptPayment::PaymentRequired => HttpErrorResponse::payment_required(),
         PromptPayment::Balance => {
             if let PromptType::ImageToText = &body.prompt_type {
-                let image_to_text_prompt_result = Prompt::new_image_to_text(&pool, &body);
+                let image_to_text_prompt_result = Prompt::new_image_to_text_insert(&pool, &body);
                 return match image_to_text_prompt_result {
                     Ok(prompt) => HttpResponse::Ok().json(prompt),
                     Err(msg) => HttpErrorResponse::internal_server_error(msg),
@@ -42,7 +42,7 @@ async fn new_prompt(
         }
         _ => {
             let prompt_result = match &body.prompt_type {
-                PromptType::ImageToText => Prompt::new_image_to_text(&pool, &body),
+                PromptType::ImageToText => Prompt::new_image_to_text_insert(&pool, &body),
                 _ => Prompt::new_instruct(&pool, &body).await,
             };
 
@@ -59,7 +59,7 @@ async fn update_image_to_text_prompt(
     pool: web::Data<PgPool>,
     body: web::Json<UpdateImageToTextRequestBody>,
 ) -> HttpResponse {
-    let update_result = Prompt::update_image_to_text(&pool, &body);
+    let update_result = Prompt::update_image_to_text_data(&pool, &body);
 
     match update_result {
         Ok(prompt) => {

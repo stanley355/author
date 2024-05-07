@@ -98,7 +98,7 @@ impl Prompt {
         }
     }
 
-    pub fn new_image_to_text(
+    pub fn new_image_to_text_insert(
         pool: &web::Data<PgPool>,
         body: &web::Json<NewPromptRequestBody>,
     ) -> Result<Prompt, String> {
@@ -127,7 +127,7 @@ impl Prompt {
         }
     }
 
-    pub fn update_image_to_text(
+    pub fn update_image_to_text_data(
         pool: &web::Data<PgPool>,
         body: &web::Json<UpdateImageToTextRequestBody>,
     ) -> Result<Prompt, String> {
