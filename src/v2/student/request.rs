@@ -23,3 +23,9 @@ pub struct NewStudentRequestBody {
     pub institution_level: StudentInstitutionLevel,
     pub institution_name: String,
 }
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct FindStudentQuery {
+    pub user_id: String,
+}
+

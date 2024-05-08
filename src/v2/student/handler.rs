@@ -1,9 +1,9 @@
-use actix_web::{post, web, HttpResponse};
+use actix_web::{get, post, web, HttpResponse};
 
+use super::request::{FindStudentQuery, StudentInstitutionLevel};
 use crate::v2::student::model::Student;
 use crate::v2::student::request::NewStudentRequestBody;
 use crate::{db::PgPool, v2::http_error_response::HttpErrorResponse};
-use super::request::StudentInstitutionLevel;
 
 #[post("/")]
 async fn new_student(
@@ -48,6 +48,19 @@ async fn new_student(
     }
 }
 
+#[get("")]
+async fn find_student(
+    pool: web::Data<PgPool>,
+    query: web::Query<FindStudentQuery>,
+) -> HttpResponse {
+    let student_result = Student::find_active_discount(&pool, &query.user_id);
+
+    match student_result {
+        Ok(student) => HttpResponse::Ok().json(student),
+        Err(err) => HttpErrorResponse::bad_request(err.to_string()),
+    }
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(new_student);
+    config.service(new_student).service(find_student);
 }
