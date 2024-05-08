@@ -9,6 +9,10 @@ async fn new_topup_payasyougo(
     pool: web::Data<PgPool>,
     body: web::Json<TopupPayasyougoRequestBody>,
 ) -> HttpResponse {
+    if &body.amount < &10000.0 {
+      return HttpErrorResponse::bad_request("Minimum amount is Rp10.000".to_string())
+    }
+
     let topup_result = TopUp::new_payasyougo(&pool, &body);
 
     match topup_result {
