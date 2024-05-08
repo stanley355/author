@@ -4,6 +4,8 @@ use serde::Serialize;
 
 use crate::{db::PgPool, schema::topups};
 
+use super::request::TopupPayasyougoRequestBody;
+
 #[derive(Debug, Serialize, Queryable)]
 pub struct TopUp {
     pub id: uuid::Uuid,
@@ -23,5 +25,23 @@ impl TopUp {
             .order_by(topups::created_at.desc())
             .limit(5)
             .get_results::<TopUp>(&mut conn)
+    }
+
+    pub fn new_payasyougo(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<TopupPayasyougoRequestBody>,
+    ) -> QueryResult<TopUp> {
+        let mut conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
+        
+        let data = (
+            (topups::user_id.eq(uuid)),
+            (topups::topup_amount.eq(&body.amount)),
+            // default topup_type is topup
+        );
+
+        diesel::insert_into(topups::table)
+            .values(data)
+            .get_result(&mut conn)
     }
 }
