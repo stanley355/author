@@ -1,5 +1,9 @@
 use super::request::{TopupPayasyougoRequestBody, TopupPremiumDuration, TopupPremiumRequestBody};
-use crate::{db::PgPool, schema::topups, v2::subscription::model::Subscription};
+use crate::{
+    db::PgPool,
+    schema::topups,
+    v2::{student::model::Student, subscription::model::Subscription},
+};
 use actix_web::web;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 use serde::Serialize;
@@ -82,7 +86,15 @@ impl TopUp {
         pool: &web::Data<PgPool>,
         body: &web::Json<TopupPremiumRequestBody>,
     ) -> Result<TopUp, String> {
-        let topup_amount = Self::calc_premium_price(&body.duration, false);
+        let is_student = {
+            let student_result = Student::find_active_discount(pool, &body.user_id);
+            match student_result {
+                Ok(_) => true,
+                Err(_) => false,
+            }
+        };
+
+        let topup_amount = Self::calc_premium_price(&body.duration, is_student);
         let topup_result = Self::new_premium_insert(pool, &body.user_id, &topup_amount);
 
         match topup_result {
