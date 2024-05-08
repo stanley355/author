@@ -2,6 +2,7 @@ use actix_web::{post, web, HttpResponse};
 
 use super::model::TopUp;
 use super::request::{TopupPayasyougoRequestBody, TopupPremiumRequestBody};
+use crate::v2::subscription::model::Subscription;
 use crate::v2::topup::doku::DokuNotifRequestBody;
 use crate::v2::user::model::User;
 use crate::{db::PgPool, v2::http_error_response::HttpErrorResponse};
@@ -54,6 +55,17 @@ async fn new_doku_notification(
                     Ok(_) => HttpResponse::Ok().json(topup),
                     Err(_) => HttpErrorResponse::internal_server_error(
                         "Fail to update user balance".to_string(),
+                    ),
+                };
+            }
+
+            if &topup.topup_type == "subscription" {
+                let subscription_result =
+                    Subscription::update_paid_subscription(&pool, &topup.id.to_string());
+                return match subscription_result {
+                    Ok(_) => HttpResponse::Ok().json(topup),
+                    Err(_) => HttpErrorResponse::internal_server_error(
+                        "Fail to update subscription".to_string(),
                     ),
                 };
             }

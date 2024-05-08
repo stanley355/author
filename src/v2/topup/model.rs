@@ -1,8 +1,8 @@
+use super::request::{TopupPayasyougoRequestBody, TopupPremiumDuration, TopupPremiumRequestBody};
+use crate::{db::PgPool, schema::topups, v2::subscription::model::Subscription};
 use actix_web::web;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 use serde::Serialize;
-use crate::{db::PgPool, schema::topups, v2::subscription::model::Subscription};
-use super::request::{TopupPayasyougoRequestBody, TopupPremiumDuration, TopupPremiumRequestBody};
 
 #[derive(Debug, Serialize, Queryable)]
 pub struct TopUp {
@@ -90,10 +90,7 @@ impl TopUp {
                 let subscription_result = Subscription::insert_from_topup(pool, &body, &topup);
 
                 match subscription_result {
-                    Ok(sub) => {
-                        println!("{:?}", sub);
-                        Ok(topup)
-                    }
+                    Ok(_) => Ok(topup),
                     Err(err) => Err(err.to_string()),
                 }
             }
