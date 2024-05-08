@@ -48,7 +48,7 @@ where
     forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-        if req.path() == "/v1/topups/doku/notification/" || req.path().contains("/v1/files") {
+        if req.path() == "/v1/topups/doku/notification/" || req.path() == "/v2/topups/doku/notification/" ||  req.path().contains("/v1/files") {
             return self.respond_ok(req);
         }
 
