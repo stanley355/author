@@ -41,7 +41,7 @@ async fn new_doku_notification(
                     Err(_) => HttpErrorResponse::internal_server_error(
                         "Fail to update user balance".to_string(),
                     ),
-                }
+                };
             }
 
             let msg = "Fail to update user balance or subscription".to_string();
@@ -52,5 +52,7 @@ async fn new_doku_notification(
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(new_topup_payasyougo);
+    config
+        .service(new_topup_payasyougo)
+        .service(new_doku_notification);
 }
