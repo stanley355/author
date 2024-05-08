@@ -25,17 +25,17 @@ async fn new_student(
             body.institution_level.to_string() == StudentInstitutionLevel::JuniorHigh.to_string();
 
         if last_is_college {
-            let msg = "Student has previously applied for College Level".to_string();
+            let msg = "Application not permitted. Student has previously applied for College Level".to_string();
             return HttpErrorResponse::bad_request(msg);
         }
 
         if last_is_highschool && (apply_juniorschool || apply_highschool) {
-            let msg = "Student has previously applied for Senior High Level".to_string();
+            let msg = "Application not permitted. Student has previously applied for Senior High Level".to_string();
             return HttpErrorResponse::bad_request(msg);
         }
 
         if last_is_juniorschool && apply_juniorschool {
-            let msg = "Student has previously applied for Junior High Level".to_string();
+            let msg = "Application not permitted. Student has previously applied for Junior High Level".to_string();
             return HttpErrorResponse::bad_request(msg);
         }
     }
