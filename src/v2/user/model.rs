@@ -101,6 +101,20 @@ impl User {
             .get_result(&mut conn)
     }
 
+    pub fn increase_balance(
+        pool: &web::Data<PgPool>,
+        user_id: &str,
+        increase_amount: &f64,
+    ) -> QueryResult<User> {
+        let mut conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(user_id).unwrap();
+
+        diesel::update(users::table)
+            .filter(users::id.eq(uuid))
+            .set(users::dsl::balance.eq(users::dsl::balance + increase_amount))
+            .get_result(&mut conn)
+    }
+
     pub fn get_account_page_data(
         pool: &web::Data<PgPool>,
         user_id: &str,

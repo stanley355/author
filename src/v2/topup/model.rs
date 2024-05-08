@@ -33,7 +33,7 @@ impl TopUp {
     ) -> QueryResult<TopUp> {
         let mut conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
-        
+
         let data = (
             (topups::user_id.eq(uuid)),
             (topups::topup_amount.eq(&body.amount)),
@@ -42,6 +42,16 @@ impl TopUp {
 
         diesel::insert_into(topups::table)
             .values(data)
+            .get_result(&mut conn)
+    }
+
+    pub fn update_paid_topup(pool: &web::Data<PgPool>, topup_id: &str) -> QueryResult<TopUp> {
+        let mut conn = pool.get().unwrap();
+        let topup_id = uuid::Uuid::parse_str(topup_id).unwrap();
+
+        diesel::update(topups::table)
+            .filter(topups::id.eq(topup_id))
+            .set(topups::paid.eq(true))
             .get_result(&mut conn)
     }
 }
