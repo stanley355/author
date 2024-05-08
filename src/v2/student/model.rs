@@ -2,9 +2,7 @@ use actix_web::web;
 use chrono::{Duration, NaiveDateTime, Utc};
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 use serde::Serialize;
-
 use crate::{db::PgPool, schema::students};
-
 use super::request::NewStudentRequestBody;
 
 #[derive(Queryable, Debug, Serialize)]
