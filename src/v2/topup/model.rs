@@ -1,10 +1,8 @@
 use actix_web::web;
 use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 use serde::Serialize;
-
-use crate::{db::PgPool, schema::topups};
-
-use super::request::TopupPayasyougoRequestBody;
+use crate::{db::PgPool, schema::topups, v2::subscription::model::Subscription};
+use super::request::{TopupPayasyougoRequestBody, TopupPremiumDuration, TopupPremiumRequestBody};
 
 #[derive(Debug, Serialize, Queryable)]
 pub struct TopUp {
@@ -43,6 +41,64 @@ impl TopUp {
         diesel::insert_into(topups::table)
             .values(data)
             .get_result(&mut conn)
+    }
+
+    pub fn calc_premium_price(duration: &TopupPremiumDuration, is_student: bool) -> f64 {
+        if is_student {
+            return match duration {
+                TopupPremiumDuration::Monthly => 12500.0,
+                TopupPremiumDuration::Quarterly => 30000.0,
+                TopupPremiumDuration::HalfYearly => 70000.0,
+            };
+        }
+
+        match duration {
+            TopupPremiumDuration::Monthly => 25000.0,
+            TopupPremiumDuration::Quarterly => 70000.0,
+            TopupPremiumDuration::HalfYearly => 150000.0,
+        }
+    }
+
+    fn new_premium_insert(
+        pool: &web::Data<PgPool>,
+        user_id: &str,
+        amount: &f64,
+    ) -> QueryResult<TopUp> {
+        let mut conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(user_id).unwrap();
+
+        let data = (
+            (topups::user_id.eq(uuid)),
+            (topups::topup_amount.eq(amount)),
+            (topups::topup_type.eq("subscription".to_string())),
+        );
+
+        diesel::insert_into(topups::table)
+            .values(data)
+            .get_result(&mut conn)
+    }
+
+    pub fn new_premium(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<TopupPremiumRequestBody>,
+    ) -> Result<TopUp, String> {
+        let topup_amount = Self::calc_premium_price(&body.duration, false);
+        let topup_result = Self::new_premium_insert(pool, &body.user_id, &topup_amount);
+
+        match topup_result {
+            Ok(topup) => {
+                let subscription_result = Subscription::insert_from_topup(pool, &body, &topup);
+
+                match subscription_result {
+                    Ok(sub) => {
+                        println!("{:?}", sub);
+                        Ok(topup)
+                    }
+                    Err(err) => Err(err.to_string()),
+                }
+            }
+            Err(err) => Err(err.to_string()),
+        }
     }
 
     pub fn update_paid_topup(pool: &web::Data<PgPool>, topup_id: &str) -> QueryResult<TopUp> {

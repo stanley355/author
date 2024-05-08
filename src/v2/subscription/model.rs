@@ -1,5 +1,8 @@
+use crate::v2::topup::model::TopUp;
+use crate::v2::topup::request::{TopupPremiumDuration, TopupPremiumRequestBody};
 use crate::{db::PgPool, schema::subscriptions};
 use actix_web::web;
+use chrono::{Duration, Utc};
 use diesel::{
     BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
 };
@@ -32,5 +35,37 @@ impl Subscription {
             )
             .order_by(subscriptions::created_at.desc())
             .get_result::<Subscription>(&mut conn)
+    }
+
+    fn calc_end_timestamp(duration_type: &TopupPremiumDuration) -> chrono::NaiveDateTime {
+        let days = match duration_type {
+            TopupPremiumDuration::Monthly => 30,
+            TopupPremiumDuration::Quarterly => 90,
+            TopupPremiumDuration::HalfYearly => 180,
+        };
+
+        let end_time = Utc::now().checked_add_signed(Duration::days(days)).unwrap();
+        return end_time.naive_utc();
+    }
+
+    pub fn insert_from_topup(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<TopupPremiumRequestBody>,
+        topup: &TopUp,
+    ) -> QueryResult<Subscription> {
+        let mut conn = pool.get().unwrap();
+
+        let end_timestamp = Self::calc_end_timestamp(&body.duration);
+
+        let data = (
+            (subscriptions::topup_id.eq(&topup.id)),
+            (subscriptions::user_id.eq(&topup.user_id)),
+            (subscriptions::end_at.eq(end_timestamp)),
+            (subscriptions::duration_type.eq(body.duration.to_string())),
+        );
+
+        diesel::insert_into(subscriptions::table)
+            .values(data)
+            .get_result(&mut conn)
     }
 }
