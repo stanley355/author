@@ -15,6 +15,7 @@ dotenv = "0.15"
 diesel = { version = "2.1.6", features = ["postgres", "uuid", "r2d2", "chrono"] }
 jsonwebtoken = "8.3.0"
 openssl = { version = "0.10", features = ["vendored"] }
+sentry = "0.32.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
 uuid = { version = "0.7", features = ["serde", "v4"] }
