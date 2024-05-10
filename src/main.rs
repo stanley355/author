@@ -34,12 +34,22 @@ async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
 
-    let host = &env::var("HOST").unwrap_or("127.0.0.1".to_string());
-    let port = &env::var("PORT").unwrap_or("8080".to_string());
+    let sentry_key = env::var("SENTRY_KEY".to_string()).unwrap_or_default();
+    if sentry_key != "".to_string() {
+        let _guard = sentry::init((
+            sentry_key,
+            sentry::ClientOptions {
+                release: sentry::release_name!(),
+                ..Default::default()
+            },
+        ));
+    }
+
+    let host = env::var("HOST").unwrap_or("127.0.0.1".to_string());
+    let port = env::var("PORT").unwrap_or("8080".to_string());
     let address = format!("{}:{}", host, port);
     println!("Server running on: {}", address);
 
     let pool = db::connect_pool();
-
     serve_web(address, pool).await
 }
