@@ -54,34 +54,55 @@ impl Prompt {
         pool: &web::Data<PgPool>,
         body: &web::Json<NewPromptRequestBody>,
         openai_chat_res: OpenAiChatResponse,
-    ) -> QueryResult<Prompt> {
+    ) -> QueryResult<Vec<Prompt>> {
         let mut conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
 
         let prompt_type = &body.prompt_type.to_string();
 
-        let data = (
-            (prompts::user_id.eq(uuid)),
-            (prompts::instruction.eq(&body.system_content)),
-            (prompts::prompt_token.eq(openai_chat_res.usage.prompt_tokens as i32)),
-            (prompts::completion_token.eq(openai_chat_res.usage.completion_tokens as i32)),
-            (prompts::prompt_text.eq(&body.user_content)),
-            (prompts::completion_text.eq(&openai_chat_res.choices[0].message.content)),
-            (prompts::total_token.eq(openai_chat_res.usage.total_tokens as i32)),
-            (prompts::total_cost.eq((openai_chat_res.usage.total_tokens / 2) as f64)),
-            (prompts::prompt_type.eq(prompt_type)),
-        );
+        let data: Vec<_> = openai_chat_res
+            .choices
+            .iter()
+            .enumerate()
+            .map(|(index, chat_choice)| {
+                if index > 0 {
+                    return (
+                        (prompts::user_id.eq(uuid)),
+                        (prompts::instruction.eq(&body.system_content)),
+                        (prompts::prompt_token.eq(0)),
+                        (prompts::completion_token.eq(0)),
+                        (prompts::prompt_text.eq(&body.user_content)),
+                        (prompts::completion_text.eq(&chat_choice.message.content)),
+                        (prompts::total_token.eq(0)),
+                        (prompts::total_cost.eq(0.0)),
+                        (prompts::prompt_type.eq(prompt_type)),
+                    );
+                }
+
+                return (
+                    (prompts::user_id.eq(uuid)),
+                    (prompts::instruction.eq(&body.system_content)),
+                    (prompts::prompt_token.eq(openai_chat_res.usage.prompt_tokens as i32)),
+                    (prompts::completion_token.eq(openai_chat_res.usage.completion_tokens as i32)),
+                    (prompts::prompt_text.eq(&body.user_content)),
+                    (prompts::completion_text.eq(&chat_choice.message.content)),
+                    (prompts::total_token.eq(openai_chat_res.usage.total_tokens as i32)),
+                    (prompts::total_cost.eq((openai_chat_res.usage.total_tokens / 2) as f64)),
+                    (prompts::prompt_type.eq(prompt_type)),
+                );
+            })
+            .collect();
 
         diesel::insert_into(prompts::table)
             .values(data)
-            .get_result(&mut conn)
+            .get_results(&mut conn)
     }
 
     pub async fn new_instruct(
         pool: &web::Data<PgPool>,
         body: &web::Json<NewPromptRequestBody>,
-    ) -> Result<Prompt, String> {
-        let openai_request_body = OpenAiChat::new(&body.system_content, &body.user_content);
+    ) -> Result<Vec<Prompt>, String> {
+        let openai_request_body = OpenAiChat::new(body);
         let openai = OpenAi::new(OpenAiEndpointType::ChatCompletion, openai_request_body);
 
         let openai_response = openai.request::<OpenAiChatResponse>().await;
@@ -91,7 +112,7 @@ impl Prompt {
                 let insert_result = Self::new_instruct_insert(pool, body, openai_chat_res);
 
                 match insert_result {
-                    Ok(prompt) => Ok(prompt),
+                    Ok(prompt_vec) => Ok(prompt_vec),
                     Err(diesel_error) => Err(diesel_error.to_string()),
                 }
             }
