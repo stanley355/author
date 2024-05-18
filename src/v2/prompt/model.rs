@@ -73,7 +73,7 @@ impl Prompt {
         );
 
         diesel::insert_into(prompts::table)
-            .values(&vec![data, data])
+            .values(&vec![data])
             .get_results(&mut conn)
     }
 

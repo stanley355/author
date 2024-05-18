@@ -59,11 +59,8 @@ impl PromptHttpResponse {
         match prompt_result {
             Ok(prompt_vec) => {
                 if is_balance_payment {
-                    let total_cost = prompt_vec
-                        .iter()
-                        .map(|prompt| prompt.total_cost)
-                        .reduce(|a, b| a + b);
-                    let _user = User::reduce_balance(&pool, &body.user_id, &total_cost.unwrap());
+                    let _user =
+                        User::reduce_balance(&pool, &body.user_id, &prompt_vec[0].total_cost);
                 }
                 HttpResponse::Ok().json(prompt_vec)
             }
