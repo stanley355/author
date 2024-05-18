@@ -54,7 +54,7 @@ impl Prompt {
         pool: &web::Data<PgPool>,
         body: &web::Json<NewPromptRequestBody>,
         openai_chat_res: OpenAiChatResponse,
-    ) -> QueryResult<Prompt> {
+    ) -> QueryResult<Vec<Prompt>> {
         let mut conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
 
@@ -73,14 +73,14 @@ impl Prompt {
         );
 
         diesel::insert_into(prompts::table)
-            .values(data)
-            .get_result(&mut conn)
+            .values(&vec![data, data])
+            .get_results(&mut conn)
     }
 
     pub async fn new_instruct(
         pool: &web::Data<PgPool>,
         body: &web::Json<NewPromptRequestBody>,
-    ) -> Result<Prompt, String> {
+    ) -> Result<Vec<Prompt>, String> {
         let openai_request_body = OpenAiChat::new(&body.system_content, &body.user_content);
         let openai = OpenAi::new(OpenAiEndpointType::ChatCompletion, openai_request_body);
 
