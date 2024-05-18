@@ -21,6 +21,7 @@ pub struct NewPromptRequestBody {
     pub prompt_type: PromptType,
     pub system_content: String,
     pub user_content: String,
+    pub n: Option<u32>
 }
 
 #[derive(Debug, Deserialize)]

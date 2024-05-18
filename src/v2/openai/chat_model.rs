@@ -1,4 +1,7 @@
+use actix_web::web;
 use serde::{Deserialize, Serialize};
+
+use crate::v2::prompt::request::NewPromptRequestBody;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OpenAiChatMessage {
@@ -26,14 +29,16 @@ impl OpenAiChatMessage {
 pub struct OpenAiChat {
     model: String,
     messages: Vec<OpenAiChatMessage>,
+    n: Option<u32>
 }
 
 impl OpenAiChat {
-    pub fn new(system_content: &str, user_content: &str) -> Self {
-        let messages = OpenAiChatMessage::new_vec(system_content, user_content);
+    pub fn new(body: &web::Json<NewPromptRequestBody>) -> Self {
+        let messages = OpenAiChatMessage::new_vec(&body.system_content, &body.user_content);
         Self {
             model: "gpt-3.5-turbo-16k".to_string(),
             messages,
+            n: body.n
         }
     }
 }
