@@ -29,7 +29,8 @@ impl OpenAiChatMessage {
 pub struct OpenAiChat {
     model: String,
     messages: Vec<OpenAiChatMessage>,
-    n: Option<u32>
+    n: Option<u32>,
+    temperature: Option<f32>
 }
 
 impl OpenAiChat {
@@ -38,7 +39,8 @@ impl OpenAiChat {
         Self {
             model: "gpt-3.5-turbo-16k".to_string(),
             messages,
-            n: body.n
+            n: body.n,
+            temperature: body.temperature
         }
     }
 }
