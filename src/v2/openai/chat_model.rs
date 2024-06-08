@@ -29,16 +29,18 @@ impl OpenAiChatMessage {
 pub struct OpenAiChat {
     model: String,
     messages: Vec<OpenAiChatMessage>,
-    n: Option<u32>
+    n: Option<u32>,
+    temperature: Option<f32>
 }
 
 impl OpenAiChat {
     pub fn new(body: &web::Json<NewPromptRequestBody>) -> Self {
         let messages = OpenAiChatMessage::new_vec(&body.system_content, &body.user_content);
         Self {
-            model: "gpt-3.5-turbo-16k".to_string(),
+            model: "gpt-3.5-turbo".to_string(),
             messages,
-            n: body.n
+            n: body.n,
+            temperature: body.temperature
         }
     }
 }
