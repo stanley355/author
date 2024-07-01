@@ -1,4 +1,4 @@
-use super::request::{TopupPayasyougoRequestBody, TopupPremiumDuration, TopupPremiumRequestBody};
+use super::request::{TopupPremiumDuration, TopupPremiumRequestBody};
 use crate::{
     db::PgPool,
     schema::topups,
@@ -29,24 +29,6 @@ impl TopUp {
             .get_results::<TopUp>(&mut conn)
     }
 
-    pub fn new_payasyougo(
-        pool: &web::Data<PgPool>,
-        body: &web::Json<TopupPayasyougoRequestBody>,
-    ) -> QueryResult<TopUp> {
-        let mut conn = pool.get().unwrap();
-        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
-
-        let data = (
-            (topups::user_id.eq(uuid)),
-            (topups::topup_amount.eq(&body.amount)),
-            // default topup_type is topup
-        );
-
-        diesel::insert_into(topups::table)
-            .values(data)
-            .get_result(&mut conn)
-    }
-
     pub fn calc_premium_price(duration: &TopupPremiumDuration, is_student: bool) -> f64 {
         if is_student {
             return match duration {
@@ -71,6 +53,7 @@ impl TopUp {
         let mut conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(user_id).unwrap();
 
+        // default topup_type is topup
         let data = (
             (topups::user_id.eq(uuid)),
             (topups::topup_amount.eq(amount)),

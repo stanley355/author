@@ -1,5 +1,8 @@
 # Author
 
+### 1.2.6
+- Remove payasyougo Payment plan
+
 ### 1.2.5
 - Update free prompt limit to 10
 

@@ -2,12 +2,6 @@ use serde::Deserialize;
 use std::fmt;
 
 #[derive(Debug, Deserialize)]
-pub struct TopupPayasyougoRequestBody {
-    pub user_id: String,
-    pub amount: f64,
-}
-
-#[derive(Debug, Deserialize)]
 pub struct TopupPremiumRequestBody {
     pub user_id: String,
     pub duration: TopupPremiumDuration,
