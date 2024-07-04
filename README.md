@@ -1,5 +1,9 @@
 # Author
 
+### 1.2.7
+
+- Update PromptType GrammarCheck to Checkbot
+
 ### 1.2.6
 - Remove payasyougo Payment plan
 
