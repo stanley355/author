@@ -4,7 +4,7 @@ use std::fmt;
 #[derive(Debug, Clone, Deserialize)]
 pub enum PromptType {
     Translate,
-    GrammarCheck,
+    Checkbot,
     ImageToText,
     TextToSpeech
 }
@@ -36,4 +36,3 @@ pub struct UpdateImageToTextRequestBody {
 pub struct DeleteTtsFileQuery{
     pub prompt_id: i32,
 }
-
