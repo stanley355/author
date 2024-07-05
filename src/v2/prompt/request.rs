@@ -5,7 +5,6 @@ use std::fmt;
 pub enum PromptType {
     Translate,
     Checkbot,
-    ImageToText,
     TextToSpeech
 }
 
@@ -23,13 +22,6 @@ pub struct NewPromptRequestBody {
     pub user_content: String,
     pub n: Option<u32>,
     pub temperature: Option<f32>
-}
-
-#[derive(Debug, Deserialize)]
-pub struct UpdateImageToTextRequestBody {
-    pub user_id: String,
-    pub prompt_id: i32,
-    pub completion_text: String,
 }
 
 #[derive(Debug, Deserialize)]

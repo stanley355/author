@@ -14,22 +14,10 @@ impl PromptHttpResponse {
         is_balance_payment: bool,
     ) -> HttpResponse {
         return match &body.prompt_type {
-            PromptType::ImageToText => PromptHttpResponse::new_image_to_text(&pool, &body),
             PromptType::TextToSpeech => {
                 PromptHttpResponse::new_text_to_speech(&pool, &body, is_balance_payment).await
             }
             _ => PromptHttpResponse::new_instruct(&pool, &body, is_balance_payment).await,
-        };
-    }
-
-    pub fn new_image_to_text(
-        pool: &web::Data<PgPool>,
-        body: &web::Json<NewPromptRequestBody>,
-    ) -> HttpResponse {
-        let image_to_text_prompt_result = Prompt::new_image_to_text_insert(&pool, &body);
-        return match image_to_text_prompt_result {
-            Ok(prompt) => HttpResponse::Ok().json(prompt),
-            Err(msg) => HttpErrorResponse::internal_server_error(msg),
         };
     }
 
