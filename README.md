@@ -1,5 +1,9 @@
 # Author
 
+### 1.2.8
+
+- Remove image to text api
+
 ### 1.2.7
 
 - Update PromptType GrammarCheck to Checkbot

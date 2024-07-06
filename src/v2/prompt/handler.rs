@@ -1,11 +1,10 @@
-use super::request::{DeleteTtsFileQuery, PromptType, UpdateImageToTextRequestBody};
+use super::request::DeleteTtsFileQuery;
 use super::response::PromptHttpResponse;
 use crate::v2::http_error_response::HttpErrorResponse;
-use crate::v2::prompt::model::Prompt;
 use crate::v2::prompt::prompt_payment::PromptPayment;
 use crate::v2::prompt::request::NewPromptRequestBody;
 use crate::{db::PgPool, v2::user::model::User};
-use actix_web::{delete, post, put, web, HttpResponse};
+use actix_web::{delete, post, web, HttpResponse};
 
 #[post("/")]
 async fn new_prompt(
@@ -17,29 +16,8 @@ async fn new_prompt(
     return match prompt_payment {
         PromptPayment::PaymentRequired => HttpErrorResponse::payment_required(),
         PromptPayment::Balance => PromptHttpResponse::new(&pool, &body, true).await,
-        _ => PromptHttpResponse::new(&pool, &body, false).await
+        _ => PromptHttpResponse::new(&pool, &body, false).await,
     };
-}
-
-#[put("/image-to-text/")]
-async fn update_image_to_text_prompt(
-    pool: web::Data<PgPool>,
-    body: web::Json<UpdateImageToTextRequestBody>,
-) -> HttpResponse {
-    let update_result = Prompt::update_image_to_text_data(&pool, &body);
-
-    match update_result {
-        Ok(prompt) => {
-            let prompt_payment =
-                User::check_prompt_payment(&pool, &body.user_id, &PromptType::ImageToText);
-            if let PromptPayment::Balance = prompt_payment {
-                let _user = User::reduce_balance(&pool, &body.user_id, &prompt.total_cost);
-            }
-
-            HttpResponse::Ok().json(prompt)
-        }
-        Err(msg) => HttpErrorResponse::internal_server_error(msg),
-    }
 }
 
 #[delete("/tts/file")]
@@ -54,8 +32,5 @@ async fn delete_tts_file(query: web::Query<DeleteTtsFileQuery>) -> HttpResponse 
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
-    config
-        .service(new_prompt)
-        .service(update_image_to_text_prompt)
-        .service(delete_tts_file);
+    config.service(new_prompt).service(delete_tts_file);
 }
