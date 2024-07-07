@@ -1,5 +1,9 @@
 # Author
 
+### 1.2.9
+
+- Update sentry
+
 ### 1.2.8
 
 - Remove image to text api
