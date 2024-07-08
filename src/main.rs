@@ -45,7 +45,7 @@ async fn main() -> std::io::Result<()> {
             sentry_key,
             sentry::ClientOptions {
                 release: sentry::release_name!(),
-                traces_sample_rate: 1.0,
+                traces_sample_rate: 0.25,
                 ..Default::default()
             },
         ));
