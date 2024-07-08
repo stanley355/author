@@ -47,18 +47,23 @@ impl OpenAiChat {
 
 #[derive(Debug, Deserialize)]
 pub struct OpenAiChatResponse {
-    pub _id: String,
-    pub _object: String,
-    pub _model: String,
-    pub _created: u32,
+    #[allow(dead_code)]
+    pub id: String,
+    #[allow(dead_code)]
+    pub object: String,
+    #[allow(dead_code)]
+    pub model: String,
+    #[allow(dead_code)]
+    pub created: u32,
     pub choices: Vec<OpenAiChatChoice>,
     pub usage: OpenAiChatUsage,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct OpenAiChatChoice {
-    pub _index: i32,
-    pub _finish_reason: String,
+    pub index: i32,
+    pub finish_reason: String,
     pub message: OpenAiChatMessage,
 }
 

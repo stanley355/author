@@ -13,6 +13,7 @@ pub struct OpenAi<D: Serialize> {
     base_api_url: String,
     endpoint_path: String,
     authorization_header: String,
+    #[allow(dead_code)]
     pub endpoint_type: OpenAiEndpointType,
     data: D,
 }
