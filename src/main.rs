@@ -7,6 +7,7 @@ use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
 use dotenv::dotenv;
 use std::env;
+use tracing_subscriber::prelude::*;
 
 mod db;
 mod schema;
@@ -36,10 +37,15 @@ async fn main() -> std::io::Result<()> {
 
     let sentry_key = env::var("SENTRY_KEY".to_string()).unwrap_or_default();
     if sentry_key != "".to_string() {
+        tracing_subscriber::Registry::default()
+            .with(tracing_subscriber::fmt::layer())
+            .with(sentry_tracing::layer())
+            .init();
         let _guard = sentry::init((
             sentry_key,
             sentry::ClientOptions {
                 release: sentry::release_name!(),
+                traces_sample_rate: 1.0,
                 ..Default::default()
             },
         ));

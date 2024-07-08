@@ -2,8 +2,8 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct DokuNotifTransaction {
-    pub status: String,
-    pub date: String,
+    pub _status: String,
+    pub _date: String,
     pub original_request_id: String,
 }
 
