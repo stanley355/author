@@ -1,5 +1,11 @@
 # Author
 
+### 1.3.0
+- Update diesel to 2.2.1
+- Update sentry to 0.34.0
+- Add allow dead code
+- Add tracing instrument
+
 ### 1.2.9
 
 - Update sentry

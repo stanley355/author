@@ -6,6 +6,7 @@ use crate::v2::prompt::request::NewPromptRequestBody;
 use crate::{db::PgPool, v2::user::model::User};
 use actix_web::{delete, post, web, HttpResponse};
 
+#[tracing::instrument]
 #[post("/")]
 async fn new_prompt(
     pool: web::Data<PgPool>,
@@ -20,6 +21,7 @@ async fn new_prompt(
     };
 }
 
+#[tracing::instrument]
 #[delete("/tts/file")]
 async fn delete_tts_file(query: web::Query<DeleteTtsFileQuery>) -> HttpResponse {
     let file_path = format!("/tmp/{}.mp3", &query.prompt_id);
