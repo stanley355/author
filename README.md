@@ -1,5 +1,9 @@
 # Author
 
+### 1.3.1
+
+- Remove sentry and tracing
+
 ### 1.3.0
 - Update diesel to 2.2.1
 - Update sentry to 0.34.0
