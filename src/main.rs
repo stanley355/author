@@ -35,21 +35,9 @@ async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
 
-    let sentry_key = env::var("SENTRY_KEY".to_string()).unwrap_or_default();
-    if sentry_key != "".to_string() {
-        tracing_subscriber::Registry::default()
-            .with(tracing_subscriber::fmt::layer())
-            .with(sentry_tracing::layer())
-            .init();
-        let _guard = sentry::init((
-            sentry_key,
-            sentry::ClientOptions {
-                release: sentry::release_name!(),
-                traces_sample_rate: 0.25,
-                ..Default::default()
-            },
-        ));
-    }
+    tracing_subscriber::Registry::default()
+    .with(tracing_subscriber::fmt::layer())
+    .init();
 
     let host = env::var("HOST").unwrap_or("127.0.0.1".to_string());
     let port = env::var("PORT").unwrap_or("8080".to_string());
