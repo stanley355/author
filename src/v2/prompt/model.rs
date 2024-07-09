@@ -1,4 +1,4 @@
-use super::request::PromptType;
+use super::request::{NewTextToSpeechRequestBody, PromptType};
 use crate::schema::prompts;
 use crate::v2::openai::audio_model::OpenAiAudioSpeech;
 use crate::v2::openai::chat_model::{OpenAiChat, OpenAiChatResponse};
@@ -122,22 +122,22 @@ impl Prompt {
 
     pub fn new_text_to_speech_insert(
         pool: &web::Data<PgPool>,
-        body: &web::Json<NewPromptRequestBody>,
+        body: &web::Json<NewTextToSpeechRequestBody>,
     ) -> Result<Prompt, String> {
         let mut conn = pool.get().unwrap();
         let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
-        let prompt_token = body.user_content.split(" ").collect::<Vec<&str>>().len();
+        let prompt_token = body.input.split("").collect::<Vec<&str>>().len();
 
         let data = (
             (prompts::user_id.eq(uuid)),
             (prompts::prompt_token.eq(prompt_token as i32)),
             (prompts::completion_token.eq(0)),
-            (prompts::prompt_text.eq(&body.user_content)),
+            (prompts::prompt_text.eq(&body.input)),
             (prompts::completion_text.eq("".to_string())),
             (prompts::total_token.eq(prompt_token as i32)),
             (prompts::total_cost.eq((prompt_token / 2) as f64)),
             (prompts::instruction.eq("Text to Speech".to_string())),
-            (prompts::prompt_type.eq(body.prompt_type.to_string())),
+            (prompts::prompt_type.eq(PromptType::TextToSpeech.to_string())),
         );
 
         let insert_result = diesel::insert_into(prompts::table)
@@ -152,9 +152,9 @@ impl Prompt {
 
     pub async fn new_text_to_speech(
         pool: &web::Data<PgPool>,
-        body: &web::Json<NewPromptRequestBody>,
+        body: &web::Json<NewTextToSpeechRequestBody>,
     ) -> Result<Prompt, String> {
-        let openai_request_body = OpenAiAudioSpeech::new(&body.user_content);
+        let openai_request_body = OpenAiAudioSpeech::new(&body.input);
         let openai = OpenAi::new(OpenAiEndpointType::AudioSpeech, openai_request_body);
         let openai_result = openai.request_bytes().await;
 
