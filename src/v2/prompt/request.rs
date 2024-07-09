@@ -45,7 +45,7 @@ pub struct NewTextToSpeechRequestBody {
     pub user_id: String,
     pub input: String,
     pub voice: TextToSpeechVoice,
-    pub speed: Option<u32>,
+    pub speed: Option<f32>,
 }
 
 #[derive(Debug, Deserialize)]

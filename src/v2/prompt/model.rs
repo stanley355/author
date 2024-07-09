@@ -154,7 +154,7 @@ impl Prompt {
         pool: &web::Data<PgPool>,
         body: &web::Json<NewTextToSpeechRequestBody>,
     ) -> Result<Prompt, String> {
-        let openai_request_body = OpenAiAudioSpeech::new(&body.input);
+        let openai_request_body = OpenAiAudioSpeech::new(body);
         let openai = OpenAi::new(OpenAiEndpointType::AudioSpeech, openai_request_body);
         let openai_result = openai.request_bytes().await;
 
