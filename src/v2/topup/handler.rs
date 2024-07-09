@@ -7,7 +7,6 @@ use crate::v2::topup::doku::DokuNotifRequestBody;
 use crate::v2::user::model::User;
 use crate::{db::PgPool, v2::http_error_response::HttpErrorResponse};
 
-#[tracing::instrument]
 #[post("/premium/")]
 async fn new_topup_premium(
     pool: web::Data<PgPool>,
@@ -21,7 +20,6 @@ async fn new_topup_premium(
     }
 }
 
-#[tracing::instrument]
 #[post("/doku/notification/")]
 async fn new_doku_notification(
     pool: web::Data<PgPool>,

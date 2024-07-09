@@ -5,7 +5,6 @@ use crate::v2::student::model::Student;
 use crate::v2::student::request::NewStudentRequestBody;
 use crate::{db::PgPool, v2::http_error_response::HttpErrorResponse};
 
-#[tracing::instrument]
 #[post("/")]
 async fn new_student(
     pool: web::Data<PgPool>,
@@ -49,7 +48,6 @@ async fn new_student(
     }
 }
 
-#[tracing::instrument]
 #[get("")]
 async fn find_student(
     pool: web::Data<PgPool>,
