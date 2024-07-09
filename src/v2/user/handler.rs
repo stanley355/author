@@ -6,7 +6,6 @@ use crate::v2::user::request::LoginGmailRequestBody;
 use crate::{db::PgPool, v2::http_error_response::HttpErrorResponse};
 use actix_web::{get, post, web, HttpResponse};
 
-#[tracing::instrument]
 #[post("/login/gmail/")]
 async fn login_gmail(
     pool: web::Data<PgPool>,
@@ -35,7 +34,6 @@ async fn login_gmail(
     }
 }
 
-#[tracing::instrument]
 #[get("/account")]
 async fn get_account_page_data(
     pool: web::Data<PgPool>,
