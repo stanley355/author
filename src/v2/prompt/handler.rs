@@ -22,7 +22,7 @@ async fn new_prompt(
     };
 }
 
-#[post("/text-to-speech/")]
+#[post("/tts/")]
 async fn new_text_to_speech(
     pool: web::Data<PgPool>,
     body: web::Json<NewTextToSpeechRequestBody>,
