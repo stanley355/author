@@ -3,6 +3,8 @@ use super::response::PromptHttpResponse;
 use crate::v2::http_error_response::HttpErrorResponse;
 use crate::v2::prompt::prompt_payment::PromptPayment;
 use crate::v2::prompt::request::NewPromptRequestBody;
+use crate::v2::prompt::request::NewTextToSpeechRequestBody;
+use crate::v2::prompt::request::PromptType;
 use crate::{db::PgPool, v2::user::model::User};
 use actix_web::{delete, post, web, HttpResponse};
 
@@ -15,8 +17,23 @@ async fn new_prompt(
 
     return match prompt_payment {
         PromptPayment::PaymentRequired => HttpErrorResponse::payment_required(),
-        PromptPayment::Balance => PromptHttpResponse::new(&pool, &body, true).await,
-        _ => PromptHttpResponse::new(&pool, &body, false).await,
+        PromptPayment::Balance => PromptHttpResponse::new_instruct(&pool, &body, true).await,
+        _ => PromptHttpResponse::new_instruct(&pool, &body, false).await,
+    };
+}
+
+#[post("/text-to-speech/")]
+async fn new_text_to_speech(
+    pool: web::Data<PgPool>,
+    body: web::Json<NewTextToSpeechRequestBody>,
+) -> HttpResponse {
+    let prompt_payment =
+        User::check_prompt_payment(&pool, &body.user_id, &PromptType::TextToSpeech);
+
+    return match prompt_payment {
+        PromptPayment::PaymentRequired => HttpErrorResponse::payment_required(),
+        PromptPayment::Balance => PromptHttpResponse::new_text_to_speech(&pool, &body, true).await,
+        _ => PromptHttpResponse::new_text_to_speech(&pool, &body, false).await,
     };
 }
 
@@ -32,5 +49,8 @@ async fn delete_tts_file(query: web::Query<DeleteTtsFileQuery>) -> HttpResponse 
 }
 
 pub fn route(config: &mut web::ServiceConfig) {
-    config.service(new_prompt).service(delete_tts_file);
+    config
+        .service(new_prompt)
+        .service(new_text_to_speech)
+        .service(delete_tts_file);
 }

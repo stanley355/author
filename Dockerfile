@@ -5,9 +5,6 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-# ENV PATH="/root/.cargo/bin:${PATH}"
-
 WORKDIR /app
 COPY . /app
 

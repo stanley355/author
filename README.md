@@ -1,5 +1,9 @@
 # Author
 
+### 1.3.2
+
+- Split Prompt and Text to speech endpoint
+
 ### 1.3.1
 
 - Remove sentry and tracing

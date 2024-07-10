@@ -1,4 +1,4 @@
-use super::request::PromptType;
+use super::request::NewTextToSpeechRequestBody;
 use crate::v2::http_error_response::HttpErrorResponse;
 use crate::v2::prompt::model::Prompt;
 use crate::v2::prompt::request::NewPromptRequestBody;
@@ -8,22 +8,9 @@ use actix_web::{web, HttpResponse};
 pub struct PromptHttpResponse;
 
 impl PromptHttpResponse {
-    pub async fn new(
-        pool: &web::Data<PgPool>,
-        body: &web::Json<NewPromptRequestBody>,
-        is_balance_payment: bool,
-    ) -> HttpResponse {
-        return match &body.prompt_type {
-            PromptType::TextToSpeech => {
-                PromptHttpResponse::new_text_to_speech(&pool, &body, is_balance_payment).await
-            }
-            _ => PromptHttpResponse::new_instruct(&pool, &body, is_balance_payment).await,
-        };
-    }
-
     pub async fn new_text_to_speech(
         pool: &web::Data<PgPool>,
-        body: &web::Json<NewPromptRequestBody>,
+        body: &web::Json<NewTextToSpeechRequestBody>,
         is_balance_payment: bool,
     ) -> HttpResponse {
         let prompt_tts_result = Prompt::new_text_to_speech(&pool, &body).await;
