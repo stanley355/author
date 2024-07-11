@@ -16,6 +16,7 @@ pub struct TopUp {
     pub topup_amount: f64,
     pub paid: bool,
     pub topup_type: String,
+    pub updated_at: Option<chrono::NaiveDateTime>,
 }
 
 impl TopUp {
