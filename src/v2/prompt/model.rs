@@ -25,6 +25,7 @@ pub struct Prompt {
     pub total_cost: f64,
     pub instruction: String,
     pub prompt_type: Option<String>,
+    pub updated_at: Option<chrono::NaiveDateTime>,
 }
 
 impl Prompt {

@@ -20,6 +20,10 @@ pub struct User {
     pub password: String,
     pub phone_number: Option<String>,
     pub balance: f64,
+    #[allow(dead_code)]
+    pub created_at: Option<chrono::NaiveDateTime>,
+    #[allow(dead_code)]
+    pub updated_at: Option<chrono::NaiveDateTime>,
 }
 
 impl User {

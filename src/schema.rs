@@ -13,6 +13,7 @@ diesel::table! {
         total_cost -> Float8,
         instruction -> Varchar,
         prompt_type -> Nullable<Varchar>,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
@@ -45,6 +46,7 @@ diesel::table! {
         duration_type -> Varchar,
         paid -> Bool,
         is_paylater -> Bool,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
@@ -56,6 +58,7 @@ diesel::table! {
         topup_amount -> Float8,
         paid -> Bool,
         topup_type -> Varchar,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
@@ -67,6 +70,8 @@ diesel::table! {
         password -> Varchar,
         phone_number -> Nullable<Varchar>,
         balance -> Float8,
+        created_at -> Nullable<Timestamp>,
+        updated_at -> Nullable<Timestamp>,
     }
 }
 
