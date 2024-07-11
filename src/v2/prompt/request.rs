@@ -72,5 +72,5 @@ pub struct NewTranscriptionsRequestBody {
     pub file_url: String,
     pub language: Option<String>,
     pub temperature: Option<f32>,
-    pub timestamp_granularities: Option<Vec<TranscriptionsTimestampGranularity>>
+    pub timestamp_granularities: Option<TranscriptionsTimestampGranularity>
 }

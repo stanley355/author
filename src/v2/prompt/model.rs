@@ -1,6 +1,6 @@
 use super::request::{NewTextToSpeechRequestBody, NewTranscriptionsRequestBody, PromptType};
 use crate::schema::prompts;
-use crate::v2::openai::audio_model::{OpenAiAudioSpeech, OpenAiAudioTranscriptions};
+use crate::v2::openai::audio_model::{OpenAiAudioSpeech, OpenAiAudioTranscriptions, OpenAiAudioTranscriptionsResponse};
 use crate::v2::openai::chat_model::{OpenAiChat, OpenAiChatResponse};
 use crate::v2::openai::model::OpenAiEndpointType;
 use crate::v2::prompt::request::NewPromptRequestBody;
@@ -185,9 +185,10 @@ impl Prompt {
         body: &web::Json<NewTranscriptionsRequestBody>,
     ) -> Result<(), String> {
         let openai_request_body =OpenAiAudioTranscriptions::new(body);
-        let openai = OpenAi::new(OpenAiEndpointType::AudioTranscriptions, openai_request_body);
-        // let openai_result = openai.request_bytes().await;
+        let openai = OpenAi::new(OpenAiEndpointType::AudioTranscriptions, &openai_request_body);
+        let openai_result = openai.request_transcriptions::<OpenAiAudioTranscriptionsResponse>(&openai_request_body).await;
 
+        println!("{:?}", openai_result);
         Ok(())
         // match openai_result {
         //     Ok(bytes) => {
