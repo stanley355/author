@@ -1,6 +1,8 @@
 use super::request::{NewTextToSpeechRequestBody, NewTranscriptionsRequestBody, PromptType};
 use crate::schema::prompts;
-use crate::v2::openai::audio_model::{OpenAiAudioSpeech, OpenAiAudioTranscriptions, OpenAiAudioTranscriptionsResponse};
+use crate::v2::openai::audio_model::{
+    OpenAiAudioSpeech, OpenAiAudioTranscriptions, OpenAiAudioTranscriptionsResponse,
+};
 use crate::v2::openai::chat_model::{OpenAiChat, OpenAiChatResponse};
 use crate::v2::openai::model::OpenAiEndpointType;
 use crate::v2::prompt::request::NewPromptRequestBody;
@@ -180,16 +182,62 @@ impl Prompt {
         }
     }
 
+    pub fn new_transcriptions_insert(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<NewTranscriptionsRequestBody>,
+        text: &str,
+    ) -> Result<Prompt, String> {
+        let mut conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(&body.user_id).unwrap();
+        let prompt_token = text.split("").collect::<Vec<&str>>().len();
+
+        let data = (
+            (prompts::user_id.eq(uuid)),
+            (prompts::prompt_token.eq(prompt_token as i32)),
+            (prompts::completion_token.eq(0)),
+            (prompts::prompt_text.eq(text)),
+            (prompts::completion_text.eq("".to_string())),
+            (prompts::total_token.eq(prompt_token as i32)),
+            (prompts::total_cost.eq((prompt_token / 2) as f64)),
+            (prompts::instruction.eq("Transcriptions".to_string())),
+            (prompts::prompt_type.eq(PromptType::Transcriptions.to_string())),
+        );
+
+        let insert_result = diesel::insert_into(prompts::table)
+            .values(data)
+            .get_result(&mut conn);
+
+        match insert_result {
+            Ok(prompt) => Ok(prompt),
+            Err(diesel_error) => Err(diesel_error.to_string()),
+        }
+    }
+
     pub async fn new_transcriptions(
         pool: &web::Data<PgPool>,
         body: &web::Json<NewTranscriptionsRequestBody>,
-    ) -> Result<(), String> {
-        let openai_request_body =OpenAiAudioTranscriptions::new(body);
-        let openai = OpenAi::new(OpenAiEndpointType::AudioTranscriptions, &openai_request_body);
-        let openai_result = openai.request_transcriptions::<OpenAiAudioTranscriptionsResponse>(&openai_request_body).await;
+    ) -> Result<OpenAiAudioTranscriptionsResponse, String> {
+        let openai_request_body = OpenAiAudioTranscriptions::new(body);
+        let openai = OpenAi::new(
+            OpenAiEndpointType::AudioTranscriptions,
+            &openai_request_body,
+        );
+        let openai_result = openai
+            .request_transcriptions::<OpenAiAudioTranscriptionsResponse>(&openai_request_body)
+            .await;
 
-        println!("{:?}", openai_result);
-        Ok(())
+        match openai_result {
+            Ok(openai_response) => {
+                let insert_result =
+                    Self::new_transcriptions_insert(pool, body, &openai_response.text);
 
+                match insert_result {
+                    Ok(_) => Ok(openai_response),
+                    Err(insert_error) => Err(insert_error.to_string()),
+                }
+            }
+
+            Err(openai_error) => Err(openai_error.to_string()),
+        }
     }
 }

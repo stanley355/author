@@ -45,7 +45,8 @@ impl OpenAiAudioTranscriptions {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct OpenAiAudioTranscriptionsSegmentsResponse {
     pub id: u32,
     seek: u32,
@@ -58,14 +59,16 @@ pub struct OpenAiAudioTranscriptionsSegmentsResponse {
     no_speech_prob: f32
 }
 
-#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct OpenAiAudioTranscriptionsWordsResponse {
     pub word: String,
     pub start: f32,
     pub end: f32,
 }
 
-#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct OpenAiAudioTranscriptionsResponse {
     pub text: String,
     task: Option<String>,

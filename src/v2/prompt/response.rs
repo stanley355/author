@@ -47,9 +47,11 @@ impl PromptHttpResponse {
         pool: &web::Data<PgPool>,
         body: &web::Json<NewTranscriptionsRequestBody>,
     ) -> HttpResponse {
+        let transcription_result = Prompt::new_transcriptions(&pool, &body).await;
 
-        let _prompt_result = Prompt::new_transcriptions(&pool, &body).await;
-
-        HttpResponse::Ok().body("woi")
+        match transcription_result {
+            Ok(transcription) => HttpResponse::Ok().json(transcription),
+            Err(msg) => HttpErrorResponse::internal_server_error(msg),
+        }
     }
 }
