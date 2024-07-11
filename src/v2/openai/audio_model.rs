@@ -20,3 +20,13 @@ impl OpenAiAudioSpeech {
         }
     }
 }
+
+
+#[derive(Debug, Serialize)]
+pub struct OpenAiAudioTranscriptions {
+    pub model: String,
+    pub file_url: String,
+    pub language: String,
+    pub temperature: Option<f32>, // 0.0 - 1.0 
+    pub timestamp_granularities: Option<Vec<String>>
+}
