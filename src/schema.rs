@@ -70,6 +70,7 @@ diesel::table! {
         password -> Varchar,
         phone_number -> Nullable<Varchar>,
         balance -> Float8,
+        created_at -> Nullable<Timestamp>,
         updated_at -> Nullable<Timestamp>,
     }
 }
