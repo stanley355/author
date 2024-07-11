@@ -1,5 +1,8 @@
 # Author
 
+### 1.3.4
+- Add Transcription endpoint
+
 ### 1.3.3
 - Add created_at to users table
 - Add updated_at to table which doesn't have updated_at
