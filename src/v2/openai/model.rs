@@ -1,12 +1,15 @@
 use actix_web::web;
-use reqwest::header::HeaderMap;
+use reqwest::{header::HeaderMap,multipart::{Form, Part} };
 use serde::{de::DeserializeOwned, Serialize};
 use std::{env, fmt::Debug};
+
+use super::audio_model::OpenAiAudioTranscriptions;
 
 #[derive(Debug, Clone)]
 pub enum OpenAiEndpointType {
     ChatCompletion,
-    AudioSpeech
+    AudioSpeech,
+    AudioTranscriptions
 }
 
 pub struct OpenAi<D: Serialize> {
@@ -36,7 +39,8 @@ impl<D: Serialize> OpenAi<D> {
     pub fn match_endpoint_path(endpoint_type: &OpenAiEndpointType) -> String {
         match endpoint_type {
             OpenAiEndpointType::ChatCompletion => "v1/chat/completions".to_string(),
-            OpenAiEndpointType::AudioSpeech => "v1/audio/speech".to_string()
+            OpenAiEndpointType::AudioSpeech => "v1/audio/speech".to_string(),
+            OpenAiEndpointType::AudioTranscriptions => "v1/audio/transcriptions".to_string()
         }
     }
 
@@ -81,4 +85,30 @@ impl<D: Serialize> OpenAi<D> {
             Err(err) => Err(err),
         }
     }
+
+    pub async fn request_transcriptions(req: &OpenAiAudioTranscriptions) -> Result<(), reqwest::Error> {
+        let file_result = reqwest::get(&req.file_url).await;
+
+        match file_result {
+            Ok(file)=> {
+                let bytes = file.bytes().await?;
+
+                Ok(())
+            },
+            Err(req_file_err) => Err(req_file_err)
+        }
+
+        // let openai_url = env::var("OPENAI_URL").expect("Missing OpenAi Url");
+        // let openai_key = &env::var("OPENAI_API_KEY").unwrap();
+        // let authorization_header = format!("Bearer {}", openai_key);
+
+        // Self {
+        //     base_api_url: openai_url,
+        //     endpoint_path: Self::match_endpoint_path(&endpoint_type),
+        //     authorization_header,
+        //     endpoint_type,
+        //     data,
+        // }
+    }
+
 }

@@ -54,7 +54,7 @@ pub struct DeleteTtsFileQuery {
     pub prompt_id: i32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub enum TranscriptionsTimestampGranularity {
     Word,
     Segment
@@ -70,7 +70,7 @@ impl fmt::Display for TranscriptionsTimestampGranularity {
 pub struct NewTranscriptionsRequestBody {
     pub user_id: String,
     pub file_url: String,
-    pub language: String,
+    pub language: Option<String>,
     pub temperature: Option<f32>,
     pub timestamp_granularities: Option<Vec<TranscriptionsTimestampGranularity>>
 }
