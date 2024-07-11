@@ -6,6 +6,7 @@ use crate::v2::prompt::request::NewPromptRequestBody;
 use crate::v2::prompt::request::NewTextToSpeechRequestBody;
 use crate::v2::prompt::request::PromptType;
 use crate::{db::PgPool, v2::user::model::User};
+use crate::v2::prompt::request::NewTranscriptionsRequestBody;
 use actix_web::{delete, post, web, HttpResponse};
 
 #[post("/")]
@@ -48,9 +49,26 @@ async fn delete_tts_file(query: web::Query<DeleteTtsFileQuery>) -> HttpResponse 
     }
 }
 
+#[post("/transcriptions/")]
+async fn new_transcriptions(
+    pool: web::Data<PgPool>,
+    body: web::Json<NewTranscriptionsRequestBody>,
+) -> HttpResponse {
+    let prompt_payment =
+        User::check_prompt_payment(&pool, &body.user_id, &PromptType::Transcriptions);
+
+        return HttpErrorResponse::payment_required();
+    // return match prompt_payment {
+    //     PromptPayment::PaymentRequired => HttpErrorResponse::payment_required(),
+    //     PromptPayment::Balance => PromptHttpResponse::new_text_to_speech(&pool, &body, true).await,
+    //     _ => PromptHttpResponse::new_text_to_speech(&pool, &body, false).await,
+    // };
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(new_prompt)
         .service(new_text_to_speech)
-        .service(delete_tts_file);
+        .service(delete_tts_file)
+        .service(new_transcriptions);
 }

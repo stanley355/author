@@ -6,7 +6,7 @@ pub enum PromptType {
     Translate,
     Checkbot,
     TextToSpeech,
-    SpeechToText
+    Transcriptions
 }
 
 impl fmt::Display for PromptType {
@@ -55,22 +55,22 @@ pub struct DeleteTtsFileQuery {
 }
 
 #[derive(Debug, Deserialize)]
-pub enum SpeechToTextTimestampGranularity {
+pub enum TranscriptionsTimestampGranularity {
     Word,
     Segment
 }
 
-impl fmt::Display for SpeechToTextTimestampGranularity {
+impl fmt::Display for TranscriptionsTimestampGranularity {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}", self)
     }
 }
 
 #[derive(Debug, Deserialize)]
-pub struct NewSpeechToTextRequestBody {
+pub struct NewTranscriptionsRequestBody {
     pub user_id: String,
     pub file_url: String,
     pub language: String,
     pub temperature: Option<f32>,
-    pub timestamp_granularities: Option<Vec<SpeechToTextTimestampGranularity>>
+    pub timestamp_granularities: Option<Vec<TranscriptionsTimestampGranularity>>
 }
