@@ -98,10 +98,22 @@ impl<D: Serialize> OpenAi<D> {
             Ok(file) => {
                 let bytes = file.bytes().await?;
                 let part = Part::bytes(bytes.to_vec()).file_name("file.mp3");
-                let form = Form::new()
+                let mut form = Form::new()
                     .part("file", part)
-                    .text("model", req.model.clone());
-                    // .text("response_format", "verbose_json".to_string());
+                    .text("model", req.model.clone())
+                    .text("language", req.language.clone())
+                    .text("temperature", req.temperature.clone().to_string());
+
+                if let Some(granularity) = req.timestamp_granularities.clone() {
+                    let new_part = Part::bytes(bytes.to_vec()).file_name("file.mp3");
+                    form = Form::new()
+                        .part("file", new_part)
+                        .text("model", req.model.clone())
+                        .text("language", req.language.clone())
+                        .text("temperature", req.temperature.clone().to_string())
+                        .text("response_format", "verbose_json")
+                        .text("timestamp_granularities[]", granularity);
+                }
 
                 let client = reqwest::Client::new();
                 let url = format!("{}{}", self.base_api_url, self.endpoint_path);

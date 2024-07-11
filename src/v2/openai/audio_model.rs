@@ -25,8 +25,8 @@ impl OpenAiAudioSpeech {
 pub struct OpenAiAudioTranscriptions {
     pub model: String,
     pub file_url: String,
-    pub language: Option<String>,
-    pub temperature: Option<f32>, // 0.0 - 1.0
+    pub language: String,
+    pub temperature: f32, // 0.0 - 1.0
     pub timestamp_granularities: Option<String>,
 }
 

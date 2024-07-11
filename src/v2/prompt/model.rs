@@ -190,24 +190,6 @@ impl Prompt {
 
         println!("{:?}", openai_result);
         Ok(())
-        // match openai_result {
-        //     Ok(bytes) => {
-        //         let insert_result = Self::new_text_to_speech_insert(pool, body);
-        //         match insert_result {
-        //             Ok(prompt) => {
-        //                 let file_name = format!("{}.mp3", &prompt.id);
-        //                 let file_path = format!("/tmp/{}", file_name);
-        //                 let file_creation = std::fs::write(file_path, &bytes);
 
-        //                 match file_creation {
-        //                     Ok(_) => Ok(prompt),
-        //                     Err(msg) => Err(msg.to_string()),
-        //                 }
-        //             }
-        //             Err(msg) => Err(msg),
-        //         }
-        //     }
-        //     Err(msg) => Err(msg.to_string()),
-        // }
     }
 }
