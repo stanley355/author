@@ -52,6 +52,7 @@ pub struct OpenAiAudioTranscriptionsSegmentsResponse {
     seek: u32,
     pub start: f32,
     pub end: f32,
+    pub text:String,
     tokens: Vec<u32>,
     temperature: f32,
     avg_logprob: f32,
