@@ -1,12 +1,17 @@
+use super::audio_model::OpenAiAudioTranscriptions;
 use actix_web::web;
-use reqwest::header::HeaderMap;
+use reqwest::{
+    header::HeaderMap,
+    multipart::{Form, Part},
+};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{env, fmt::Debug};
 
 #[derive(Debug, Clone)]
 pub enum OpenAiEndpointType {
     ChatCompletion,
-    AudioSpeech
+    AudioSpeech,
+    AudioTranscriptions,
 }
 
 pub struct OpenAi<D: Serialize> {
@@ -36,7 +41,8 @@ impl<D: Serialize> OpenAi<D> {
     pub fn match_endpoint_path(endpoint_type: &OpenAiEndpointType) -> String {
         match endpoint_type {
             OpenAiEndpointType::ChatCompletion => "v1/chat/completions".to_string(),
-            OpenAiEndpointType::AudioSpeech => "v1/audio/speech".to_string()
+            OpenAiEndpointType::AudioSpeech => "v1/audio/speech".to_string(),
+            OpenAiEndpointType::AudioTranscriptions => "v1/audio/transcriptions".to_string(),
         }
     }
 
@@ -79,6 +85,54 @@ impl<D: Serialize> OpenAi<D> {
         match openai_res {
             Ok(response) => response.bytes().await,
             Err(err) => Err(err),
+        }
+    }
+
+    pub async fn request_transcriptions<B: DeserializeOwned + Debug>(
+        self,
+        req: &OpenAiAudioTranscriptions,
+    ) -> Result<B, reqwest::Error> {
+        let file_result = reqwest::get(&req.file_url).await;
+
+        match file_result {
+            Ok(file) => {
+                let bytes = file.bytes().await?;
+                let part = Part::bytes(bytes.to_vec()).file_name("file.mp3");
+                let mut form = Form::new()
+                    .part("file", part)
+                    .text("model", req.model.clone())
+                    .text("language", req.language.clone())
+                    .text("temperature", req.temperature.clone().to_string());
+
+                if let Some(granularity) = req.timestamp_granularities.clone() {
+                    let new_part = Part::bytes(bytes.to_vec()).file_name("file.mp3");
+                    form = Form::new()
+                        .part("file", new_part)
+                        .text("model", req.model.clone())
+                        .text("language", req.language.clone())
+                        .text("temperature", req.temperature.clone().to_string())
+                        .text("response_format", "verbose_json")
+                        .text("timestamp_granularities[]", granularity);
+                }
+
+                let client = reqwest::Client::new();
+                let url = format!("{}{}", self.base_api_url, self.endpoint_path);
+                let mut headers = HeaderMap::new();
+                headers.insert("Authorization", self.authorization_header.parse().unwrap());
+
+                let openai_resp = client
+                    .post(url)
+                    .headers(headers)
+                    .multipart(form)
+                    .send()
+                    .await;
+
+                return match openai_resp {
+                    Ok(response) => response.json::<B>().await,
+                    Err(err) => Err(err),
+                };
+            }
+            Err(req_file_err) => Err(req_file_err),
         }
     }
 }

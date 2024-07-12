@@ -1,4 +1,4 @@
-use super::request::NewTextToSpeechRequestBody;
+use super::request::{NewTextToSpeechRequestBody, NewTranscriptionsRequestBody};
 use crate::v2::http_error_response::HttpErrorResponse;
 use crate::v2::prompt::model::Prompt;
 use crate::v2::prompt::request::NewPromptRequestBody;
@@ -39,6 +39,18 @@ impl PromptHttpResponse {
                 }
                 HttpResponse::Ok().json(prompt_vec)
             }
+            Err(msg) => HttpErrorResponse::internal_server_error(msg),
+        }
+    }
+
+    pub async fn new_transcriptions(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<NewTranscriptionsRequestBody>,
+    ) -> HttpResponse {
+        let transcription_result = Prompt::new_transcriptions(&pool, &body).await;
+
+        match transcription_result {
+            Ok(transcription) => HttpResponse::Ok().json(transcription),
             Err(msg) => HttpErrorResponse::internal_server_error(msg),
         }
     }
