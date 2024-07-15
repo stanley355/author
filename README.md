@@ -1,5 +1,9 @@
 # Author
 
+### 1.3.5
+
+- Add phonetic transcriptions promptype
+
 ### 1.3.4
 - Add Transcription endpoint
 
