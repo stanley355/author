@@ -6,7 +6,8 @@ pub enum PromptType {
     Translate,
     Checkbot,
     TextToSpeech,
-    Transcriptions
+    Transcriptions,
+    PhoneticTranscriptions
 }
 
 impl fmt::Display for PromptType {
