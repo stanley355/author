@@ -37,7 +37,7 @@ impl OpenAiChat {
     pub fn new(body: &web::Json<NewPromptRequestBody>) -> Self {
         let messages = OpenAiChatMessage::new_vec(&body.system_content, &body.user_content);
         Self {
-            model: "gpt-3.5-turbo".to_string(),
+            model: "gpt-4o-mini".to_string(),
             messages,
             n: body.n,
             temperature: body.temperature
