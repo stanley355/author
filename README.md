@@ -1,5 +1,10 @@
 # Author
 
+### 1.3.5
+
+- Add phonetic transcriptions promptype
+- Change model from gpt-3.5-turbo to gpt-4o-mini
+
 ### 1.3.4
 - Add Transcription endpoint
 
