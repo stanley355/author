@@ -130,7 +130,7 @@ impl Prompt {
         let openai_request_body = OpenAiChat::new(body);
         let openai = OpenAi::new(OpenAiEndpointType::ChatCompletion, openai_request_body);
 
-        let openai_response = openai.request::<OpenAiChatResponse>().await;
+        let openai_response = openai.request_bytes_stream().await;
 
         ()
         // match openai_response {

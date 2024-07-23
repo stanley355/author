@@ -6,6 +6,7 @@ use reqwest::{
 };
 use serde::{de::DeserializeOwned, Serialize};
 use std::{env, fmt::Debug};
+use futures_util::StreamExt;
 
 #[derive(Debug, Clone)]
 pub enum OpenAiEndpointType {
@@ -86,6 +87,31 @@ impl<D: Serialize> OpenAi<D> {
             Ok(response) => response.bytes().await,
             Err(err) => Err(err),
         }
+    }
+
+    pub async fn request_bytes_stream(self)  {
+        let url = format!("{}{}", self.base_api_url, self.endpoint_path);
+
+        let mut headers = HeaderMap::new();
+        headers.insert("Authorization", self.authorization_header.parse().unwrap());
+
+        let client = reqwest::Client::new();
+
+        let mut openai_stream = client
+            .post(url)
+            .headers(headers)
+            .json(&self.data)
+            .send()
+            .await.unwrap().bytes_stream();
+
+            while let Some(item) = openai_stream.next().await {
+                println!("Chunk: {:?}", item);
+            }
+            ()
+        // match openai_res {
+        //     Ok(response) => response.json::<B>().await,
+        //     Err(err) => Err(err),
+        // }
     }
 
     pub async fn request_transcriptions<B: DeserializeOwned + Debug>(
