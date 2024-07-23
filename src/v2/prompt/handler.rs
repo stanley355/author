@@ -63,10 +63,19 @@ async fn new_transcriptions(
     };
 }
 
+#[post("/stream")]
+async fn new_prompt_stream(
+    pool: web::Data<PgPool>,
+    body: web::Json<NewPromptRequestBody>,
+) -> HttpResponse {
+    PromptHttpResponse::new_instruct_stream(&pool, &body).await
+}
+
 pub fn route(config: &mut web::ServiceConfig) {
     config
         .service(new_prompt)
         .service(new_text_to_speech)
         .service(delete_tts_file)
-        .service(new_transcriptions);
+        .service(new_transcriptions)
+        .service(new_prompt_stream);
 }
