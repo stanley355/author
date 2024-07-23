@@ -1,12 +1,12 @@
 use super::audio_model::OpenAiAudioTranscriptions;
-use actix_web::web;
+use actix_web::web::{self, Bytes};
+use futures_util::Stream;
 use reqwest::{
     header::HeaderMap,
     multipart::{Form, Part},
 };
 use serde::{de::DeserializeOwned, Serialize};
 use std::{env, fmt::Debug};
-use futures_util::StreamExt;
 
 #[derive(Debug, Clone)]
 pub enum OpenAiEndpointType {
@@ -89,7 +89,7 @@ impl<D: Serialize> OpenAi<D> {
         }
     }
 
-    pub async fn request_bytes_stream(self) -> Result<(), reqwest::Error> {
+    pub async fn request_bytes_stream(self) -> impl Stream<Item = Result<Bytes, reqwest::Error>> {
         let url = format!("{}{}", self.base_api_url, self.endpoint_path);
 
         let mut headers = HeaderMap::new();
@@ -97,22 +97,16 @@ impl<D: Serialize> OpenAi<D> {
 
         let client = reqwest::Client::new();
 
-        let mut openai_stream = client
+        let openai_stream = client
             .post(url)
             .headers(headers)
             .json(&self.data)
             .send()
-            .await?.bytes_stream();
+            .await
+            .unwrap()
+            .bytes_stream();
 
-
-            while let Some(item) = openai_stream.next().await {
-                println!("Chunk: {:?}", item?);
-            }
-            Ok(())
-        // match openai_res {
-        //     Ok(response) => response.json::<B>().await,
-        //     Err(err) => Err(err),
-        // }
+        return openai_stream;
     }
 
     pub async fn request_transcriptions<B: DeserializeOwned + Debug>(

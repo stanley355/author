@@ -7,8 +7,8 @@ use crate::v2::openai::chat_model::{OpenAiChat, OpenAiChatResponse};
 use crate::v2::openai::model::OpenAiEndpointType;
 use crate::v2::prompt::request::NewPromptRequestBody;
 use crate::{db::PgPool, v2::openai::model::OpenAi};
-
-use actix_web::web;
+use futures_util::Stream;
+use actix_web::web::{self, Bytes};
 use diesel::{
     BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
 };
@@ -126,24 +126,13 @@ impl Prompt {
     pub async fn new_instruct_stream(
         pool: &web::Data<PgPool>,
         body: &web::Json<NewPromptRequestBody>,
-    ) {
+    ) -> impl Stream<Item = Result<Bytes, reqwest::Error>>{
         let openai_request_body = OpenAiChat::new(body);
         let openai = OpenAi::new(OpenAiEndpointType::ChatCompletion, openai_request_body);
 
         let openai_response = openai.request_bytes_stream().await;
 
-        ()
-        // match openai_response {
-        //     Ok(openai_chat_res) => {
-        //         let insert_result = Self::new_instruct_insert(pool, body, openai_chat_res);
-
-        //         match insert_result {
-        //             Ok(prompt_vec) => Ok(prompt_vec),
-        //             Err(diesel_error) => Err(diesel_error.to_string()),
-        //         }
-        //     }
-        //     Err(reqwest_error) => Err(reqwest_error.to_string()),
-        // }
+        return openai_response;
     }
 
     pub fn new_text_to_speech_insert(

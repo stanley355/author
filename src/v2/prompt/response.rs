@@ -4,6 +4,7 @@ use crate::v2::prompt::model::Prompt;
 use crate::v2::prompt::request::NewPromptRequestBody;
 use crate::{db::PgPool, v2::user::model::User};
 use actix_web::{web, HttpResponse};
+use futures_util::StreamExt;
 
 pub struct PromptHttpResponse;
 
@@ -59,8 +60,15 @@ impl PromptHttpResponse {
         pool: &web::Data<PgPool>,
         body: &web::Json<NewPromptRequestBody>,
     ) -> HttpResponse {
-        let prompt_result = Prompt::new_instruct_stream(&pool, &body).await;
-        HttpResponse::Ok().body("woi")
+        let mut prompt_result = Prompt::new_instruct_stream(&pool, &body).await;
+        while let Some(item) = prompt_result.next().await {
+            println!("Chunk {:?}", item.unwrap());
+            
+        }
+
+        HttpResponse::Ok().streaming(prompt_result)
+        // let b = prompt_result.left_stream();
+       
         // match prompt_result {
         //     Ok(prompt_vec) => HttpResponse::Ok().json(prompt_vec),
         //     Err(msg) => HttpErrorResponse::internal_server_error(msg),
