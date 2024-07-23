@@ -59,10 +59,11 @@ impl PromptHttpResponse {
         pool: &web::Data<PgPool>,
         body: &web::Json<NewPromptRequestBody>,
     ) -> HttpResponse {
-        let prompt_result = Prompt::new_instruct(&pool, &body).await;
-        match prompt_result {
-            Ok(prompt_vec) => HttpResponse::Ok().json(prompt_vec),
-            Err(msg) => HttpErrorResponse::internal_server_error(msg),
-        }
+        let prompt_result = Prompt::new_instruct_stream(&pool, &body).await;
+        HttpResponse::Ok().body("woi")
+        // match prompt_result {
+        //     Ok(prompt_vec) => HttpResponse::Ok().json(prompt_vec),
+        //     Err(msg) => HttpErrorResponse::internal_server_error(msg),
+        // }
     }
 }

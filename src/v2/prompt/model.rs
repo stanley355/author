@@ -123,6 +123,29 @@ impl Prompt {
         }
     }
 
+    pub async fn new_instruct_stream(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<NewPromptRequestBody>,
+    ) {
+        let openai_request_body = OpenAiChat::new(body);
+        let openai = OpenAi::new(OpenAiEndpointType::ChatCompletion, openai_request_body);
+
+        let openai_response = openai.request::<OpenAiChatResponse>().await;
+
+        ()
+        // match openai_response {
+        //     Ok(openai_chat_res) => {
+        //         let insert_result = Self::new_instruct_insert(pool, body, openai_chat_res);
+
+        //         match insert_result {
+        //             Ok(prompt_vec) => Ok(prompt_vec),
+        //             Err(diesel_error) => Err(diesel_error.to_string()),
+        //         }
+        //     }
+        //     Err(reqwest_error) => Err(reqwest_error.to_string()),
+        // }
+    }
+
     pub fn new_text_to_speech_insert(
         pool: &web::Data<PgPool>,
         body: &web::Json<NewTextToSpeechRequestBody>,
