@@ -30,7 +30,8 @@ pub struct OpenAiChat {
     model: String,
     messages: Vec<OpenAiChatMessage>,
     n: Option<u32>,
-    temperature: Option<f32>
+    temperature: Option<f32>,
+    stream: Option<bool>
 }
 
 impl OpenAiChat {
@@ -40,7 +41,8 @@ impl OpenAiChat {
             model: "gpt-4o-mini".to_string(),
             messages,
             n: body.n,
-            temperature: body.temperature
+            temperature: body.temperature,
+            stream: body.stream
         }
     }
 }

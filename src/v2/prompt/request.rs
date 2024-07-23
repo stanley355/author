@@ -24,6 +24,7 @@ pub struct NewPromptRequestBody {
     pub user_content: String,
     pub n: Option<u32>,
     pub temperature: Option<f32>,
+    pub stream: Option<bool>
 }
 
 #[derive(Debug, Deserialize)]

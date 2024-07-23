@@ -89,7 +89,7 @@ impl<D: Serialize> OpenAi<D> {
         }
     }
 
-    pub async fn request_bytes_stream(self)  {
+    pub async fn request_bytes_stream(self) -> Result<(), reqwest::Error> {
         let url = format!("{}{}", self.base_api_url, self.endpoint_path);
 
         let mut headers = HeaderMap::new();
@@ -102,12 +102,13 @@ impl<D: Serialize> OpenAi<D> {
             .headers(headers)
             .json(&self.data)
             .send()
-            .await.unwrap().bytes_stream();
+            .await?.bytes_stream();
+
 
             while let Some(item) = openai_stream.next().await {
-                println!("Chunk: {:?}", item);
+                println!("Chunk: {:?}", item?);
             }
-            ()
+            Ok(())
         // match openai_res {
         //     Ok(response) => response.json::<B>().await,
         //     Err(err) => Err(err),

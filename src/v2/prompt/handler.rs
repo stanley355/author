@@ -63,7 +63,7 @@ async fn new_transcriptions(
     };
 }
 
-#[post("/stream")]
+#[post("/stream/")]
 async fn new_prompt_stream(
     pool: web::Data<PgPool>,
     body: web::Json<NewPromptRequestBody>,
