@@ -85,13 +85,14 @@ pub struct OpenAiAudioTranslations;
 
 impl OpenAiAudioTranslations {
     pub async fn new_multipart_form_data(
-        file_url: &str,
-        temperature: &f32,
+        file_url: String,
+        file_name: String,
+        temperature: f32,
     ) -> Result<Form, reqwest::Error> {
         let file = reqwest::get(file_url).await?;
 
         let bytes = file.bytes().await?;
-        let part = Part::bytes(bytes.to_vec()).file_name("file.mpeg");
+        let part = Part::bytes(bytes.to_vec()).file_name(file_name);
         let form_data = Form::new()
             .part("file", part)
             .text("model", "whisper-1")

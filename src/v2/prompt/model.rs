@@ -275,16 +275,19 @@ impl Prompt {
         pool: &web::Data<PgPool>,
         body: &web::Json<PromptAudioTranslationsRequest>,
     ) -> Result<Prompt, String> {
-        let form_data_result =
-            OpenAiAudioTranslations::new_multipart_form_data(&body.file_url, &body.temperature)
-                .await;
+        let form_data_result = OpenAiAudioTranslations::new_multipart_form_data(
+            body.file_url.to_string(),
+            body.file_name.to_string(),
+            body.temperature,
+        )
+        .await;
+
         match form_data_result {
             Ok(form_data) => {
                 let openai_result = OpenAi::new(OpenAiEndpointType::AudioTranslations, body)
                     .request_multipart::<OpenAiAudioTranslationsResponse>(form_data)
                     .await;
 
-                    println!("{:?}", openai_result);
                 match openai_result {
                     Ok(response) => {
                         let prompt_result =

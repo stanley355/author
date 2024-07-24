@@ -81,5 +81,6 @@ pub struct NewTranscriptionsRequestBody {
 pub struct PromptAudioTranslationsRequest{
     pub user_id: String,
     pub file_url: String,
+    pub file_name: String,
     pub temperature: f32,
 }
