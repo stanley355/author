@@ -1,7 +1,12 @@
-use super::request::{NewTextToSpeechRequestBody, NewTranscriptionsRequestBody, PromptType};
+use super::request::{
+    NewTextToSpeechRequestBody, NewTranscriptionsRequestBody, PromptAudioTranslationsRequest,
+    PromptType,
+};
 use crate::schema::prompts;
+use crate::v2::openai::audio_model::OpenAiAudioTranslationsResponse;
 use crate::v2::openai::audio_model::{
     OpenAiAudioSpeech, OpenAiAudioTranscriptions, OpenAiAudioTranscriptionsResponse,
+    OpenAiAudioTranslations,
 };
 use crate::v2::openai::chat_model::{OpenAiChat, OpenAiChatResponse};
 use crate::v2::openai::model::OpenAiEndpointType;
@@ -241,7 +246,7 @@ impl Prompt {
         }
     }
 
-    pub fn insert_audio_translations(
+    fn insert_audio_translations(
         pool: &web::Data<PgPool>,
         user_id: &str,
         text: &str,
@@ -264,5 +269,34 @@ impl Prompt {
         diesel::insert_into(prompts::table)
             .values(data)
             .get_result::<Prompt>(&mut conn)
+    }
+
+    pub async fn new_audio_translations(
+        pool: &web::Data<PgPool>,
+        body: &web::Json<PromptAudioTranslationsRequest>,
+    ) -> Result<Prompt, String> {
+        let form_data_result =
+            OpenAiAudioTranslations::new_multipart_form_data(&body.file_url, &body.temperature)
+                .await;
+        match form_data_result {
+            Ok(form_data) => {
+                let openai_result = OpenAi::new(OpenAiEndpointType::AudioTranslations, body)
+                    .request_multipart::<OpenAiAudioTranslationsResponse>(form_data)
+                    .await;
+
+                match openai_result {
+                    Ok(response) => {
+                        let prompt_result =
+                            Self::insert_audio_translations(pool, &body.user_id, &response.text);
+                        match prompt_result {
+                            Ok(prompt) => Ok(prompt),
+                            Err(prompt_error) => Err(prompt_error.to_string()),
+                        }
+                    }
+                    Err(openai_error) => Err(openai_error.to_string()),
+                }
+            }
+            Err(form_data_error) => Err(form_data_error.to_string()),
+        }
     }
 }

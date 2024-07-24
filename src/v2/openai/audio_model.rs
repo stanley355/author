@@ -80,7 +80,7 @@ pub struct OpenAiAudioTranscriptionsResponse {
     pub words: Option<Vec<OpenAiAudioTranscriptionsWordsResponse>>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct OpenAiAudioTranslations;
 
 impl OpenAiAudioTranslations {
@@ -99,4 +99,9 @@ impl OpenAiAudioTranslations {
 
         Ok(form_data)
     }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct OpenAiAudioTranslationsResponse {
+    pub text: String
 }

@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 #[derive(Debug, Deserialize)]
@@ -75,4 +75,11 @@ pub struct NewTranscriptionsRequestBody {
     pub language: String,
     pub temperature: f32,
     pub timestamp_granularities: Option<TranscriptionsTimestampGranularity>
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct PromptAudioTranslationsRequest{
+    pub user_id: String,
+    pub file_url: String,
+    pub temperature: f32,
 }

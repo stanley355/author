@@ -1,10 +1,12 @@
 use super::request::DeleteTtsFileQuery;
 use super::response::PromptHttpResponse;
 use crate::v2::http_error_response::HttpErrorResponse;
+use crate::v2::prompt::model::Prompt;
 use crate::v2::prompt::prompt_payment::PromptPayment;
 use crate::v2::prompt::request::NewPromptRequestBody;
 use crate::v2::prompt::request::NewTextToSpeechRequestBody;
 use crate::v2::prompt::request::NewTranscriptionsRequestBody;
+use crate::v2::prompt::request::PromptAudioTranslationsRequest;
 use crate::v2::prompt::request::PromptType;
 use crate::{db::PgPool, v2::user::model::User};
 use actix_web::{delete, post, web, HttpResponse};
@@ -60,6 +62,27 @@ async fn new_transcriptions(
     return match prompt_payment {
         PromptPayment::PaymentRequired => HttpErrorResponse::payment_required(),
         _ => PromptHttpResponse::new_transcriptions(&pool, &body).await,
+    };
+}
+
+#[post("/audio/translations/")]
+async fn post_audio_translations(
+    pool: web::Data<PgPool>,
+    body: web::Json<PromptAudioTranslationsRequest>,
+) -> HttpResponse {
+    let prompt_payment =
+        User::check_prompt_payment(&pool, &body.user_id, &PromptType::Transcriptions);
+
+    return match prompt_payment {
+        PromptPayment::PaymentRequired => HttpErrorResponse::payment_required(),
+        _ => {
+            let audio_translations_result = Prompt::new_audio_translations(&pool, &body).await;
+
+            match audio_translations_result {
+                Ok(prompt) => HttpResponse::Ok().json(prompt),
+                Err(err_msg) => HttpErrorResponse::internal_server_error(err_msg),
+            }
+        }
     };
 }
 
