@@ -240,4 +240,29 @@ impl Prompt {
             Err(openai_error) => Err(openai_error.to_string()),
         }
     }
+
+    pub fn insert_audio_translations(
+        pool: &web::Data<PgPool>,
+        user_id: &str,
+        text: &str,
+    ) -> QueryResult<Prompt> {
+        let mut conn = pool.get().unwrap();
+        let uuid = uuid::Uuid::parse_str(user_id).unwrap();
+
+        let data = (
+            (prompts::user_id.eq(uuid)),
+            (prompts::prompt_token.eq(0)),
+            (prompts::completion_token.eq(0)),
+            (prompts::prompt_text.eq("")),
+            (prompts::completion_text.eq(text)),
+            (prompts::total_token.eq(0)),
+            (prompts::total_cost.eq(0.0)),
+            (prompts::instruction.eq("AudioTranslations".to_string())),
+            (prompts::prompt_type.eq(PromptType::AudioTranslations.to_string())),
+        );
+
+        diesel::insert_into(prompts::table)
+            .values(data)
+            .get_result::<Prompt>(&mut conn)
+    }
 }
