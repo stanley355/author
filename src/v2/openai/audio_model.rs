@@ -1,5 +1,6 @@
 use crate::v2::prompt::request::{NewTextToSpeechRequestBody, NewTranscriptionsRequestBody};
 use actix_web::web;
+use reqwest::multipart::{Form, Part};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize)]
@@ -52,12 +53,12 @@ pub struct OpenAiAudioTranscriptionsSegmentsResponse {
     seek: u32,
     pub start: f32,
     pub end: f32,
-    pub text:String,
+    pub text: String,
     tokens: Vec<u32>,
     temperature: f32,
     avg_logprob: f32,
     compression_ratio: f32,
-    no_speech_prob: f32
+    no_speech_prob: f32,
 }
 
 #[allow(dead_code)]
@@ -76,5 +77,26 @@ pub struct OpenAiAudioTranscriptionsResponse {
     language: Option<String>,
     pub duration: Option<f32>,
     pub segments: Option<Vec<OpenAiAudioTranscriptionsSegmentsResponse>>,
-    pub words:  Option<Vec<OpenAiAudioTranscriptionsWordsResponse>>
+    pub words: Option<Vec<OpenAiAudioTranscriptionsWordsResponse>>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OpenAiAudioTranslations;
+
+impl OpenAiAudioTranslations {
+    pub async fn new_multipart_form_data(
+        file_url: &str,
+        temperature: &f32,
+    ) -> Result<Form, reqwest::Error> {
+        let file = reqwest::get(file_url).await?;
+
+        let bytes = file.bytes().await?;
+        let part = Part::bytes(bytes.to_vec()).file_name("file.mp3");
+        let form_data = Form::new()
+            .part("file", part)
+            .text("model", "whisper-1")
+            .text("temperature", temperature.to_string());
+
+        Ok(form_data)
+    }
 }
