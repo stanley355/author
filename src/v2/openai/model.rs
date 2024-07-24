@@ -15,7 +15,8 @@ pub enum OpenAiEndpointType {
     AudioTranslations,
 }
 
-pub struct OpenAi<D: Serialize> {
+#[derive(Debug)]
+pub struct OpenAi<D: Serialize + Debug> {
     base_api_url: String,
     endpoint_path: String,
     authorization_header: String,
@@ -24,7 +25,7 @@ pub struct OpenAi<D: Serialize> {
     data: D,
 }
 
-impl<D: Serialize> OpenAi<D> {
+impl<D: Serialize + Debug> OpenAi<D> {
     pub fn new(endpoint_type: OpenAiEndpointType, data: D) -> Self {
         let openai_url = env::var("OPENAI_URL").expect("Missing OpenAi Url");
         let openai_key = &env::var("OPENAI_API_KEY").unwrap();

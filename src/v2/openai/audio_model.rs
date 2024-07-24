@@ -91,7 +91,7 @@ impl OpenAiAudioTranslations {
         let file = reqwest::get(file_url).await?;
 
         let bytes = file.bytes().await?;
-        let part = Part::bytes(bytes.to_vec()).file_name("file.mp3");
+        let part = Part::bytes(bytes.to_vec()).file_name("file.mpeg");
         let form_data = Form::new()
             .part("file", part)
             .text("model", "whisper-1")

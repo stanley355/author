@@ -91,5 +91,6 @@ pub fn route(config: &mut web::ServiceConfig) {
         .service(new_prompt)
         .service(new_text_to_speech)
         .service(delete_tts_file)
-        .service(new_transcriptions);
+        .service(new_transcriptions)
+        .service(post_audio_translations);
 }

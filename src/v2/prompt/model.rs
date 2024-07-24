@@ -284,6 +284,7 @@ impl Prompt {
                     .request_multipart::<OpenAiAudioTranslationsResponse>(form_data)
                     .await;
 
+                    println!("{:?}", openai_result);
                 match openai_result {
                     Ok(response) => {
                         let prompt_result =
