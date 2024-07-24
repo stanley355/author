@@ -12,6 +12,7 @@ pub enum OpenAiEndpointType {
     ChatCompletion,
     AudioSpeech,
     AudioTranscriptions,
+    AudioTranslations,
 }
 
 pub struct OpenAi<D: Serialize> {
@@ -43,6 +44,7 @@ impl<D: Serialize> OpenAi<D> {
             OpenAiEndpointType::ChatCompletion => "v1/chat/completions".to_string(),
             OpenAiEndpointType::AudioSpeech => "v1/audio/speech".to_string(),
             OpenAiEndpointType::AudioTranscriptions => "v1/audio/transcriptions".to_string(),
+            OpenAiEndpointType::AudioTranslations => "v1/audio/translations".to_string(),
         }
     }
 
@@ -134,5 +136,24 @@ impl<D: Serialize> OpenAi<D> {
             }
             Err(req_file_err) => Err(req_file_err),
         }
+    }
+
+    // S for Response
+    pub async fn request_multipart<S: DeserializeOwned + Debug>(
+        self,
+        form_data: Form,
+    ) -> Result<S, reqwest::Error> {
+        let url = format!("{}{}", self.base_api_url, self.endpoint_path);
+        let mut headers = HeaderMap::new();
+        headers.insert("Authorization", self.authorization_header.parse().unwrap());
+
+        reqwest::Client::new()
+            .post(url)
+            .headers(headers)
+            .multipart(form_data)
+            .send()
+            .await?
+            .json::<S>()
+            .await
     }
 }
