@@ -1,7 +1,7 @@
-use actix_web::{post, web, HttpResponse};
+use actix_web::{get, post, web, HttpResponse};
 
 use super::model::Student;
-use super::request::NewStudentRequest;
+use super::request::{FindUserStudentApplicationRequest, NewStudentRequest};
 use crate::db::PgPool;
 use crate::http_error::HttpError;
 
@@ -27,6 +27,24 @@ async fn post_student(
     }
 }
 
+#[get("")]
+async fn get_user_student_application(
+    pool: web::Data<PgPool>,
+    request_query: web::Query<FindUserStudentApplicationRequest>,
+) -> HttpResponse {
+    let request = request_query.into_inner();
+    let user_id = uuid::Uuid::parse_str(&request.user_id).unwrap();
+
+    let find_result = Student::find_user_last_active_application(&pool, &user_id);
+
+    match find_result {
+        Ok(student) => HttpResponse::Ok().json(student),
+        Err(diesel_error) => HttpError::bad_request(&diesel_error.to_string()),
+    }
+}
+
 pub fn services(config: &mut web::ServiceConfig) {
-    config.service(post_student);
+    config
+        .service(post_student)
+        .service(get_user_student_application);
 }

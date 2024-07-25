@@ -1,6 +1,6 @@
 use actix_web::web;
 use chrono::{Duration, NaiveDateTime, Utc};
-use diesel::{ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl};
+use diesel::{ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl, BoolExpressionMethods};
 use serde::Serialize;
 
 use crate::db::PgPool;
@@ -32,6 +32,19 @@ impl Student {
 
         students::table
             .filter(students::user_id.eq(user_id))
+            .order_by(students::created_at.desc())
+            .get_result::<Student>(&mut conn)
+    }
+
+    pub fn find_user_last_active_application(pool: &web::Data<PgPool>, user_id: &uuid::Uuid) -> QueryResult<Student> {
+        let mut conn = pool.get().unwrap();
+
+        students::table
+            .filter(
+                students::user_id
+                    .eq(user_id)
+                    .and(students::half_discount_end_at.gt(diesel::dsl::sql("now()"))),
+            )
             .order_by(students::created_at.desc())
             .get_result::<Student>(&mut conn)
     }

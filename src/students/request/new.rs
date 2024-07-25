@@ -60,3 +60,8 @@ impl NewStudentRequest {
         return (true, "".to_string());
     }
 }
+
+#[derive(Debug, Deserialize, Clone)]
+pub(crate) struct FindUserStudentApplicationRequest {
+    pub user_id: String,
+}
