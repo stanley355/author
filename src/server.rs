@@ -4,6 +4,7 @@ use crate::v2;
 use crate::middleware;
 use crate::users;
 use crate::subscriptions;
+use crate::prompts;
 
 use actix_cors::Cors;
 use actix_files::Files;
@@ -36,6 +37,7 @@ impl Server {
                 .service(web::scope("/v1/users").configure(users::services))
                 .service(web::scope("/v1/subscriptions").configure(subscriptions::services))
                 .service(web::scope("/v1/students").configure(students::services))
+                .service(web::scope("/v1/prompts").configure(students::services))
         })
         .bind(Self::address())?
         .run()
