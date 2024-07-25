@@ -10,7 +10,7 @@ mod server;
 mod students;
 mod subscriptions;
 mod users;
-mod p
+mod prompts;
 mod v2;
 
 // Flatten

@@ -37,7 +37,7 @@ impl Server {
                 .service(web::scope("/v1/users").configure(users::services))
                 .service(web::scope("/v1/subscriptions").configure(subscriptions::services))
                 .service(web::scope("/v1/students").configure(students::services))
-                .service(web::scope("/v1/prompts").configure(students::services))
+                .service(web::scope("/v1/prompts").configure(prompts::services))
         })
         .bind(Self::address())?
         .run()
