@@ -3,6 +3,7 @@ use actix_web::{post, web, HttpResponse};
 use super::model::Student;
 use super::request::NewStudentRequest;
 use crate::db::PgPool;
+use crate::http_error::HttpError;
 
 #[post("/")]
 async fn post_student(
@@ -14,8 +15,14 @@ async fn post_student(
     let last_application_result = Student::find_user_last_application(&pool, &user_id);
 
     match last_application_result {
-        Ok(_) => HttpResponse::Created().body("woi"),
-        Err(_) => HttpResponse::Ok().body("woi"),
+        Ok(last_application) => HttpResponse::Created().body("woi"),
+        Err(_) => {
+            let application_result = Student::new_application(&pool, &request);
+            match application_result {
+                Ok(student) => HttpResponse::Created().json(student),
+                Err(diesel_error) => HttpError::internal_server_error(&diesel_error.to_string()),
+            }
+        }
     }
 }
 
