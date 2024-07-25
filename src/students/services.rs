@@ -12,17 +12,18 @@ async fn post_student(
 ) -> HttpResponse {
     let request = request_json.into_inner();
     let user_id = uuid::Uuid::parse_str(&request.user_id).unwrap();
-    let last_application_result = Student::find_user_last_application(&pool, &user_id);
 
-    match last_application_result {
-        Ok(last_application) => HttpResponse::Created().body("woi"),
-        Err(_) => {
-            let application_result = Student::new_application(&pool, &request);
-            match application_result {
-                Ok(student) => HttpResponse::Created().json(student),
-                Err(diesel_error) => HttpError::internal_server_error(&diesel_error.to_string()),
-            }
+    if let Ok(last_application) = Student::find_user_last_application(&pool, &user_id) {
+        let can_reapply = request.clone().can_reapply(&last_application);
+        if !can_reapply.0 {
+            return HttpError::bad_request(&can_reapply.1);
         }
+    }
+
+    let application_result = Student::new_application(&pool, &request);
+    match application_result {
+        Ok(student) => HttpResponse::Created().json(student),
+        Err(diesel_error) => HttpError::internal_server_error(&diesel_error.to_string()),
     }
 }
 

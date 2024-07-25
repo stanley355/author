@@ -8,7 +8,7 @@ pub struct HttpError {
 }
 
 impl HttpError {
-    fn new(status: u16, status_text: String) -> Self {
+    pub fn new(status: u16, status_text: String) -> Self {
         Self {
             status,
             status_text,
@@ -17,7 +17,7 @@ impl HttpError {
 
     pub fn bad_request(text: &str) -> HttpResponse {
         let error = Self::new(400, text.to_string());
-        HttpResponse::PaymentRequired().json(error)
+        HttpResponse::BadRequest().json(error)
     }
 
     pub fn payment_required() -> HttpResponse {
