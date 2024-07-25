@@ -18,7 +18,7 @@ impl Server {
         return address;
     }
 
-    pub(crate) async fn new_http_server(pool: db::PgPool) -> std::io::Result<()> {
+    pub(super) async fn new_http_server(pool: db::PgPool) -> std::io::Result<()> {
         HttpServer::new(move || {
             App::new()
                 .wrap(Cors::default())
