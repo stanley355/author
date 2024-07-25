@@ -1,4 +1,4 @@
-use actix_web::{get, post, web, HttpResponse};
+use actix_web::{post, web, HttpResponse};
 
 use super::model::Student;
 use super::request::NewStudentRequest;
@@ -19,6 +19,6 @@ async fn post_student(
     }
 }
 
-pub fn route(config: &mut web::ServiceConfig) {
+pub fn services(config: &mut web::ServiceConfig) {
     config.service(post_student);
 }

@@ -1,4 +1,5 @@
 use crate::db;
+use crate::students;
 use crate::v2;
 use crate::middleware;
 use crate::users;
@@ -34,6 +35,7 @@ impl Server {
                 .service(web::scope("/v2/students").configure(v2::student::handler::route))
                 .service(web::scope("/v1/users").configure(users::services))
                 .service(web::scope("/v1/subscriptions").configure(subscriptions::services))
+                .service(web::scope("/v1/students").configure(students::services))
         })
         .bind(Self::address())?
         .run()
