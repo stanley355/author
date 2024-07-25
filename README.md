@@ -1,5 +1,8 @@
 # Author
 
+### 1.3.7
+- /v1/users/
+
 ### 1.3.5
 
 - Add phonetic transcriptions promptype
