@@ -6,7 +6,7 @@ use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl};
 use serde::Serialize;
 
 #[derive(Queryable, Debug, Serialize)]
-pub(crate) struct Subscription {
+pub struct Subscription {
     pub id: uuid::Uuid,
     pub user_id: uuid::Uuid,
     pub created_at: chrono::NaiveDateTime,

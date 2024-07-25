@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
-pub struct UsersAccountRequest {
+pub(crate) struct UsersAccountRequest {
     pub id: String
 }
