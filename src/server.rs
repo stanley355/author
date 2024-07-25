@@ -1,5 +1,6 @@
 use crate::db;
 use crate::v2;
+use crate::middleware;
 
 use actix_cors::Cors;
 use actix_files::Files;
@@ -22,7 +23,7 @@ impl Server {
         HttpServer::new(move || {
             App::new()
                 .wrap(Cors::default())
-                .wrap(v2::middleware::author_middleware::AuthorMiddleware)
+                .wrap(middleware::AuthorMiddleware)
                 .app_data(web::Data::new(pool.clone()))
                 .service(Files::new("/v1/files", "/tmp"))
                 .service(web::scope("/v2/prompts").configure(v2::prompt::handler::route))

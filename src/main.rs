@@ -6,6 +6,7 @@ mod db;
 mod schema;
 mod server;
 mod v2;
+mod middleware;
 
 // Flatten
 use server::Server;
