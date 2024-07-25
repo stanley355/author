@@ -12,13 +12,13 @@ use serde::Serialize;
 pub struct Subscription {
     pub id: uuid::Uuid,
     pub user_id: uuid::Uuid,
-    pub topup_id: uuid::Uuid,
+    // pub topup_id: uuid::Uuid,
     pub created_at: chrono::NaiveDateTime,
     pub start_at: chrono::NaiveDateTime,
     pub end_at: chrono::NaiveDateTime,
     pub duration_type: String,
     pub paid: bool,
-    pub is_paylater: bool,
+    // pub is_paylater: bool,
     pub updated_at: Option<chrono::NaiveDateTime>,
 }
 
@@ -59,7 +59,7 @@ impl Subscription {
         let end_timestamp = Self::calc_end_timestamp(&body.duration);
 
         let data = (
-            (subscriptions::topup_id.eq(&topup.id)),
+            // (subscriptions::topup_id.eq(&topup.id)),
             (subscriptions::user_id.eq(&topup.user_id)),
             (subscriptions::end_at.eq(end_timestamp)),
             (subscriptions::duration_type.eq(body.duration.to_string())),
@@ -78,7 +78,7 @@ impl Subscription {
         let uuid = uuid::Uuid::parse_str(topup_id).unwrap();
 
         diesel::update(subscriptions::table)
-            .filter(subscriptions::topup_id.eq(uuid))
+            // .filter(subscriptions::topup_id.eq(uuid))
             .set(subscriptions::paid.eq(true))
             .get_result(&mut conn)
     }
