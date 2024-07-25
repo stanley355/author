@@ -1,16 +1,16 @@
-use actix_web::{post, web, HttpResponse};
+use actix_web::{post, get, web, HttpResponse};
 
 use super::jwt::UserJwt;
 use super::model::User;
-use super::request::UsersLoginGmailRequest;
+use super::request::{UsersLoginGmailRequest, UsersAccountRequest};
 use crate::{db::PgPool, http_error::HttpError};
 
 #[post("/login/gmail/")]
 async fn post_login_gmail(
     pool: web::Data<PgPool>,
-    json_request: web::Json<UsersLoginGmailRequest>,
+    request_json: web::Json<UsersLoginGmailRequest>,
 ) -> HttpResponse {
-    let request = json_request.into_inner();
+    let request = request_json.into_inner();
 
     match request.is_valid() {
         false => HttpError::bad_request("Bad Request"),
@@ -32,6 +32,16 @@ async fn post_login_gmail(
             }
         }
     }
+}
+
+#[get("/account")]
+async fn get_account(
+    pool: web::Data<PgPool>,
+    request_query: web::Query<UsersAccountRequest>,
+) -> HttpResponse {
+    let user_id = uuid::Uuid::parse_str(&request_query.id).unwrap();
+
+    HttpResponse::Ok().body("hi")
 }
 
 pub fn services(config: &mut web::ServiceConfig) {
