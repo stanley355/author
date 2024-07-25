@@ -8,6 +8,7 @@ mod server;
 mod v2;
 mod users;
 mod middleware;
+mod http_error;
 
 // Flatten
 use server::Server;
