@@ -5,7 +5,7 @@ use crate::db::PgPool;
 use crate::schema::users;
 
 #[derive(Debug, Queryable)]
-pub struct User {
+pub(super) struct User {
     pub id: uuid::Uuid,
     pub fullname: String,
     pub email: String,
