@@ -3,7 +3,6 @@ extern crate diesel;
 
 use actix_cors::Cors;
 use actix_files::Files;
-use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
 use dotenv::dotenv;
 use std::env;
@@ -16,7 +15,6 @@ async fn serve_web(address: String, pool: db::PgPool) -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .wrap(Cors::default())
-            .wrap(Logger::default())
             .wrap(v2::middleware::author_middleware::AuthorMiddleware)
             .app_data(web::Data::new(pool.clone()))
             .service(Files::new("/v1/files", "/tmp"))
