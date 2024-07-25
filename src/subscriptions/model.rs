@@ -2,7 +2,9 @@ use super::request::{NewSubscriptionRequest, SubscriptionDuration};
 use crate::db::PgPool;
 use crate::schema::subscriptions;
 use actix_web::web;
-use diesel::{ExpressionMethods, QueryResult, Queryable, RunQueryDsl};
+use diesel::{
+    BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
+};
 use serde::Serialize;
 
 #[derive(Queryable, Debug, Serialize)]
@@ -80,5 +82,35 @@ impl Subscription {
             .filter(subscriptions::id.eq(subscription_id))
             .set(subscriptions::paid.eq(true))
             .get_result(&mut conn)
+    }
+
+    pub fn find_active(
+        pool: &web::Data<PgPool>,
+        user_id: &uuid::Uuid,
+    ) -> QueryResult<Subscription> {
+        let mut conn = pool.get().unwrap();
+
+        subscriptions::table
+            .filter(
+                subscriptions::user_id
+                    .eq(user_id)
+                    .and(subscriptions::paid.eq(true))
+                    .and(subscriptions::end_at.gt(diesel::dsl::sql("now()"))),
+            )
+            .order_by(subscriptions::created_at.desc())
+            .get_result::<Subscription>(&mut conn)
+    }
+
+    pub fn find_last_five(
+        pool: &web::Data<PgPool>,
+        user_id: &uuid::Uuid,
+    ) -> QueryResult<Vec<Subscription>> {
+        let mut conn = pool.get().unwrap();
+
+        subscriptions::table
+            .filter(subscriptions::user_id.eq(user_id))
+            .order_by(subscriptions::created_at.desc())
+            .limit(5)
+            .get_results::<Subscription>(&mut conn)
     }
 }
