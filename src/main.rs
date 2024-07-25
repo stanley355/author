@@ -6,6 +6,7 @@ mod db;
 mod schema;
 mod server;
 mod v2;
+mod users;
 mod middleware;
 
 // Flatten
