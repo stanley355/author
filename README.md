@@ -1,5 +1,8 @@
 # Author
 
+### 1.3.8
+- /v1/subscriptions/
+
 ### 1.3.7
 - /v1/users/
 

@@ -68,4 +68,17 @@ impl Subscription {
             },
         }
     }
+
+    pub fn update_paid(
+        pool: &web::Data<PgPool>,
+        request_subscription_id: &str,
+    ) -> QueryResult<Subscription> {
+        let mut conn = pool.get().unwrap();
+        let subscription_id = uuid::Uuid::parse_str(request_subscription_id).unwrap();
+
+        diesel::update(subscriptions::table)
+            .filter(subscriptions::id.eq(subscription_id))
+            .set(subscriptions::paid.eq(true))
+            .get_result(&mut conn)
+    }
 }
