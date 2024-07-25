@@ -79,7 +79,7 @@ impl Subscription {
         let uuid = uuid::Uuid::parse_str(topup_id).unwrap();
 
         diesel::update(subscriptions::table)
-            // .filter(subscriptions::topup_id.eq(uuid))
+            .filter(subscriptions::id.eq(uuid))
             .set(subscriptions::paid.eq(true))
             .get_result(&mut conn)
     }

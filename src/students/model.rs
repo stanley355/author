@@ -9,7 +9,7 @@ use crate::schema::students;
 use super::request::NewStudentRequest;
 
 #[derive(Queryable, Debug, Serialize)]
-pub(super) struct Student {
+pub struct Student {
     pub id: uuid::Uuid,
     pub user_id: uuid::Uuid,
     pub student_id: String,
@@ -24,7 +24,7 @@ pub(super) struct Student {
 }
 
 impl Student {
-    pub fn find_user_last_application(
+    pub(crate) fn find_user_last_application(
         pool: &web::Data<PgPool>,
         user_id: &uuid::Uuid,
     ) -> QueryResult<Student> {
@@ -61,7 +61,7 @@ impl Student {
         return end_time.naive_utc();
     }
 
-    pub fn new_application(
+    pub(crate) fn new_application(
         pool: &web::Data<PgPool>,
         request: &NewStudentRequest,
     ) -> QueryResult<Student> {
