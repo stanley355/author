@@ -1,15 +1,16 @@
-// Cargo 
+// Cargo
 use dotenv::dotenv;
 
 // Modules
 mod db;
+mod http_error;
+mod middleware;
 mod schema;
 mod server;
-mod v2;
+mod students;
+mod subscriptions;
 mod users;
-mod middleware;
-mod http_error;
-mod  subscriptions;
+mod v2;
 
 // Flatten
 use server::Server;
