@@ -18,7 +18,7 @@ async fn post_subscription(
 }
 
 #[post("/doku/notification/")]
-async fn post_doku_notificatioin(
+async fn post_doku_notification(
     pool: web::Data<PgPool>,
     json_request: web::Json<DokuNotificationRequest>,
 ) -> HttpResponse {
@@ -34,5 +34,7 @@ async fn post_doku_notificatioin(
 }
 
 pub fn services(config: &mut web::ServiceConfig) {
-    config.service(post_subscription);
+    config
+        .service(post_subscription)
+        .service(post_doku_notification);
 }
