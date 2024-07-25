@@ -4,6 +4,8 @@ use diesel::{ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl};
 use crate::db::PgPool;
 use crate::schema::users;
 
+use super::request::UsersLoginGmailRequest;
+
 #[derive(Debug, Queryable)]
 pub(super) struct User {
     pub id: uuid::Uuid,
@@ -34,5 +36,21 @@ impl User {
         users::table
             .filter(users::email.eq(email))
             .get_result::<User>(&mut conn)
+    }
+
+    pub(super) fn insert_new_from_login_gmail(
+        pool: &web::Data<PgPool>,
+        request: &UsersLoginGmailRequest,
+    ) -> QueryResult<User> {
+        let mut conn = pool.get().unwrap();
+        let data = (
+            (users::fullname.eq(&request.fullname)),
+            (users::email.eq(&request.email)),
+            (users::password.eq("")),
+        );
+
+        diesel::insert_into(users::table)
+            .values(data)
+            .get_result(&mut conn)
     }
 }
