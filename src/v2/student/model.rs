@@ -18,8 +18,8 @@ pub struct Student {
     pub updated_at: NaiveDateTime,
     pub free_discount_end_at: NaiveDateTime,
     pub half_discount_end_at: NaiveDateTime,
-    pub student_application_valid: bool,
-    pub student_application_invalid_reason: Option<String>,
+    // pub student_application_valid: bool,
+    // pub student_application_invalid_reason: Option<String>,
 }
 
 impl Student {

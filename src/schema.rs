@@ -30,8 +30,6 @@ diesel::table! {
         updated_at -> Timestamp,
         free_discount_end_at -> Timestamp,
         half_discount_end_at -> Timestamp,
-        student_application_valid -> Bool,
-        student_application_invalid_reason -> Nullable<Varchar>,
     }
 }
 
