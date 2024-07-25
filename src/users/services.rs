@@ -10,6 +10,6 @@ async fn post_login_gmail(
     HttpResponse::Ok().body("hi")
 }
 
-pub fn route(config: &mut web::ServiceConfig) {
+pub fn services(config: &mut web::ServiceConfig) {
     config.service(post_login_gmail);
 }
