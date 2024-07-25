@@ -19,11 +19,11 @@ async fn post_login_gmail(
                 let user_jwt = UserJwt::new(&user);
                 HttpResponse::Ok().json(user_jwt)
             } else {
-                let insert_result = User::insert_new_from_login_gmail(&pool, &request);
+                let insert_result = User::new_from_login_gmail_insert(&pool, &request);
                 match insert_result {
                     Ok(new_user) => {
                         let new_user_jwt = UserJwt::new(&new_user);
-                        HttpResponse::Ok().json(new_user_jwt)
+                        HttpResponse::Created().json(new_user_jwt)
                     }
                     Err(diesel_error) => {
                         HttpError::internal_server_error(&diesel_error.to_string())

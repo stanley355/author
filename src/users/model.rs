@@ -38,7 +38,7 @@ impl User {
             .get_result::<User>(&mut conn)
     }
 
-    pub(super) fn insert_new_from_login_gmail(
+    pub(super) fn new_from_login_gmail_insert(
         pool: &web::Data<PgPool>,
         request: &UsersLoginGmailRequest,
     ) -> QueryResult<User> {
