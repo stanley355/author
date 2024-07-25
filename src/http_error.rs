@@ -16,9 +16,9 @@ impl HttpError {
     }
 
     pub fn bad_request(text: &str) -> HttpResponse {
-      let error = Self::new(400, text.to_string());
-      HttpResponse::PaymentRequired().json(error)
-  }
+        let error = Self::new(400, text.to_string());
+        HttpResponse::PaymentRequired().json(error)
+    }
 
     pub fn payment_required() -> HttpResponse {
         let error = Self::new(402, "Payment Required".to_string());
@@ -26,7 +26,7 @@ impl HttpError {
     }
 
     pub fn internal_server_error(text: &str) -> HttpResponse {
-      let error = Self::new(500, text.to_string());
-      HttpResponse::InternalServerError().json(error)
-  }
+        let error = Self::new(500, text.to_string());
+        HttpResponse::InternalServerError().json(error)
+    }
 }

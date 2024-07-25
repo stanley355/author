@@ -20,6 +20,7 @@ pub struct Subscription {
     pub paid: bool,
     // pub is_paylater: bool,
     pub updated_at: Option<chrono::NaiveDateTime>,
+    pub price: f64
 }
 
 impl Subscription {

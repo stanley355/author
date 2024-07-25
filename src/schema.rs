@@ -45,6 +45,7 @@ diesel::table! {
         duration_type -> Varchar,
         paid -> Bool,
         updated_at -> Nullable<Timestamp>,
+        price -> Float8,
     }
 }
 
