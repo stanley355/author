@@ -2,6 +2,7 @@ use crate::db;
 use crate::v2;
 use crate::middleware;
 use crate::users;
+use crate::subscriptions;
 
 use actix_cors::Cors;
 use actix_files::Files;
@@ -32,6 +33,7 @@ impl Server {
                 .service(web::scope("/v2/topups").configure(v2::topup::handler::route))
                 .service(web::scope("/v2/students").configure(v2::student::handler::route))
                 .service(web::scope("/v1/users").configure(users::services))
+                .service(web::scope("/v1/subscriptions").configure(subscriptions::services))
         })
         .bind(Self::address())?
         .run()

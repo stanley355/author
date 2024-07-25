@@ -9,6 +9,7 @@ mod v2;
 mod users;
 mod middleware;
 mod http_error;
+mod  subscriptions;
 
 // Flatten
 use server::Server;
