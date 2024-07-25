@@ -1,8 +1,9 @@
-use actix_web::{post, get, web, HttpResponse};
+use actix_web::{get, post, web, HttpResponse};
 
 use super::jwt::UserJwt;
 use super::model::User;
-use super::request::{UsersLoginGmailRequest, UsersAccountRequest};
+use super::request::{UsersAccountRequest, UsersLoginGmailRequest};
+use super::response::UsersAccountResponse;
 use crate::{db::PgPool, http_error::HttpError};
 
 #[post("/login/gmail/")]
@@ -41,9 +42,17 @@ async fn get_account(
 ) -> HttpResponse {
     let user_id = uuid::Uuid::parse_str(&request_query.id).unwrap();
 
-    HttpResponse::Ok().body("hi")
+    let user_result = User::find(&pool, user_id);
+
+    match user_result {
+        Ok(user) => {
+            let user_account = UsersAccountResponse::new(&pool, &user);
+            HttpResponse::Ok().json(user_account)
+        }
+        Err(diesel_error) => HttpError::bad_request(&diesel_error.to_string()),
+    }
 }
 
 pub fn services(config: &mut web::ServiceConfig) {
-    config.service(post_login_gmail);
+    config.service(post_login_gmail).service(get_account);
 }

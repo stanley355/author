@@ -7,7 +7,7 @@ use actix_web::web;
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
-pub(super) struct UsersAccountResponse {
+pub(crate) struct UsersAccountResponse {
     user: UsersBaseResponse,
     student: Option<Student>,
     subscription: Option<Subscription>,
