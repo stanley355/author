@@ -1,5 +1,3 @@
-// #[macro_use]
-// extern crate diesel;
 // Cargo 
 use dotenv::dotenv;
 

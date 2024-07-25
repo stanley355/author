@@ -1,5 +1,5 @@
 use actix_web::web;
-use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
+use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl, Queryable};
 
 use super::account_page::AccountPageDataResponse;
 use super::request::LoginGmailRequestBody;

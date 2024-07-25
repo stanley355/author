@@ -5,7 +5,7 @@ use crate::{
     v2::{student::model::Student, subscription::model::Subscription},
 };
 use actix_web::web;
-use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
+use diesel::{BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl, Queryable};
 use serde::Serialize;
 
 #[derive(Debug, Serialize, Queryable)]
