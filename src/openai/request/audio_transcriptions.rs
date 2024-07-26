@@ -26,7 +26,10 @@ impl OpenAiAudioTranscriptionsRequest {
                 .text("language", req.language.clone())
                 .text("temperature", req.temperature.to_string())
                 .text("response_format", "verbose_json")
-                .text("timestamp_granularities[]", granularity.to_string()),
+                .text(
+                    "timestamp_granularities[]",
+                    granularity.to_string().to_lowercase(),
+                ),
             None => Form::new()
                 .part("file", part)
                 .text("model", "whisper-1")
