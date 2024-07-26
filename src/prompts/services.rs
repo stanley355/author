@@ -2,12 +2,12 @@ use super::model::Prompt;
 use super::payment::PromptPayment;
 use super::request::{
     DeleteAudioSpeechRequest, NewAudioSpeechPromptRequest, NewAudioTranscriptionsRequest,
-    NewPromptRequest, PromptType,
+    NewAudioTranslationsRequest, NewPromptRequest, PromptType,
 };
 use crate::openai::{
     OpenAiAudioSpeech, OpenAiAudioTranscriptionsRequest, OpenAiAudioTranscriptionsResponse,
-    OpenAiChatCompletionRequest, OpenAiChatCompletionResponse, OpenAiRequest,
-    OpenAiRequestEndpoint,
+    OpenAiAudioTranslationsRequest, OpenAiAudioTranslationsResponse, OpenAiChatCompletionRequest,
+    OpenAiChatCompletionResponse, OpenAiRequest, OpenAiRequestEndpoint,
 };
 use crate::{db::PgPool, http_error::HttpError};
 use actix_web::{delete, post, web, HttpResponse};
@@ -165,10 +165,62 @@ async fn post_audio_transcriptions(
     };
 }
 
+#[post("/audio/translations/")]
+async fn post_audio_translations(
+    pool: web::Data<PgPool>,
+    request_json: web::Json<NewAudioTranslationsRequest>,
+) -> HttpResponse {
+    let request = request_json.into_inner();
+    let user_id = uuid::Uuid::parse_str(&request.user_id).unwrap();
+    let prompt_payment = Prompt::check_payment(&pool, &user_id, &PromptType::AudioTranslations);
+
+    return match prompt_payment {
+        PromptPayment::PaymentRequired => HttpError::payment_required(),
+        _ => {
+            let openai_request_form_data =
+                OpenAiAudioTranslationsRequest::new_form_data(&request).await;
+
+            match openai_request_form_data {
+                Ok(form_data) => {
+                    let translations_result =
+                        OpenAiAudioTranslationsRequest::request_multipart::<
+                            OpenAiAudioTranslationsResponse,
+                        >(
+                            form_data, OpenAiRequestEndpoint::AudioTranslations
+                        )
+                        .await;
+
+                    match translations_result {
+                        Ok(translations) => {
+                            let prompt_insert_result = Prompt::new_insert_audio_translations(
+                                &pool,
+                                &user_id,
+                                &translations.text,
+                            );
+
+                            match prompt_insert_result {
+                                Ok(prompt) => HttpResponse::Ok().json(prompt),
+                                Err(diesel_error) => {
+                                    HttpError::internal_server_error(&diesel_error.to_string())
+                                }
+                            }
+                        }
+                        Err(openai_error) => {
+                            HttpError::internal_server_error(&openai_error.to_string())
+                        }
+                    }
+                }
+                Err(file_error) => HttpError::internal_server_error(&file_error.to_string()),
+            }
+        }
+    };
+}
+
 pub fn services(config: &mut web::ServiceConfig) {
     config
         .service(post_prompt)
         .service(post_audio_speech)
         .service(delete_audio_speech)
-        .service(post_audio_transcriptions);
+        .service(post_audio_transcriptions)
+        .service(post_audio_translations);
 }
