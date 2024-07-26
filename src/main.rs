@@ -11,6 +11,7 @@ mod students;
 mod subscriptions;
 mod users;
 mod prompts;
+mod openai;
 mod v2;
 
 // Flatten
