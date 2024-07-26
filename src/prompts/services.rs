@@ -139,9 +139,27 @@ async fn post_audio_transcriptions(
                     )
                     .await;
 
-                    HttpResponse::Ok().body("woi")
+                    match openai_result {
+                        Ok(transcriptions) => {
+                            let prompt_insert_result = Prompt::new_insert_audio_transcriptions(
+                                &pool,
+                                &user_id,
+                                &transcriptions.text,
+                            );
+
+                            match prompt_insert_result {
+                                Ok(_) => HttpResponse::Ok().json(transcriptions),
+                                Err(diesel_error) => {
+                                    HttpError::internal_server_error(&diesel_error.to_string())
+                                }
+                            }
+                        }
+                        Err(openai_error) => {
+                            HttpError::internal_server_error(&openai_error.to_string())
+                        }
+                    }
                 }
-                Err(reqwest_error) => HttpError::bad_request(&reqwest_error.to_string()),
+                Err(file_error) => HttpError::bad_request(&file_error.to_string()),
             }
         }
     };
@@ -151,5 +169,6 @@ pub fn services(config: &mut web::ServiceConfig) {
     config
         .service(post_prompt)
         .service(post_audio_speech)
-        .service(delete_audio_speech);
+        .service(delete_audio_speech)
+        .service(post_audio_transcriptions);
 }

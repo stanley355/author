@@ -3,11 +3,11 @@ use serde::{Deserialize, Serialize};
 // #[allow(dead_code)]
 #[derive(Debug, Deserialize, Serialize)]
 pub struct OpenAiAudioTranscriptionsSegmentsParam {
-    pub id: u32,
+    id: u32,
     seek: u32,
-    pub start: f32,
-    pub end: f32,
-    pub text: String,
+    start: f32,
+    end: f32,
+    text: String,
     tokens: Vec<u32>,
     temperature: f32,
     avg_logprob: f32,
@@ -17,10 +17,10 @@ pub struct OpenAiAudioTranscriptionsSegmentsParam {
 
 // #[allow(dead_code)]
 #[derive(Debug, Deserialize, Serialize)]
-pub struct OpenAiAudioTranscriptionsWordsParam {
-    pub word: String,
-    pub start: f32,
-    pub end: f32,
+struct OpenAiAudioTranscriptionsWordsParam {
+    word: String,
+    start: f32,
+    end: f32,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -28,7 +28,7 @@ pub struct OpenAiAudioTranscriptionsResponse {
     pub text: String,
     task: Option<String>,
     language: Option<String>,
-    pub duration: Option<f32>,
-    pub segments: Option<Vec<OpenAiAudioTranscriptionsSegmentsParam>>,
-    pub words: Option<Vec<OpenAiAudioTranscriptionsWordsParam>>,
+    duration: Option<f32>,
+    segments: Option<Vec<OpenAiAudioTranscriptionsSegmentsParam>>,
+    words: Option<Vec<OpenAiAudioTranscriptionsWordsParam>>,
 }

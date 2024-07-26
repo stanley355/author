@@ -146,4 +146,28 @@ impl Prompt {
             .values(data)
             .get_result(&mut conn)
     }
+
+    pub fn new_insert_audio_transcriptions(
+        pool: &web::Data<PgPool>,
+        user_id: &uuid::Uuid,
+        text: &str,
+    ) -> QueryResult<Prompt> {
+        let mut conn = pool.get().unwrap();
+
+        let data = (
+            (prompts::user_id.eq(user_id)),
+            (prompts::prompt_token.eq(0)),
+            (prompts::completion_token.eq(0)),
+            (prompts::prompt_text.eq(text)),
+            (prompts::completion_text.eq(&"")),
+            (prompts::total_token.eq(0)),
+            (prompts::total_cost.eq(0.0)),
+            (prompts::instruction.eq(&"")),
+            (prompts::prompt_type.eq(PromptType::AudioTranscriptions.to_string())),
+        );
+
+        diesel::insert_into(prompts::table)
+            .values(data)
+            .get_result(&mut conn)
+    }
 }
