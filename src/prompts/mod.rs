@@ -1,6 +1,7 @@
-mod services;
 mod model;
-mod request;
 mod payment;
+mod request;
+mod services;
 
+pub use request::*;
 pub use services::*;
