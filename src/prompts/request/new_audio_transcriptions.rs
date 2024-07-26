@@ -5,6 +5,7 @@ use crate::openai::OpenAiAudioTranscriptionsTimestampGranularity;
 pub struct NewAudioTranscriptionsRequest {
     pub user_id: String,
     pub file_url: String,
+    pub file_name: String,
     pub language: String,
     pub temperature: f32,
     pub timestamp_granularities: Option<OpenAiAudioTranscriptionsTimestampGranularity>
