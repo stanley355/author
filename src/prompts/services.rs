@@ -1,12 +1,14 @@
 use super::model::Prompt;
 use super::payment::PromptPayment;
-use super::request::{NewAudioSpeechPromptRequest, NewPromptRequest, PromptType};
+use super::request::{
+    DeleteAudioSpeechRequest, NewAudioSpeechPromptRequest, NewPromptRequest, PromptType,
+};
 use crate::openai::{
     OpenAiAudioSpeech, OpenAiChatCompletionRequest, OpenAiChatCompletionResponse, OpenAiRequest,
     OpenAiRequestEndpoint,
 };
 use crate::{db::PgPool, http_error::HttpError};
-use actix_web::{post, web, HttpResponse};
+use actix_web::{delete, post, web, HttpResponse};
 
 #[post("/")]
 async fn post_prompt(
@@ -100,6 +102,20 @@ async fn post_audio_speech(
     }
 }
 
+#[delete("/audio/speech")]
+async fn delete_audio_speech(query: web::Query<DeleteAudioSpeechRequest>) -> HttpResponse {
+    let file_path = format!("/tmp/{}.mp3", &query.prompt_id);
+    let file_del_result = std::fs::remove_file(file_path);
+
+    match file_del_result {
+        Ok(_) => HttpResponse::Ok().body(query.prompt_id.to_string()),
+        Err(err) => HttpError::internal_server_error(&err.to_string()),
+    }
+}
+
 pub fn services(config: &mut web::ServiceConfig) {
-    config.service(post_prompt).service(post_audio_speech);
+    config
+        .service(post_prompt)
+        .service(post_audio_speech)
+        .service(delete_audio_speech);
 }
