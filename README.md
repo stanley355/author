@@ -2,41 +2,22 @@
 
 ### 1.4.0
 - /v1/prompts/
-
-### 1.3.9
 - /v1/students/
-
-### 1.3.8
 - /v1/subscriptions/
-
-### 1.3.7
 - /v1/users/
 
-### 1.3.5
-
-- Add phonetic transcriptions promptype
-- Change model from gpt-3.5-turbo to gpt-4o-mini
-
-### 1.3.4
-- Add Transcription endpoint
-
-### 1.3.3
-- Add created_at to users table
-- Add updated_at to table which doesn't have updated_at
-
-### 1.3.2
-
-- Split Prompt and Text to speech endpoint
-
-### 1.3.1
-
-- Remove sentry and tracing
-
-### 1.3.0
-- Update diesel to 2.2.1
-- Update sentry to 0.34.0
-- Add allow dead code
-- Add tracing instrument
+### < 1.4.0
+- Add phonetic transcriptions promptype (1.3.5)
+- Change model from gpt-3.5-turbo to gpt-4o-mini (1.3.5)
+- Add Transcription endpoint (1.3.4)
+- Add created_at to users table (1.3.3)
+- Add updated_at to table which doesn't have updated_at (1.3.3)
+- Split Prompt and Text to speech endpoint (1.3.2)
+- Remove sentry and tracing (1.3.1)
+- Update diesel to 2.2.1 (1.3.0)
+- Update sentry to 0.34.0 (1.3.0)
+- Add allow dead code (1.3.0)
+- Add tracing instrument (1.3.0)
 
 ### < 1.3.0
 
