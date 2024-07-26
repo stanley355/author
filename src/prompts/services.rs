@@ -122,7 +122,7 @@ async fn post_audio_transcriptions(
 ) -> HttpResponse {
     let request = request_json.into_inner();
     let user_id = uuid::Uuid::parse_str(&request.user_id).unwrap();
-    let prompt_payment = Prompt::check_payment(&pool, &user_id, &PromptType::AudioSpeech);
+    let prompt_payment = Prompt::check_payment(&pool, &user_id, &PromptType::AudioTranscriptions);
 
     return match prompt_payment {
         PromptPayment::PaymentRequired => HttpError::payment_required(),
