@@ -2,7 +2,7 @@ use super::model::Prompt;
 use super::payment::PromptPayment;
 use super::request::{NewAudioSpeechPromptRequest, NewPromptRequest, PromptType};
 use crate::openai::{
-    OpenAiChatCompletionRequest, OpenAiChatCompletionResponse, OpenAiRequest, OpenAiRequestEndpoint,
+    OpenAiAudioSpeech, OpenAiChatCompletionRequest, OpenAiChatCompletionResponse, OpenAiRequest, OpenAiRequestEndpoint
 };
 use crate::{db::PgPool, http_error::HttpError};
 use actix_web::{post, web, HttpResponse};
@@ -68,7 +68,7 @@ async fn post_audio_speech(
     match prompt_payment {
         PromptPayment::PaymentRequired => HttpError::payment_required(),
         _ => {
-
+            let openai_result = OpenAiAudioSpeech::new(&request).request_bytes(OpenAiRequestEndpoint::AudioSpeech).await;
             HttpResponse::Ok().body("woi")
         }
     }

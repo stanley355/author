@@ -36,4 +36,24 @@ pub trait OpenAiRequest {
             .json::<S>()
             .await
     }
+
+    async fn request_bytes(
+        &self,
+        endpoint_type: OpenAiRequestEndpoint,
+    ) -> Result<actix_web::web::Bytes, reqwest::Error>
+    where
+        Self: Debug + Serialize,
+    {
+        let url = Self::match_endpoint_url(&endpoint_type);
+        let openai_key = env::var("OPENAI_API_KEY").unwrap();
+
+        reqwest::Client::new()
+            .post(url)
+            .header("Authorization", format!("{} {}", "Bearer", openai_key))
+            .json(&self)
+            .send()
+            .await?
+            .bytes()
+            .await
+    }
 }
