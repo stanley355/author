@@ -1,6 +1,6 @@
 use super::model::Prompt;
 use super::payment::PromptPayment;
-use super::request::{NewPromptRequest, PromptType};
+use super::request::{NewAudioSpeechPromptRequest, NewPromptRequest, PromptType};
 use crate::openai::{
     OpenAiChatCompletionRequest, OpenAiChatCompletionResponse, OpenAiRequest, OpenAiRequestEndpoint,
 };
@@ -56,6 +56,24 @@ async fn post_prompt(
     }
 }
 
+#[post("/audio/speech/")]
+async fn post_audio_speech(
+    pool: web::Data<PgPool>,
+    request_json: web::Json<NewAudioSpeechPromptRequest>,
+) -> HttpResponse {
+    let request = request_json.into_inner();
+    let user_id = uuid::Uuid::parse_str(&request.user_id).unwrap();
+    let prompt_payment = Prompt::check_payment(&pool, &user_id, &PromptType::AudioSpeech);
+
+    match prompt_payment {
+        PromptPayment::PaymentRequired => HttpError::payment_required(),
+        _ => {
+
+            HttpResponse::Ok().body("woi")
+        }
+    }
+}
+
 pub fn services(config: &mut web::ServiceConfig) {
-    config.service(post_prompt);
+    config.service(post_prompt).service(post_audio_speech);
 }
