@@ -2,7 +2,6 @@ use reqwest::multipart::{Form, Part};
 use serde::Serialize;
 
 use crate::prompts::NewAudioTranscriptionsRequest;
-
 use super::OpenAiRequest;
 
 #[derive(Debug, Serialize)]
