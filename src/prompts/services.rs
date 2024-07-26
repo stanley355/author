@@ -15,7 +15,7 @@ async fn post_prompt(
     return match &request.prompt_type {
         PromptType::Translate | PromptType::Checkbot | PromptType::PhoneticTranscriptions => {
             let user_id = uuid::Uuid::parse_str(&request.user_id).unwrap();
-            let prompt_payment = Prompt::check_payment(&user_id, &request.prompt_type);
+            let prompt_payment = Prompt::check_payment(&pool, &user_id, &request.prompt_type);
 
             match prompt_payment {
                 PromptPayment::PaymentRequired => HttpError::payment_required(),

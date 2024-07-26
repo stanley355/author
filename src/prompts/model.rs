@@ -1,6 +1,10 @@
+use actix_web::web;
 use diesel::Queryable;
 use serde::Serialize;
 
+use crate::db::PgPool;
+use crate::students::Student;
+use crate::subscriptions::Subscription;
 use super::payment::PromptPayment;
 use super::request::PromptType;
 
@@ -21,7 +25,19 @@ pub(super) struct Prompt {
 }
 
 impl Prompt {
-   pub(super) fn check_payment(user_id: &uuid::Uuid, prompt_type: &PromptType) -> PromptPayment {
+    pub(super) fn check_payment(
+        pool: &web::Data<PgPool>,
+        user_id: &uuid::Uuid,
+        prompt_type: &PromptType,
+    ) -> PromptPayment {
+      if let Ok(_) = Student::find_user_last_active_application(pool, user_id) {
+        return PromptPayment::Student;
+      }
 
-   }
+      if let Ok(_) = Subscription::find_active(pool, user_id) {
+        return PromptPayment::Subscription;
+      }
+
+      PromptPayment::PaymentRequired
+    }
 }
