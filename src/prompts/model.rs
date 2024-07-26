@@ -6,7 +6,9 @@ use serde::Serialize;
 
 use super::payment::PromptPayment;
 use super::request::PromptType;
+use super::NewPromptRequest;
 use crate::db::PgPool;
+use crate::openai::OpenAiChatCompletionResponse;
 use crate::schema::prompts;
 use crate::students::Student;
 use crate::subscriptions::Subscription;
@@ -69,5 +71,55 @@ impl Prompt {
             )
             .count()
             .get_result(&mut conn)
+    }
+
+    pub fn new_insert_chat_completion(
+        pool: &web::Data<PgPool>,
+        request: &NewPromptRequest,
+        chat_completion_response: &OpenAiChatCompletionResponse,
+    ) -> QueryResult<Vec<Prompt>> {
+        let user_id = uuid::Uuid::parse_str(&request.user_id).unwrap();
+        let prompt_type = &request.prompt_type.to_string();
+
+        let data: Vec<_> = chat_completion_response
+            .choices
+            .iter()
+            .enumerate()
+            .map(|(index, chat_choice)| {
+                if index == 0 {
+                    return (
+                        (prompts::user_id.eq(user_id)),
+                        (prompts::instruction.eq(&request.system_content)),
+                        (prompts::prompt_token
+                            .eq(chat_completion_response.usage.prompt_tokens as i32)),
+                        (prompts::completion_token
+                            .eq(chat_completion_response.usage.completion_tokens as i32)),
+                        (prompts::prompt_text.eq(&request.user_content)),
+                        (prompts::completion_text.eq(&chat_choice.message.content)),
+                        (prompts::total_token
+                            .eq(chat_completion_response.usage.total_tokens as i32)),
+                        (prompts::total_cost.eq(0.0)),
+                        (prompts::prompt_type.eq(prompt_type)),
+                    );
+                }
+
+                return (
+                    (prompts::user_id.eq(user_id)),
+                    (prompts::instruction.eq(&request.system_content)),
+                    (prompts::prompt_token.eq(0)),
+                    (prompts::completion_token.eq(0)),
+                    (prompts::prompt_text.eq(&request.user_content)),
+                    (prompts::completion_text.eq(&chat_choice.message.content)),
+                    (prompts::total_token.eq(0)),
+                    (prompts::total_cost.eq(0.0)),
+                    (prompts::prompt_type.eq(prompt_type)),
+                );
+            })
+            .collect();
+
+        let mut conn = pool.get().unwrap();
+        diesel::insert_into(prompts::table)
+            .values(data)
+            .get_results(&mut conn)
     }
 }

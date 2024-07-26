@@ -3,9 +3,13 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct OpenAiChatCompletionResponse {
+    #[allow(dead_code)]
     id: String,
+    #[allow(dead_code)]
     object: String,
+    #[allow(dead_code)]
     model: String,
+    #[allow(dead_code)]
     created: u32,
     pub choices: Vec<OpenAiChatCompletionResponseChoiceParameter>,
     pub usage: OpenAiChatCompletionResponseUsageParameter,
@@ -14,7 +18,9 @@ pub struct OpenAiChatCompletionResponse {
 // #[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct OpenAiChatCompletionResponseChoiceParameter {
+    #[allow(dead_code)]
     index: i32,
+    #[allow(dead_code)]
     finish_reason: String,
     pub message: OpenAiChatCompletionRequestMessageParam,
 }

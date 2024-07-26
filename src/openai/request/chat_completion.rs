@@ -30,7 +30,7 @@ impl OpenAiChatCompletionRequest {
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct OpenAiChatCompletionRequestMessageParam {
   role: String,
-  content: String,
+  pub(crate) content: String,
 }
 
 impl OpenAiChatCompletionRequestMessageParam {

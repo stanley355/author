@@ -22,14 +22,30 @@ async fn post_prompt(
             match prompt_payment {
                 PromptPayment::PaymentRequired => HttpError::payment_required(),
                 _ => {
-                    let openai_data = OpenAiChatCompletionRequest::new(&request)
+                    let openai_result = OpenAiChatCompletionRequest::new(&request)
                         .request_json::<OpenAiChatCompletionResponse>(
                             OpenAiRequestEndpoint::ChatCompletion,
                         )
                         .await;
-                    // let openai_request = OpenAiRequest::new(Op, Some(openai_data), None);
 
-                    HttpResponse::Ok().body("woi")
+                    match openai_result {
+                        Ok(chat_completion_response) => {
+                            let prompts_insert_result = Prompt::new_insert_chat_completion(
+                                &pool,
+                                &request,
+                                &chat_completion_response,
+                            );
+                            match prompts_insert_result {
+                                Ok(prompts) => HttpResponse::Ok().json(prompts),
+                                Err(diesel_error) => {
+                                    HttpError::internal_server_error(&diesel_error.to_string())
+                                }
+                            }
+                        }
+                        Err(openai_error) => {
+                            HttpError::internal_server_error(&openai_error.to_string())
+                        }
+                    }
                 }
             }
         }
