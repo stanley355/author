@@ -1,6 +1,5 @@
 use crate::db;
 use crate::students;
-use crate::v2;
 use crate::middleware;
 use crate::users;
 use crate::subscriptions;
@@ -30,10 +29,6 @@ impl Server {
                 .wrap(middleware::AuthorMiddleware)
                 .app_data(web::Data::new(pool.clone()))
                 .service(Files::new("/v1/files", "/tmp"))
-                .service(web::scope("/v2/prompts").configure(v2::prompt::handler::route))
-                .service(web::scope("/v2/users").configure(v2::user::handler::route))
-                .service(web::scope("/v2/topups").configure(v2::topup::handler::route))
-                .service(web::scope("/v2/students").configure(v2::student::handler::route))
                 .service(web::scope("/v1/users").configure(users::services))
                 .service(web::scope("/v1/subscriptions").configure(subscriptions::services))
                 .service(web::scope("/v1/students").configure(students::services))
