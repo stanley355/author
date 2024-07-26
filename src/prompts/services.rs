@@ -3,7 +3,7 @@ use super::payment::PromptPayment;
 use super::request::NewPromptRequest;
 use super::request::PromptType;
 use crate::{db::PgPool, http_error::HttpError};
-use actix_web::{get, post, web, HttpResponse};
+use actix_web::{post, web, HttpResponse};
 
 #[post("/")]
 async fn post_prompt(
