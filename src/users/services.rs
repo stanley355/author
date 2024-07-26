@@ -13,23 +13,19 @@ async fn post_login_gmail(
 ) -> HttpResponse {
     let request = request_json.into_inner();
 
-    match request.is_valid() {
-        false => HttpError::bad_request("Bad Request"),
-        true => {
-            if let Ok(user) = User::find_by_email(&pool, &request.email) {
-                let user_jwt = UserJwt::new(&user);
-                HttpResponse::Ok().json(user_jwt)
-            } else {
-                let insert_result = User::new_from_login_gmail_insert(&pool, &request);
-                match insert_result {
-                    Ok(new_user) => {
-                        let new_user_jwt = UserJwt::new(&new_user);
-                        HttpResponse::Created().json(new_user_jwt)
-                    }
-                    Err(diesel_error) => {
-                        HttpError::internal_server_error(&diesel_error.to_string())
-                    }
+    match User::find_by_email(&pool, &request.email) {
+        Ok(user) => {
+            let user_jwt = UserJwt::new(&user);
+            HttpResponse::Ok().json(user_jwt)
+        }
+        Err(_) => {
+            let insert_result = User::new_from_login_gmail_insert(&pool, &request);
+            match insert_result {
+                Ok(new_user) => {
+                    let new_user_jwt = UserJwt::new(&new_user);
+                    HttpResponse::Created().json(new_user_jwt)
                 }
+                Err(diesel_error) => HttpError::internal_server_error(&diesel_error.to_string()),
             }
         }
     }
