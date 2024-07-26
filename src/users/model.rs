@@ -16,8 +16,6 @@ pub(super) struct User {
     #[allow(dead_code)]
     pub phone_number: Option<String>,
     #[allow(dead_code)]
-    pub balance: f64,
-    #[allow(dead_code)]
     pub created_at: Option<chrono::NaiveDateTime>,
     #[allow(dead_code)]
     pub updated_at: Option<chrono::NaiveDateTime>,

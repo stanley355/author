@@ -23,7 +23,6 @@ pub(super) struct Prompt {
     pub prompt_text: String,
     pub completion_text: String,
     pub total_token: i32,
-    pub total_cost: f64,
     pub instruction: String,
     pub prompt_type: Option<String>,
     pub updated_at: Option<chrono::NaiveDateTime>,
@@ -98,7 +97,6 @@ impl Prompt {
                         (prompts::completion_text.eq(&chat_choice.message.content)),
                         (prompts::total_token
                             .eq(chat_completion_response.usage.total_tokens as i32)),
-                        (prompts::total_cost.eq(0.0)),
                         (prompts::prompt_type.eq(prompt_type)),
                     );
                 }
@@ -111,7 +109,6 @@ impl Prompt {
                     (prompts::prompt_text.eq(&request.user_content)),
                     (prompts::completion_text.eq(&chat_choice.message.content)),
                     (prompts::total_token.eq(0)),
-                    (prompts::total_cost.eq(0.0)),
                     (prompts::prompt_type.eq(prompt_type)),
                 );
             })
@@ -136,7 +133,6 @@ impl Prompt {
             (prompts::prompt_text.eq(&request.input)),
             (prompts::completion_text.eq(&"")),
             (prompts::total_token.eq(0)),
-            (prompts::total_cost.eq(0.0)),
             (prompts::instruction.eq(&"")),
             (prompts::prompt_type.eq(PromptType::AudioSpeech.to_string())),
         );
@@ -161,7 +157,6 @@ impl Prompt {
             (prompts::prompt_text.eq(&"")),
             (prompts::completion_text.eq(text)),
             (prompts::total_token.eq(0)),
-            (prompts::total_cost.eq(0.0)),
             (prompts::instruction.eq(&"")),
             (prompts::prompt_type.eq(PromptType::AudioTranscriptions.to_string())),
         );
@@ -185,7 +180,6 @@ impl Prompt {
             (prompts::prompt_text.eq(&"")),
             (prompts::completion_text.eq(text)),
             (prompts::total_token.eq(0)),
-            (prompts::total_cost.eq(0.0)),
             (prompts::instruction.eq(&"")),
             (prompts::prompt_type.eq(PromptType::AudioTranslations.to_string())),
         );
