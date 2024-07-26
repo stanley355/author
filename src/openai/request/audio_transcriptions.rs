@@ -5,7 +5,7 @@ use crate::prompts::NewAudioTranscriptionsRequest;
 
 use super::OpenAiRequest;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct OpenAiAudioTranscriptionsRequest;
 
 impl OpenAiRequest for OpenAiAudioTranscriptionsRequest {}

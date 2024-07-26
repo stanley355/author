@@ -1,10 +1,12 @@
 use super::model::Prompt;
 use super::payment::PromptPayment;
 use super::request::{
-    DeleteAudioSpeechRequest, NewAudioSpeechPromptRequest, NewPromptRequest, PromptType,
+    DeleteAudioSpeechRequest, NewAudioSpeechPromptRequest, NewAudioTranscriptionsRequest,
+    NewPromptRequest, PromptType,
 };
 use crate::openai::{
-    OpenAiAudioSpeech, OpenAiChatCompletionRequest, OpenAiChatCompletionResponse, OpenAiRequest,
+    OpenAiAudioSpeech, OpenAiAudioTranscriptionsRequest, OpenAiAudioTranscriptionsResponse,
+    OpenAiChatCompletionRequest, OpenAiChatCompletionResponse, OpenAiRequest,
     OpenAiRequestEndpoint,
 };
 use crate::{db::PgPool, http_error::HttpError};
@@ -111,6 +113,38 @@ async fn delete_audio_speech(query: web::Query<DeleteAudioSpeechRequest>) -> Htt
         Ok(_) => HttpResponse::Ok().body(query.prompt_id.to_string()),
         Err(err) => HttpError::internal_server_error(&err.to_string()),
     }
+}
+
+#[post("/audio/transcriptions/")]
+async fn post_audio_transcriptions(
+    pool: web::Data<PgPool>,
+    request_json: web::Json<NewAudioTranscriptionsRequest>,
+) -> HttpResponse {
+    let request = request_json.into_inner();
+    let user_id = uuid::Uuid::parse_str(&request.user_id).unwrap();
+    let prompt_payment = Prompt::check_payment(&pool, &user_id, &PromptType::AudioSpeech);
+
+    return match prompt_payment {
+        PromptPayment::PaymentRequired => HttpError::payment_required(),
+        _ => {
+            let openai_request_form_data =
+                OpenAiAudioTranscriptionsRequest::new_form_data(&request).await;
+
+            match openai_request_form_data {
+                Ok(form_data) => {
+                    let openai_result = OpenAiAudioTranscriptionsRequest::request_multipart::<
+                        OpenAiAudioTranscriptionsResponse,
+                    >(
+                        form_data, OpenAiRequestEndpoint::AudioTranscriptions
+                    )
+                    .await;
+
+                    HttpResponse::Ok().body("woi")
+                }
+                Err(reqwest_error) => HttpError::bad_request(&reqwest_error.to_string()),
+            }
+        }
+    };
 }
 
 pub fn services(config: &mut web::ServiceConfig) {

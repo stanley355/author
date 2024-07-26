@@ -1,4 +1,5 @@
 use super::OpenAiRequestEndpoint;
+use reqwest::multipart::Form;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::env;
@@ -54,6 +55,26 @@ pub trait OpenAiRequest {
             .send()
             .await?
             .bytes()
+            .await
+    }
+
+    async fn request_multipart<S: DeserializeOwned>(
+        form_data: Form,
+        endpoint_type: OpenAiRequestEndpoint,
+    ) -> Result<S, reqwest::Error>
+    where
+        Self: Debug + Serialize,
+    {
+        let url = Self::match_endpoint_url(&endpoint_type);
+        let openai_key = env::var("OPENAI_API_KEY").unwrap();
+
+        reqwest::Client::new()
+            .post(url)
+            .header("Authorization", format!("{} {}", "Bearer", openai_key))
+            .multipart(form_data)
+            .send()
+            .await?
+            .json()
             .await
     }
 }
