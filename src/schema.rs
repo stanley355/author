@@ -10,7 +10,6 @@ diesel::table! {
         prompt_text -> Varchar,
         completion_text -> Varchar,
         total_token -> Int4,
-        total_cost -> Float8,
         instruction -> Varchar,
         prompt_type -> Nullable<Varchar>,
         updated_at -> Nullable<Timestamp>,
@@ -66,7 +65,6 @@ diesel::table! {
         email -> Varchar,
         password -> Varchar,
         phone_number -> Nullable<Varchar>,
-        balance -> Float8,
         created_at -> Nullable<Timestamp>,
         updated_at -> Nullable<Timestamp>,
     }
