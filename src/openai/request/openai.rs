@@ -1,30 +1,10 @@
 use super::OpenAiRequestEndpoint;
-use reqwest::multipart::Form;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::env;
 use std::fmt::Debug;
 
-#[derive(Debug)]
-pub struct OpenAiRequest<D: Debug + Serialize> {
-    endpoint_type: OpenAiRequestEndpoint,
-    data: Option<D>,
-    form_data: Option<Form>,
-}
-
-impl<D: Debug + Serialize> OpenAiRequest<D> {
-    pub fn new(
-        endpoint_type: OpenAiRequestEndpoint,
-        data: Option<D>,
-        form_data: Option<Form>,
-    ) -> Self {
-        Self {
-            endpoint_type,
-            data,
-            form_data,
-        }
-    }
-
+pub trait OpenAiRequest {
     fn match_endpoint_url(endpoint: &OpenAiRequestEndpoint) -> String {
         let openai_url = env::var("OPENAI_URL").expect("Missing OPENAI_URL");
         let path = match endpoint {
@@ -37,14 +17,20 @@ impl<D: Debug + Serialize> OpenAiRequest<D> {
         format!("{}{}", openai_url, path)
     }
 
-    pub async fn request_json<S: DeserializeOwned>(self) -> Result<S, reqwest::Error> {
-        let url = Self::match_endpoint_url(&self.endpoint_type);
+    async fn request_json<S: DeserializeOwned>(
+        &self,
+        endpoint_type: OpenAiRequestEndpoint,
+    ) -> Result<S, reqwest::Error>
+    where
+        Self: Debug + Serialize,
+    {
+        let url = Self::match_endpoint_url(&endpoint_type);
         let openai_key = env::var("OPENAI_API_KEY").unwrap();
 
         reqwest::Client::new()
             .post(url)
             .header("Authorization", format!("{} {}", "Bearer", openai_key))
-            .json(&self.data)
+            .json(&self)
             .send()
             .await?
             .json::<S>()

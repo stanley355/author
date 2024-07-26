@@ -1,9 +1,9 @@
 use super::model::Prompt;
 use super::payment::PromptPayment;
-use super::request::NewPromptRequest;
-use super::request::PromptType;
-use crate::openai::OpenAiChatCompletionRequest;
-use crate::openai::OpenAiRequest;
+use super::request::{NewPromptRequest, PromptType};
+use crate::openai::{
+    OpenAiChatCompletionRequest, OpenAiChatCompletionResponse, OpenAiRequest, OpenAiRequestEndpoint,
+};
 use crate::{db::PgPool, http_error::HttpError};
 use actix_web::{post, web, HttpResponse};
 
@@ -21,12 +21,16 @@ async fn post_prompt(
 
             match prompt_payment {
                 PromptPayment::PaymentRequired => HttpError::payment_required(),
-                _ =>{ 
-                    let openai_data = OpenAiChatCompletionRequest::new(&request);
+                _ => {
+                    let openai_data = OpenAiChatCompletionRequest::new(&request)
+                        .request_json::<OpenAiChatCompletionResponse>(
+                            OpenAiRequestEndpoint::ChatCompletion,
+                        )
+                        .await;
                     // let openai_request = OpenAiRequest::new(Op, Some(openai_data), None);
 
                     HttpResponse::Ok().body("woi")
-                },
+                }
             }
         }
         _ => {
