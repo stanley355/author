@@ -2,7 +2,8 @@ use super::model::Prompt;
 use super::payment::PromptPayment;
 use super::request::{NewAudioSpeechPromptRequest, NewPromptRequest, PromptType};
 use crate::openai::{
-    OpenAiAudioSpeech, OpenAiChatCompletionRequest, OpenAiChatCompletionResponse, OpenAiRequest, OpenAiRequestEndpoint
+    OpenAiAudioSpeech, OpenAiChatCompletionRequest, OpenAiChatCompletionResponse, OpenAiRequest,
+    OpenAiRequestEndpoint,
 };
 use crate::{db::PgPool, http_error::HttpError};
 use actix_web::{post, web, HttpResponse};
@@ -68,8 +69,33 @@ async fn post_audio_speech(
     match prompt_payment {
         PromptPayment::PaymentRequired => HttpError::payment_required(),
         _ => {
-            let openai_result = OpenAiAudioSpeech::new(&request).request_bytes(OpenAiRequestEndpoint::AudioSpeech).await;
-            HttpResponse::Ok().body("woi")
+            let openai_result = OpenAiAudioSpeech::new(&request)
+                .request_bytes(OpenAiRequestEndpoint::AudioSpeech)
+                .await;
+
+            match openai_result {
+                Ok(bytes) => {
+                    let prompt_insert_result = Prompt::new_insert_audio_speech(&pool, &request);
+                    match prompt_insert_result {
+                        Ok(prompt) => {
+                            let file_name = format!("{}.mp3", &prompt.id);
+                            let file_path = format!("/tmp/{}", file_name);
+                            let file_creation = std::fs::write(file_path, &bytes);
+
+                            match file_creation {
+                                Ok(_) => HttpResponse::Created().json(prompt),
+                                Err(create_error) => {
+                                    HttpError::internal_server_error(&create_error.to_string())
+                                }
+                            }
+                        }
+                        Err(diesel_error) => {
+                            HttpError::internal_server_error(&diesel_error.to_string())
+                        }
+                    }
+                }
+                Err(openai_error) => HttpError::internal_server_error(&openai_error.to_string()),
+            }
         }
     }
 }

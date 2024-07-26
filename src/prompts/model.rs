@@ -6,7 +6,7 @@ use serde::Serialize;
 
 use super::payment::PromptPayment;
 use super::request::PromptType;
-use super::NewPromptRequest;
+use super::{NewAudioSpeechPromptRequest, NewPromptRequest};
 use crate::db::PgPool;
 use crate::openai::OpenAiChatCompletionResponse;
 use crate::schema::prompts;
@@ -121,5 +121,29 @@ impl Prompt {
         diesel::insert_into(prompts::table)
             .values(data)
             .get_results(&mut conn)
+    }
+
+    pub fn new_insert_audio_speech(
+        pool: &web::Data<PgPool>,
+        request: &NewAudioSpeechPromptRequest,
+    ) -> QueryResult<Prompt> {
+        let user_id = uuid::Uuid::parse_str(&request.user_id).unwrap();
+
+        let data = (
+            (prompts::user_id.eq(user_id)),
+            (prompts::prompt_token.eq(0)),
+            (prompts::completion_token.eq(0)),
+            (prompts::prompt_text.eq(&request.input)),
+            (prompts::completion_text.eq(&"")),
+            (prompts::total_token.eq(0)),
+            (prompts::total_cost.eq(0.0)),
+            (prompts::instruction.eq(&"")),
+            (prompts::prompt_type.eq(PromptType::AudioSpeech.to_string())),
+        );
+
+        let mut conn = pool.get().unwrap();
+        diesel::insert_into(prompts::table)
+            .values(data)
+            .get_result(&mut conn)
     }
 }
