@@ -82,7 +82,7 @@ async fn post_audio_speech(
                     let prompt_insert_result = Prompt::new_insert_audio_speech(&pool, &request);
                     match prompt_insert_result {
                         Ok(prompt) => {
-                            let file_name = format!("{}.{}", &prompt.id, &request.response_format.to_string().to_lowercase()``);
+                            let file_name = format!("{}.{}", &prompt.id, &request.response_format.to_string().to_lowercase());
                             let file_path = format!("/tmp/{}", file_name);
                             let file_creation = std::fs::write(file_path, &bytes);
 
