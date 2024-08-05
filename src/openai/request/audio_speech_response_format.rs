@@ -5,10 +5,7 @@ use std::fmt;
 pub enum OpenAiAudioSpeechResponseFormat {
   Mp3,
   Opus,
-  Aac,
-  Flac,
   Wav,
-  Pcm
 }
 
 impl fmt::Display for OpenAiAudioSpeechResponseFormat{
