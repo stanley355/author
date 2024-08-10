@@ -1,5 +1,8 @@
 # Author
 
+### 1.4.1
+- Add response format to audio speech endpoint
+
 ### 1.4.0
 - /v1/prompts/
 - /v1/students/
