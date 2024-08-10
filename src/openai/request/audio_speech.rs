@@ -10,6 +10,7 @@ pub struct OpenAiAudioSpeech {
     pub input: String,
     pub voice: String,
     pub speed: Option<f32>, // 0.25 - 4.0
+    response_format: String
 }
 
 impl OpenAiRequest for OpenAiAudioSpeech {}
@@ -21,6 +22,7 @@ impl OpenAiAudioSpeech {
             input: req.input.clone(),
             voice: req.voice.to_string().to_lowercase(),
             speed: req.speed,
+            response_format: req.response_format.to_string().to_lowercase()
         }
     }
 }
