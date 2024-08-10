@@ -2,7 +2,7 @@ use crate::users::model::User;
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
-pub(super) struct UsersBaseResponse {
+pub(crate) struct UsersBaseResponse {
     id: uuid::Uuid,
     fullname: String,
     email: String,
@@ -10,7 +10,7 @@ pub(super) struct UsersBaseResponse {
 }
 
 impl UsersBaseResponse {
-    pub(super) fn new(user: &User) -> Self {
+    pub(crate) fn new(user: &User) -> Self {
         Self {
             id: user.id,
             fullname: user.fullname.clone(),

@@ -1,10 +1,14 @@
 use actix_web::web;
-use diesel::{ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl};
+use bcrypt::{hash, DEFAULT_COST};
+use diesel::{
+    BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
+};
+use uuid::Uuid;
 
 use crate::db::PgPool;
 use crate::schema::users;
 
-use super::request::UsersLoginGmailRequest;
+use super::request::{UsersLoginGmailRequest, UsersResetPasswordRequest};
 
 #[derive(Debug, Queryable)]
 pub(super) struct User {
@@ -49,6 +53,24 @@ impl User {
 
         diesel::insert_into(users::table)
             .values(data)
+            .get_result(&mut conn)
+    }
+
+    pub(super) fn new_reset_password(
+        pool: &web::Data<PgPool>,
+        request: &UsersResetPasswordRequest,
+    ) -> QueryResult<User> {
+        let user_id = Uuid::parse_str(&request.id.clone()).unwrap();
+        let hashed_password = hash(request.new_password.clone(), DEFAULT_COST).unwrap();
+        let mut conn = pool.get().unwrap();
+
+        diesel::update(users::table)
+            .filter(
+                users::id
+                    .eq(user_id)
+                    .and(users::email.eq(request.email.clone())),
+            )
+            .set(users::password.eq(hashed_password))
             .get_result(&mut conn)
     }
 }
