@@ -1,14 +1,10 @@
 use actix_web::web;
 use bcrypt::{hash, verify, DEFAULT_COST};
-use diesel::{
-    BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
-};
-use uuid::Uuid;
+use diesel::{ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl};
 
 use crate::db::PgPool;
 use crate::schema::users;
-
-use super::request::{UsersLoginGmailRequest, UsersResetPasswordRequest};
+use super::request::UsersLoginGmailRequest;
 
 #[derive(Debug, Queryable)]
 pub(super) struct User {
@@ -56,31 +52,13 @@ impl User {
             .get_result(&mut conn)
     }
 
-    pub(super) fn new_reset_password(
-        pool: &web::Data<PgPool>,
-        request: &UsersResetPasswordRequest,
-    ) -> QueryResult<User> {
-        let user_id = Uuid::parse_str(&request.id.clone()).unwrap();
-        let hashed_password = hash(request.new_password.clone(), DEFAULT_COST).unwrap();
-        let mut conn = pool.get().unwrap();
-
-        diesel::update(users::table)
-            .filter(
-                users::id
-                    .eq(user_id)
-                    .and(users::email.eq(request.email.clone())),
-            )
-            .set(users::password.eq(hashed_password))
-            .get_result(&mut conn)
-    }
-
     pub(super) fn check_password_valid(&self, password: &str) -> bool {
         verify(password, &self.password).unwrap()
     }
 
     pub(super) fn change_password(
         pool: &web::Data<PgPool>,
-        user_id: uuid::Uuid,
+        user_id: &uuid::Uuid,
         new_password: &str,
     ) -> QueryResult<User> {
         let hashed_password = hash(new_password, DEFAULT_COST).unwrap();

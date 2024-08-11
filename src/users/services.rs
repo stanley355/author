@@ -53,19 +53,20 @@ async fn get_account(
     }
 }
 
-#[post("/reset-password/")]
-async fn post_reset_password(
+#[put("/reset-password/")]
+async fn put_reset_password(
     pool: web::Data<PgPool>,
     request_json: web::Json<UsersResetPasswordRequest>,
 ) -> HttpResponse {
     let request = request_json.into_inner();
-    let admin_password = &env::var("ADMIN_PASSWORD").expect("ADMIN_PASSWORD not set");
+    let admin_password = env::var("ADMIN_PASSWORD").expect("ADMIN_PASSWORD not set");
 
-    if &request.admin_password != admin_password {
-        return HttpError::bad_request("Wrong password");
+    if request.admin_password != admin_password {
+        return HttpError::bad_request("Invalid admin password");
     }
 
-    let user_result = User::new_reset_password(&pool, &request);
+    let user_id = uuid::Uuid::parse_str(&request.id).unwrap();
+    let user_result = User::change_password(&pool, &user_id, &request.new_password);
     match user_result {
         Ok(user) => {
             let base_user = UsersBaseResponse::new(&user);
@@ -84,11 +85,11 @@ async fn put_change_password(
     let whitespaces: &[char] = &[' ', '\n', '\t'];
 
     if request.new_password.contains(whitespaces) {
-        return HttpError::bad_request("New password can't contain whitespaces")
+        return HttpError::bad_request("New password can't contain whitespaces");
     }
 
     if request.new_password != request.new_password_again {
-        return HttpError::bad_request("New password is not similar to new password confirmation")
+        return HttpError::bad_request("New password is not similar to new password confirmation");
     }
 
     let user_id = uuid::Uuid::parse_str(&request.id).unwrap();
@@ -98,7 +99,7 @@ async fn put_change_password(
             match old_password_valid {
                 true => {
                     let updated_user_result =
-                        User::change_password(&pool, user_id, &request.new_password);
+                        User::change_password(&pool, &user_id, &request.new_password);
                     match updated_user_result {
                         Ok(updated_user) => {
                             let base_user = UsersBaseResponse::new(&updated_user);
@@ -120,6 +121,6 @@ pub fn services(config: &mut web::ServiceConfig) {
     config
         .service(post_login_gmail)
         .service(get_account)
-        .service(post_reset_password)
+        .service(put_reset_password)
         .service(put_change_password);
 }
