@@ -1,5 +1,5 @@
 use actix_web::web;
-use bcrypt::{hash, DEFAULT_COST};
+use bcrypt::{hash, verify, DEFAULT_COST};
 use diesel::{
     BoolExpressionMethods, ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl,
 };
@@ -70,6 +70,23 @@ impl User {
                     .eq(user_id)
                     .and(users::email.eq(request.email.clone())),
             )
+            .set(users::password.eq(hashed_password))
+            .get_result(&mut conn)
+    }
+
+    pub(super) fn check_password_valid(&self, password: &str) -> bool {
+        verify(password, &self.password).unwrap()
+    }
+
+    pub(super) fn change_password(
+        pool: &web::Data<PgPool>,
+        user_id: uuid::Uuid,
+        new_password: &str,
+    ) -> QueryResult<User> {
+        let hashed_password = hash(new_password, DEFAULT_COST).unwrap();
+        let mut conn = pool.get().unwrap();
+        diesel::update(users::table)
+            .filter(users::id.eq(user_id))
             .set(users::password.eq(hashed_password))
             .get_result(&mut conn)
     }
