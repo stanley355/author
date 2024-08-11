@@ -11,7 +11,6 @@ pub(super) struct User {
     pub id: uuid::Uuid,
     pub fullname: String,
     pub email: String,
-    #[allow(dead_code)]
     pub password: String,
     #[allow(dead_code)]
     pub phone_number: Option<String>,
