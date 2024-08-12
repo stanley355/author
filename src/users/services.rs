@@ -5,11 +5,33 @@ use std::env;
 use super::jwt::UserJwt;
 use super::model::User;
 use super::request::{
-    UsersAccountRequest, UsersChangePasswordRequest, UsersLoginGmailRequest, UsersRegisterRequest,
-    UsersResetPasswordRequest,
+    UsersAccountRequest, UsersChangePasswordRequest, UsersLoginGmailRequest, UsersLoginRequest,
+    UsersRegisterRequest, UsersResetPasswordRequest,
 };
 use super::response::{UsersAccountResponse, UsersBaseResponse};
 use crate::{db::PgPool, http_error::HttpError};
+
+#[post("/login/")]
+async fn post_login(
+    pool: web::Data<PgPool>,
+    request_json: web::Json<UsersLoginRequest>,
+) -> HttpResponse {
+    let request = request_json.into_inner();
+
+    return match User::find_by_email(&pool, &request.email) {
+        Ok(user) => {
+            let password_valid = user.check_password_valid(&request.password);
+            match password_valid {
+                true => {
+                    let user_jwt = UserJwt::new(&user);
+                    HttpResponse::Ok().json(user_jwt)
+                }
+                false => HttpError::bad_request("Invalid email or password"),
+            }
+        }
+        Err(_) => HttpError::bad_request("User not found"),
+    };
+}
 
 #[post("/login/gmail/")]
 async fn post_login_gmail(
@@ -24,7 +46,7 @@ async fn post_login_gmail(
             HttpResponse::Ok().json(user_jwt)
         }
         Err(_) => {
-            let insert_result = User::new_from_login_gmail_insert(&pool, &request);
+            let insert_result = User::new_login_gmail_insert(&pool, &request);
             match insert_result {
                 Ok(new_user) => {
                     let new_user_jwt = UserJwt::new(&new_user);
@@ -164,6 +186,7 @@ async fn post_register(
 
 pub fn services(config: &mut web::ServiceConfig) {
     config
+        .service(post_login)
         .service(post_login_gmail)
         .service(get_account)
         .service(put_reset_password)
