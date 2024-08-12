@@ -1,10 +1,11 @@
 use actix_web::{get, post, put, web, HttpResponse};
+use regex::Regex;
 use std::env;
 
 use super::jwt::UserJwt;
 use super::model::User;
 use super::request::{
-    UsersAccountRequest, UsersChangePasswordRequest, UsersLoginGmailRequest,
+    UsersAccountRequest, UsersChangePasswordRequest, UsersLoginGmailRequest, UsersRegisterRequest,
     UsersResetPasswordRequest,
 };
 use super::response::{UsersAccountResponse, UsersBaseResponse};
@@ -117,10 +118,44 @@ async fn put_change_password(
     };
 }
 
+#[post("/register/")]
+async fn post_register(
+    pool: web::Data<PgPool>,
+    request_json: web::Json<UsersRegisterRequest>,
+) -> HttpResponse {
+    let request = request_json.into_inner();
+
+    let fullname_has_symbol = Regex::new(r"[^A-Za-z0-9\s]")
+        .unwrap()
+        .is_match(&request.fullname);
+    if fullname_has_symbol {
+        return HttpError::bad_request("Invalid fullname: Fullname can't contain symbol");
+    }
+
+    let email_is_invalid = !Regex::new(r"^[\w\.-]+@[a-zA-Z\d\.-]+\.[a-zA-Z]{2,}$")
+        .unwrap()
+        .is_match(&request.email);
+    if email_is_invalid {
+        return HttpError::bad_request("Invalid email: Format");
+    }
+
+    if &request.password.len() < &(4 as usize) {
+        return HttpError::bad_request("Invalid password: 4 characters mininum");
+    }
+
+    if &request.password != &request.password_again {
+        return HttpError::bad_request("Invalid password: Password is not similar to password confirmation");
+    }
+
+    // let inva
+    HttpResponse::Ok().body("woi")
+}
+
 pub fn services(config: &mut web::ServiceConfig) {
     config
         .service(post_login_gmail)
         .service(get_account)
         .service(put_reset_password)
-        .service(put_change_password);
+        .service(put_change_password)
+        .service(post_register);
 }
