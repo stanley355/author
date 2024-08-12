@@ -2,9 +2,9 @@ use actix_web::web;
 use bcrypt::{hash, verify, DEFAULT_COST};
 use diesel::{ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl};
 
+use super::request::{UsersLoginGmailRequest, UsersRegisterRequest};
 use crate::db::PgPool;
 use crate::schema::users;
-use super::request::UsersLoginGmailRequest;
 
 #[derive(Debug, Queryable)]
 pub(super) struct User {
@@ -46,6 +46,23 @@ impl User {
             (users::password.eq("")),
         );
 
+        diesel::insert_into(users::table)
+            .values(data)
+            .get_result(&mut conn)
+    }
+
+    pub(super) fn new_register_insert(
+        pool: &web::Data<PgPool>,
+        request: &UsersRegisterRequest,
+    ) -> QueryResult<User> {
+        let hashed_password = hash(&request.password, DEFAULT_COST).unwrap();
+        let data = (
+            (users::fullname.eq(&request.fullname)),
+            (users::email.eq(&request.email)),
+            (users::password.eq(hashed_password)),
+        );
+
+        let mut conn = pool.get().unwrap();
         diesel::insert_into(users::table)
             .values(data)
             .get_result(&mut conn)

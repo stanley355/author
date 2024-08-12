@@ -144,11 +144,22 @@ async fn post_register(
     }
 
     if &request.password != &request.password_again {
-        return HttpError::bad_request("Invalid password: Password is not similar to password confirmation");
+        return HttpError::bad_request(
+            "Invalid password: Password is not similar to password confirmation",
+        );
     }
 
-    // let inva
-    HttpResponse::Ok().body("woi")
+    if let Ok(_) = User::find_by_email(&pool, &request.email) {
+        return HttpError::bad_request("User already exists");
+    }
+
+    return match User::new_register_insert(&pool, &request) {
+        Ok(user) => {
+            let user_jwt = UserJwt::new(&user);
+            HttpResponse::Created().json(user_jwt)
+        }
+        Err(insert_error) => HttpError::internal_server_error(&insert_error.to_string()),
+    };
 }
 
 pub fn services(config: &mut web::ServiceConfig) {
