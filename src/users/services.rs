@@ -147,6 +147,10 @@ async fn post_register(
 ) -> HttpResponse {
     let request = request_json.into_inner();
 
+    if &request.fullname.len() < &(4 as usize) {
+        return HttpError::bad_request("Invalid fullname: 4 characters mininum");
+    }
+
     let fullname_has_symbol = Regex::new(r"[^A-Za-z0-9\s]")
         .unwrap()
         .is_match(&request.fullname);
