@@ -3,22 +3,24 @@ use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
-struct UserJwtPayload {
+pub (super) struct UserJwtPayload {
     id: uuid::Uuid,
     fullname: String,
     email: String,
+    phone_number: Option<String>,
 }
 
 impl UserJwtPayload {
-    fn new(user: &User) -> Self {
+    pub(super) fn new(user: &User) -> Self {
         Self {
             id: user.id,
             fullname: user.fullname.clone(),
             email: user.email.clone(),
+            phone_number: user.phone_number.clone()
         }
     }
 
-    fn encode(self) -> String {
+    pub(super) fn encode(self) -> String {
         let header = Header::new(Algorithm::HS256);
         let key = EncodingKey::from_secret("secret".as_ref());
         let encode_result = encode(&header, &self, &key);

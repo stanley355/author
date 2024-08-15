@@ -8,7 +8,7 @@ use super::request::{
     UsersAccountRequest, UsersChangePasswordRequest, UsersLoginGmailRequest, UsersLoginRequest,
     UsersRegisterRequest, UsersResetPasswordRequest,
 };
-use super::response::{UsersAccountResponse, UsersBaseResponse};
+use super::response::UsersAccountResponse;
 use crate::{db::PgPool, http_error::HttpError};
 
 #[post("/login/")]
@@ -92,7 +92,7 @@ async fn put_reset_password(
     let user_result = User::change_password(&pool, &user_id, &request.new_password);
     match user_result {
         Ok(user) => {
-            let base_user = UsersBaseResponse::new(&user);
+            let base_user = UserJwt::new(&user);
             return HttpResponse::Ok().json(base_user);
         }
         Err(err) => HttpError::bad_request(&err.to_string()),
@@ -125,7 +125,7 @@ async fn put_change_password(
                         User::change_password(&pool, &user_id, &request.new_password);
                     match updated_user_result {
                         Ok(updated_user) => {
-                            let base_user = UsersBaseResponse::new(&updated_user);
+                            let base_user = UserJwt::new(&updated_user);
                             HttpResponse::Ok().json(base_user)
                         }
                         Err(change_password_error) => {

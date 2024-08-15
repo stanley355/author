@@ -1,14 +1,14 @@
-use super::base::UsersBaseResponse;
 use crate::db::PgPool;
 use crate::students::Student;
 use crate::subscriptions::Subscription;
+use crate::users::jwt::UserJwtPayload;
 use crate::users::model::User;
 use actix_web::web;
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 pub(crate) struct UsersAccountResponse {
-    user: UsersBaseResponse,
+    user: UserJwtPayload,
     student: Option<Student>,
     subscription: Option<Subscription>,
     subscriptions: Option<Vec<Subscription>>,
@@ -32,7 +32,7 @@ impl UsersAccountResponse {
         };
 
         Self {
-            user: UsersBaseResponse::new(user),
+            user: UserJwtPayload::new(user),
             student: student_result,
             subscription: subscription_result,
             subscriptions: subscriptions_result,
