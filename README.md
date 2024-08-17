@@ -1,5 +1,12 @@
 # Author
 
+### 1.4.2
+
+- login
+- register
+- change-password
+- reset-password
+
 ### 1.4.1
 - Add response format to audio speech endpoint
 

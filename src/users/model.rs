@@ -1,17 +1,16 @@
 use actix_web::web;
+use bcrypt::{hash, verify, DEFAULT_COST};
 use diesel::{ExpressionMethods, QueryDsl, QueryResult, Queryable, RunQueryDsl};
 
+use super::request::{UsersLoginGmailRequest, UsersRegisterRequest};
 use crate::db::PgPool;
 use crate::schema::users;
-
-use super::request::UsersLoginGmailRequest;
 
 #[derive(Debug, Queryable)]
 pub(super) struct User {
     pub id: uuid::Uuid,
     pub fullname: String,
     pub email: String,
-    #[allow(dead_code)]
     pub password: String,
     #[allow(dead_code)]
     pub phone_number: Option<String>,
@@ -36,7 +35,7 @@ impl User {
             .get_result::<User>(&mut conn)
     }
 
-    pub(super) fn new_from_login_gmail_insert(
+    pub(super) fn new_login_gmail_insert(
         pool: &web::Data<PgPool>,
         request: &UsersLoginGmailRequest,
     ) -> QueryResult<User> {
@@ -49,6 +48,40 @@ impl User {
 
         diesel::insert_into(users::table)
             .values(data)
+            .get_result(&mut conn)
+    }
+
+    pub(super) fn new_register_insert(
+        pool: &web::Data<PgPool>,
+        request: &UsersRegisterRequest,
+    ) -> QueryResult<User> {
+        let hashed_password = hash(&request.password, DEFAULT_COST).unwrap();
+        let data = (
+            (users::fullname.eq(&request.fullname)),
+            (users::email.eq(&request.email)),
+            (users::password.eq(hashed_password)),
+        );
+
+        let mut conn = pool.get().unwrap();
+        diesel::insert_into(users::table)
+            .values(data)
+            .get_result(&mut conn)
+    }
+
+    pub(super) fn check_password_valid(&self, password: &str) -> bool {
+        verify(password, &self.password).unwrap()
+    }
+
+    pub(super) fn change_password(
+        pool: &web::Data<PgPool>,
+        user_id: &uuid::Uuid,
+        new_password: &str,
+    ) -> QueryResult<User> {
+        let hashed_password = hash(new_password, DEFAULT_COST).unwrap();
+        let mut conn = pool.get().unwrap();
+        diesel::update(users::table)
+            .filter(users::id.eq(user_id))
+            .set(users::password.eq(hashed_password))
             .get_result(&mut conn)
     }
 }
