@@ -76,6 +76,26 @@ async fn get_account(
     }
 }
 
+#[get("/{id}")]
+async fn get_id(
+    pool: web::Data<PgPool>,
+    request_query: web::Path<String>,
+) -> HttpResponse {
+    println!("{}", request_query);
+    // let user_id = uuid::Uuid::parse_str(&request_query.id).unwrap();
+
+    // let user_result = User::find(&pool, user_id);
+
+    // match user_result {
+    //     Ok(user) => {
+    //         let user_account = UsersAccountResponse::new(&pool, &user);
+    //         HttpResponse::Ok().json(user_account)
+    //     }
+    //     Err(diesel_error) => HttpError::bad_request(&diesel_error.to_string()),
+    // }
+            HttpResponse::Ok().body("woi")
+}
+
 #[put("/reset-password/")]
 async fn put_reset_password(
     pool: web::Data<PgPool>,
