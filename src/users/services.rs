@@ -2,13 +2,12 @@ use actix_web::{get, post, put, web, HttpResponse};
 use regex::Regex;
 use std::env;
 
-use super::jwt::UserJwt;
+use super::jwt::{UserJwt, UserJwtPayload};
 use super::model::User;
 use super::request::{
-    UsersAccountRequest, UsersChangePasswordRequest, UsersLoginGmailRequest, UsersLoginRequest,
+    UsersChangePasswordRequest, UsersLoginGmailRequest, UsersLoginRequest,
     UsersRegisterRequest, UsersResetPasswordRequest,
 };
-use super::response::UsersAccountResponse;
 use crate::{db::PgPool, http_error::HttpError};
 
 #[post("/login/")]
@@ -58,42 +57,22 @@ async fn post_login_gmail(
     }
 }
 
-#[get("/account")]
-async fn get_account(
+#[get("/{id}")]
+async fn get_user_by_id(
     pool: web::Data<PgPool>,
-    request_query: web::Query<UsersAccountRequest>,
+    id_param: web::Path<String>,
 ) -> HttpResponse {
-    let user_id = uuid::Uuid::parse_str(&request_query.id).unwrap();
+    let user_id = uuid::Uuid::parse_str(&id_param).unwrap();
 
     let user_result = User::find(&pool, user_id);
 
     match user_result {
         Ok(user) => {
-            let user_account = UsersAccountResponse::new(&pool, &user);
+            let user_account = UserJwtPayload::new(&user);
             HttpResponse::Ok().json(user_account)
         }
         Err(diesel_error) => HttpError::bad_request(&diesel_error.to_string()),
     }
-}
-
-#[get("/{id}")]
-async fn get_id(
-    pool: web::Data<PgPool>,
-    request_query: web::Path<String>,
-) -> HttpResponse {
-    println!("{}", request_query);
-    // let user_id = uuid::Uuid::parse_str(&request_query.id).unwrap();
-
-    // let user_result = User::find(&pool, user_id);
-
-    // match user_result {
-    //     Ok(user) => {
-    //         let user_account = UsersAccountResponse::new(&pool, &user);
-    //         HttpResponse::Ok().json(user_account)
-    //     }
-    //     Err(diesel_error) => HttpError::bad_request(&diesel_error.to_string()),
-    // }
-            HttpResponse::Ok().body("woi")
 }
 
 #[put("/reset-password/")]
@@ -212,8 +191,8 @@ pub fn services(config: &mut web::ServiceConfig) {
     config
         .service(post_login)
         .service(post_login_gmail)
-        .service(get_account)
         .service(put_reset_password)
         .service(put_change_password)
-        .service(post_register);
+        .service(post_register)
+        .service(get_user_by_id);
 }

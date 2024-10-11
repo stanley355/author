@@ -100,17 +100,4 @@ impl Subscription {
             .order_by(subscriptions::created_at.desc())
             .get_result::<Subscription>(&mut conn)
     }
-
-    pub fn find_last_five(
-        pool: &web::Data<PgPool>,
-        user_id: &uuid::Uuid,
-    ) -> QueryResult<Vec<Subscription>> {
-        let mut conn = pool.get().unwrap();
-
-        subscriptions::table
-            .filter(subscriptions::user_id.eq(user_id))
-            .order_by(subscriptions::created_at.desc())
-            .limit(5)
-            .get_results::<Subscription>(&mut conn)
-    }
 }
