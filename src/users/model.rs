@@ -69,7 +69,11 @@ impl User {
     }
 
     pub(super) fn check_password_valid(&self, password: &str) -> bool {
-        verify(password, &self.password).unwrap()
+        if self.password != "".to_string() {
+            verify(password, &self.password).unwrap()
+        } else {
+            true
+        }
     }
 
     pub(super) fn change_password(
