@@ -146,8 +146,8 @@ async fn post_register(
 ) -> HttpResponse {
     let request = request_json.into_inner();
 
-    if &request.fullname.len() < &(4 as usize) {
-        return HttpError::bad_request("Invalid fullname: 4 characters mininum");
+    if &request.fullname.len() < &(4usize) {
+        return HttpError::bad_request("Invalid fullname: 4 characters minimum");
     }
 
     let fullname_has_symbol = Regex::new(r"[^A-Za-z0-9\s]")
@@ -164,8 +164,8 @@ async fn post_register(
         return HttpError::bad_request("Invalid email: Format");
     }
 
-    if &request.password.len() < &(4 as usize) {
-        return HttpError::bad_request("Invalid password: 4 characters mininum");
+    if &request.password.len() < &(4usize) {
+        return HttpError::bad_request("Invalid password: 4 characters minimum");
     }
 
     if &request.password != &request.password_again {
