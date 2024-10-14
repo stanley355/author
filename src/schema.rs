@@ -10,7 +10,7 @@ diesel::table! {
         model -> Varchar,
         system_content -> Text,
         user_content -> Text,
-        message_content -> Text,
+        completion_content -> Text,
         prompt_tokens -> Int4,
         completion_tokens -> Int4,
         total_tokens -> Int4,

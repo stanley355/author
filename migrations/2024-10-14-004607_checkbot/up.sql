@@ -8,7 +8,7 @@ CREATE TABLE checkbots (
   model VARCHAR NOT NULL,
   system_content TEXT NOT NULL,
   user_content TEXT NOT NULL,
-  message_content TEXT NOT NULL,
+  completion_content TEXT NOT NULL,
   prompt_tokens INT NOT NULL,
   completion_tokens INT NOT NULL,
   total_tokens INT NOT NULL

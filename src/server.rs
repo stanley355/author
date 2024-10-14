@@ -23,6 +23,7 @@ impl Server {
         return address;
     }
 
+    // TODO: Remove subscriptions, students, and prompts
     pub(super) async fn new_http_server(pool: db::PgPool) -> std::io::Result<()> {
         HttpServer::new(move || {
             App::new()
@@ -31,9 +32,9 @@ impl Server {
                 .app_data(web::Data::new(pool.clone()))
                 .service(Files::new("/v1/files", "/tmp"))
                 .service(web::scope("/v1/users").configure(users::services))
-                // .service(web::scope("/v1/subscriptions").configure(subscriptions::services))
-                // .service(web::scope("/v1/students").configure(students::services))
-                // .service(web::scope("/v1/prompts").configure(prompts::services))
+                .service(web::scope("/v1/subscriptions").configure(subscriptions::services))
+                .service(web::scope("/v1/students").configure(students::services))
+                .service(web::scope("/v1/prompts").configure(prompts::services))
                 .service(web::scope("/v1/checkbots").configure(checkbots::services))
         })
         .bind(Self::address())?

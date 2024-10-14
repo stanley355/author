@@ -7,8 +7,7 @@ pub struct OpenAiChatCompletionResponse {
     id: String,
     #[allow(dead_code)]
     object: String,
-    #[allow(dead_code)]
-    model: String,
+    pub model: String,
     #[allow(dead_code)]
     created: u32,
     pub choices: Vec<OpenAiChatCompletionResponseChoiceParameter>,
