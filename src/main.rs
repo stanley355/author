@@ -12,6 +12,7 @@ mod subscriptions;
 mod users;
 mod prompts;
 mod openai;
+mod checkbots;
 
 // Flatten
 use server::Server;

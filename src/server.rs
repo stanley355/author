@@ -4,6 +4,7 @@ use crate::middleware;
 use crate::users;
 use crate::subscriptions;
 use crate::prompts;
+use crate::checkbots;
 
 use actix_cors::Cors;
 use actix_files::Files;
@@ -30,9 +31,10 @@ impl Server {
                 .app_data(web::Data::new(pool.clone()))
                 .service(Files::new("/v1/files", "/tmp"))
                 .service(web::scope("/v1/users").configure(users::services))
-                .service(web::scope("/v1/subscriptions").configure(subscriptions::services))
-                .service(web::scope("/v1/students").configure(students::services))
-                .service(web::scope("/v1/prompts").configure(prompts::services))
+                // .service(web::scope("/v1/subscriptions").configure(subscriptions::services))
+                // .service(web::scope("/v1/students").configure(students::services))
+                // .service(web::scope("/v1/prompts").configure(prompts::services))
+                .service(web::scope("/v1/checkbots").configure(checkbots::services))
         })
         .bind(Self::address())?
         .run()
