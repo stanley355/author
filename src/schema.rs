@@ -76,6 +76,24 @@ diesel::table! {
 }
 
 diesel::table! {
+    translation (id) {
+        id -> Int4,
+        user_id -> Uuid,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+        content_language -> Varchar,
+        target_language -> Varchar,
+        model -> Varchar,
+        system_content -> Text,
+        user_content -> Text,
+        completion_content -> Text,
+        prompt_tokens -> Int4,
+        completion_tokens -> Int4,
+        total_tokens -> Int4,
+    }
+}
+
+diesel::table! {
     users (id) {
         id -> Uuid,
         fullname -> Varchar,
@@ -92,6 +110,7 @@ diesel::joinable!(prompts -> users (user_id));
 diesel::joinable!(students -> users (user_id));
 diesel::joinable!(subscriptions -> users (user_id));
 diesel::joinable!(topups -> users (user_id));
+diesel::joinable!(translation -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     checkbots,
@@ -99,5 +118,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     students,
     subscriptions,
     topups,
+    translation,
     users,
 );
