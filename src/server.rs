@@ -5,6 +5,7 @@ use crate::users;
 use crate::subscriptions;
 use crate::prompts;
 use crate::checkbots;
+use crate::translation;
 
 use actix_cors::Cors;
 use actix_files::Files;
@@ -36,6 +37,7 @@ impl Server {
                 .service(web::scope("/v1/students").configure(students::services))
                 .service(web::scope("/v1/prompts").configure(prompts::services))
                 .service(web::scope("/v1/checkbots").configure(checkbots::services))
+                .service(web::scope("/v1/translation").configure(translation::services))
         })
         .bind(Self::address())?
         .run()
