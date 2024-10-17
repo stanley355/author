@@ -14,6 +14,7 @@ mod prompts;
 mod openai;
 mod checkbots;
 mod translation;
+mod stt;
 
 // Flatten
 use server::Server;
