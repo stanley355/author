@@ -6,7 +6,7 @@ pub struct NewSpeechToTextRequest {
     pub user_id: String,
     pub file_name: String,
     pub file_url: String,
-    pub temperature: Option<f32>,
+    pub temperature: f32,
     pub language: String,
     pub timestamp_granularities: Option<OpenAiAudioTranscriptionsTimestampGranularity>
 }

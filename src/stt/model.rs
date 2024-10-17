@@ -2,9 +2,8 @@ use diesel::{Queryable, QueryResult, RunQueryDsl, ExpressionMethods};
 use serde::Serialize;
 use actix_web::web;
 use crate::db::PgPool;
-use crate::openai::{OpenAiAudioTranscriptionsResponse, OpenAiChatCompletionResponse};
-use crate::prompts::PromptType;
-use crate::schema::{prompts, speech_to_text};
+use crate::openai::{OpenAiAudioTranscriptionsResponse};
+use crate::schema::{speech_to_text};
 use crate::stt::NewSpeechToTextRequest;
 
 #[derive(Queryable, Debug, Clone, Serialize)]

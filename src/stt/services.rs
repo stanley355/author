@@ -2,11 +2,8 @@ use crate::db::PgPool;
 use crate::openai::{OpenAiAudioTranscriptionsRequest, OpenAiAudioTranscriptionsResponse, OpenAiRequest, OpenAiRequestEndpoint};
 use actix_web::{post, web, HttpResponse};
 use crate::http_error::HttpError;
-use crate::schema::speech_to_text::transcription;
 use crate::stt::model::SpeechToText;
 use crate::stt::NewSpeechToTextRequest;
-// use crate::translation::model::Translation;
-// use crate::translation::request::NewTranslationRequest;
 
 #[post("/")]
 pub async fn new_speech_to_text_service(

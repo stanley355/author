@@ -12,7 +12,6 @@ use actix_cors::Cors;
 use actix_files::Files;
 use actix_web::{web, App, HttpServer};
 use std::env;
-use crate::schema::speech_to_text::dsl::speech_to_text;
 
 #[derive(Debug)]
 pub struct Server;
