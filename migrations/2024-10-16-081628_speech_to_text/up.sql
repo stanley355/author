@@ -7,6 +7,7 @@ CREATE TABLE speech_to_text (
   model VARCHAR NOT NULL,
   file_name VARCHAR NOT NULL,
   file_url VARCHAR NOT NULL,
-  language VARCHAR,
-  timestamp_granularity VARCHAR NOT NULL
+  language VARCHAR NOT NULL,
+  transcription VARCHAR NOT NULL,
+  timestamp_granularity VARCHAR
 );

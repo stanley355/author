@@ -42,8 +42,9 @@ diesel::table! {
         model -> Varchar,
         file_name -> Varchar,
         file_url -> Varchar,
-        language -> Nullable<Varchar>,
-        timestamp_granularity -> Varchar,
+        language -> Varchar,
+        transcription -> Varchar,
+        timestamp_granularity -> Nullable<Varchar>,
     }
 }
 

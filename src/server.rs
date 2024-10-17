@@ -6,11 +6,13 @@ use crate::subscriptions;
 use crate::prompts;
 use crate::checkbots;
 use crate::translation;
+use crate::stt;
 
 use actix_cors::Cors;
 use actix_files::Files;
 use actix_web::{web, App, HttpServer};
 use std::env;
+use crate::schema::speech_to_text::dsl::speech_to_text;
 
 #[derive(Debug)]
 pub struct Server;
@@ -38,6 +40,7 @@ impl Server {
                 .service(web::scope("/v1/prompts").configure(prompts::services))
                 .service(web::scope("/v1/checkbots").configure(checkbots::services))
                 .service(web::scope("/v1/translation").configure(translation::services))
+                .service(web::scope("/v1/speech-to-text").configure(stt::services))
         })
         .bind(Self::address())?
         .run()

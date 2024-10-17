@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-// #[allow(dead_code)]
 #[derive(Debug, Deserialize, Serialize)]
 pub struct OpenAiAudioTranscriptionsSegmentsParam {
     id: u32,
