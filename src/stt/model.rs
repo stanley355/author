@@ -4,7 +4,7 @@ use actix_web::web;
 use crate::db::PgPool;
 use crate::openai::{OpenAiAudioTranscriptionsResponse};
 use crate::schema::{speech_to_text};
-use crate::stt::NewSpeechToTextRequest;
+use super::request::NewSpeechToTextRequest;
 
 #[derive(Queryable, Debug, Clone, Serialize)]
 pub(super) struct SpeechToText {
