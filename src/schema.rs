@@ -79,6 +79,20 @@ diesel::table! {
 }
 
 diesel::table! {
+    text_to_speech (id) {
+        id -> Int4,
+        user_id -> Uuid,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+        model -> Varchar,
+        input -> Varchar,
+        voice -> Varchar,
+        speed -> Int4,
+        response_format -> Varchar,
+    }
+}
+
+diesel::table! {
     topups (id) {
         id -> Uuid,
         user_id -> Uuid,
@@ -125,6 +139,7 @@ diesel::joinable!(prompts -> users (user_id));
 diesel::joinable!(speech_to_text -> users (user_id));
 diesel::joinable!(students -> users (user_id));
 diesel::joinable!(subscriptions -> users (user_id));
+diesel::joinable!(text_to_speech -> users (user_id));
 diesel::joinable!(topups -> users (user_id));
 diesel::joinable!(translation -> users (user_id));
 
@@ -134,6 +149,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     speech_to_text,
     students,
     subscriptions,
+    text_to_speech,
     topups,
     translation,
     users,
