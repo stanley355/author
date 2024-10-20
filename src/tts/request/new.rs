@@ -2,7 +2,7 @@ use serde::Deserialize;
 use crate::openai::{OpenAiAudioSpeechResponseFormat, OpenAiAudioSpeechVoice};
 
 #[derive(Debug, Deserialize)]
-pub struct NewAudioSpeechPromptRequest {
+pub struct NewTextToSpeechRequest {
     pub user_id: String,
     pub input: String,
     pub voice: OpenAiAudioSpeechVoice,

@@ -1,3 +1,3 @@
 mod new;
 
-pub use new::NewAudioSpeechPromptRequest;
+pub use new::NewTextToSpeechRequest;
