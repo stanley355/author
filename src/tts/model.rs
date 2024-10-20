@@ -2,8 +2,7 @@ use diesel::{Queryable, QueryResult, RunQueryDsl, ExpressionMethods};
 use serde::Serialize;
 use actix_web::web;
 use crate::db::PgPool;
-use crate::openai::{OpenAiAudioTranscriptionsResponse};
-use crate::schema::{speech_to_text, text_to_speech};
+use crate::schema::{text_to_speech};
 use crate::tts::NewTextToSpeechRequest;
 
 #[derive(Queryable, Debug, Clone, Serialize)]
@@ -26,13 +25,16 @@ impl TextToSpeech {
         request: &NewTextToSpeechRequest,
     ) -> QueryResult<TextToSpeech> {
         let user_id = uuid::Uuid::parse_str(&request.user_id).unwrap();
+        let voice = &request.voice.to_string().to_lowercase();
+        let response_format = &request.response_format.to_string().to_lowercase();
+
         let data = (
             (text_to_speech::user_id.eq(user_id)),
             (text_to_speech::model.eq("tts-1".to_string())),
             (text_to_speech::input.eq(&request.input)),
-            (text_to_speech::voice.eq(&request.voice.to_string().to_lowercase())),
+            (text_to_speech::voice.eq(voice)),
             (text_to_speech::speed.eq(request.speed as i32)),
-            (text_to_speech::response_format.eq(&request.response_format.to_string().to_lowercase()))
+            (text_to_speech::response_format.eq(response_format))
         );
 
         let mut conn = pool.get().unwrap();
