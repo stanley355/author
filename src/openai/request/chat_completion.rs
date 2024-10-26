@@ -1,5 +1,7 @@
 use crate::prompts::NewPromptRequest;
 use serde::{Deserialize, Serialize};
+use crate::checkbots::NewCheckbotRequest;
+use crate::translation::NewTranslationRequest;
 
 use super::OpenAiRequest;
 
@@ -25,6 +27,25 @@ impl OpenAiChatCompletionRequest {
       temperature: request.temperature,
     }
   }
+
+    pub fn new_checkbot(request: &NewCheckbotRequest) -> Self {
+        let messages = OpenAiChatCompletionRequestMessageParam::new_vec(&request.system_content, &request.user_content);
+        Self {
+            model: "gpt-4o-mini".to_string(),
+            messages,
+            n: request.n,
+            temperature: request.temperature,
+        }
+    }
+    pub fn new_translation(request: &NewTranslationRequest) -> Self {
+        let messages = OpenAiChatCompletionRequestMessageParam::new_vec(&request.system_content, &request.user_content);
+        Self {
+            model: "gpt-4o-mini".to_string(),
+            messages,
+            n: request.n,
+            temperature: request.temperature,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

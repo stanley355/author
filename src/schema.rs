@@ -1,6 +1,23 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    checkbots (id) {
+        id -> Int4,
+        user_id -> Uuid,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+        instruction -> Varchar,
+        model -> Varchar,
+        system_content -> Text,
+        user_content -> Text,
+        completion_content -> Text,
+        prompt_tokens -> Int4,
+        completion_tokens -> Int4,
+        total_tokens -> Int4,
+    }
+}
+
+diesel::table! {
     prompts (id) {
         id -> Int4,
         user_id -> Uuid,
@@ -13,6 +30,21 @@ diesel::table! {
         instruction -> Varchar,
         prompt_type -> Nullable<Varchar>,
         updated_at -> Nullable<Timestamp>,
+    }
+}
+
+diesel::table! {
+    speech_to_text (id) {
+        id -> Int4,
+        user_id -> Uuid,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+        model -> Varchar,
+        file_name -> Varchar,
+        file_url -> Varchar,
+        language -> Varchar,
+        transcription -> Varchar,
+        timestamp_granularity -> Nullable<Varchar>,
     }
 }
 
@@ -47,6 +79,20 @@ diesel::table! {
 }
 
 diesel::table! {
+    text_to_speech (id) {
+        id -> Int4,
+        user_id -> Uuid,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+        model -> Varchar,
+        input -> Varchar,
+        voice -> Varchar,
+        speed -> Int4,
+        response_format -> Varchar,
+    }
+}
+
+diesel::table! {
     topups (id) {
         id -> Uuid,
         user_id -> Uuid,
@@ -55,6 +101,24 @@ diesel::table! {
         paid -> Bool,
         topup_type -> Varchar,
         updated_at -> Nullable<Timestamp>,
+    }
+}
+
+diesel::table! {
+    translation (id) {
+        id -> Int4,
+        user_id -> Uuid,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+        content_language -> Varchar,
+        target_language -> Varchar,
+        model -> Varchar,
+        system_content -> Text,
+        user_content -> Text,
+        completion_content -> Text,
+        prompt_tokens -> Int4,
+        completion_tokens -> Int4,
+        total_tokens -> Int4,
     }
 }
 
@@ -70,15 +134,23 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(checkbots -> users (user_id));
 diesel::joinable!(prompts -> users (user_id));
+diesel::joinable!(speech_to_text -> users (user_id));
 diesel::joinable!(students -> users (user_id));
 diesel::joinable!(subscriptions -> users (user_id));
+diesel::joinable!(text_to_speech -> users (user_id));
 diesel::joinable!(topups -> users (user_id));
+diesel::joinable!(translation -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    checkbots,
     prompts,
+    speech_to_text,
     students,
     subscriptions,
+    text_to_speech,
     topups,
+    translation,
     users,
 );

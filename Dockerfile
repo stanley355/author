@@ -1,4 +1,4 @@
-FROM rust:1.79-slim as builder
+FROM rust:1.81-slim as builder
 
 RUN apt-get update && \
     apt-get install -y libpq-dev build-essential curl && \

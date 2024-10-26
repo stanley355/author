@@ -4,6 +4,10 @@ use crate::middleware;
 use crate::users;
 use crate::subscriptions;
 use crate::prompts;
+use crate::checkbots;
+use crate::translation;
+use crate::stt;
+use crate::tts;
 
 use actix_cors::Cors;
 use actix_files::Files;
@@ -22,6 +26,7 @@ impl Server {
         return address;
     }
 
+    // TODO: Remove subscriptions, students, and prompts
     pub(super) async fn new_http_server(pool: db::PgPool) -> std::io::Result<()> {
         HttpServer::new(move || {
             App::new()
@@ -33,6 +38,10 @@ impl Server {
                 .service(web::scope("/v1/subscriptions").configure(subscriptions::services))
                 .service(web::scope("/v1/students").configure(students::services))
                 .service(web::scope("/v1/prompts").configure(prompts::services))
+                .service(web::scope("/v1/checkbots").configure(checkbots::services))
+                .service(web::scope("/v1/translation").configure(translation::services))
+                .service(web::scope("/v1/speech-to-text").configure(stt::services))
+                .service(web::scope("/v1/text-to-speech").configure(tts::services))
         })
         .bind(Self::address())?
         .run()
