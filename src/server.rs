@@ -1,9 +1,6 @@
 use crate::db;
-use crate::students;
 use crate::middleware;
 use crate::users;
-use crate::subscriptions;
-use crate::prompts;
 use crate::checkbots;
 use crate::translation;
 use crate::stt;
@@ -26,7 +23,6 @@ impl Server {
         return address;
     }
 
-    // TODO: Remove subscriptions, students, and prompts
     pub(super) async fn new_http_server(pool: db::PgPool) -> std::io::Result<()> {
         HttpServer::new(move || {
             App::new()
@@ -35,9 +31,6 @@ impl Server {
                 .app_data(web::Data::new(pool.clone()))
                 .service(Files::new("/v1/files", "/tmp"))
                 .service(web::scope("/v1/users").configure(users::services))
-                .service(web::scope("/v1/subscriptions").configure(subscriptions::services))
-                .service(web::scope("/v1/students").configure(students::services))
-                .service(web::scope("/v1/prompts").configure(prompts::services))
                 .service(web::scope("/v1/checkbots").configure(checkbots::services))
                 .service(web::scope("/v1/translation").configure(translation::services))
                 .service(web::scope("/v1/speech-to-text").configure(stt::services))
