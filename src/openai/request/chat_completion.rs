@@ -1,4 +1,3 @@
-use crate::prompts::NewPromptRequest;
 use serde::{Deserialize, Serialize};
 use crate::checkbots::NewCheckbotRequest;
 use crate::translation::NewTranslationRequest;
@@ -15,19 +14,6 @@ pub struct OpenAiChatCompletionRequest {
 
 impl OpenAiRequest for OpenAiChatCompletionRequest {}
 impl OpenAiChatCompletionRequest {
-  pub fn new(request: &NewPromptRequest) -> Self {
-    let messages = OpenAiChatCompletionRequestMessageParam::new_vec(
-      &request.system_content,
-      &request.user_content,
-    );
-    Self {
-      model: "gpt-4o-mini".to_string(),
-      messages,
-      n: request.n,
-      temperature: request.temperature,
-    }
-  }
-
     pub fn new_checkbot(request: &NewCheckbotRequest) -> Self {
         let messages = OpenAiChatCompletionRequestMessageParam::new_vec(&request.system_content, &request.user_content);
         Self {

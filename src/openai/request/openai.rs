@@ -12,7 +12,6 @@ pub trait OpenAiRequest {
             OpenAiRequestEndpoint::ChatCompletion => "v1/chat/completions".to_string(),
             OpenAiRequestEndpoint::AudioSpeech => "v1/audio/speech".to_string(),
             OpenAiRequestEndpoint::AudioTranscriptions => "v1/audio/transcriptions".to_string(),
-            OpenAiRequestEndpoint::AudioTranslations => "v1/audio/translations".to_string(),
         };
 
         format!("{}{}", openai_url, path)

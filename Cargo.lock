@@ -324,7 +324,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
- "uuid 0.7.4",
+ "uuid",
 ]
 
 [[package]]
@@ -632,7 +632,7 @@ dependencies = [
  "itoa",
  "pq-sys",
  "r2d2",
- "uuid 1.8.0",
+ "uuid",
 ]
 
 [[package]]
@@ -2124,12 +2124,6 @@ dependencies = [
  "rand 0.6.5",
  "serde",
 ]
-
-[[package]]
-name = "uuid"
-version = "1.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a183cf7feeba97b4dd1c0d46788634f6221d87fa961b305bed08c851829efcc0"
 
 [[package]]
 name = "v_htmlescape"
