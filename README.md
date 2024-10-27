@@ -1,16 +1,18 @@
-go# Author
+# Author
 
-### 1.4.2
+### 2.0.0
+Separates /prompts to distinguished table
+- /translates/
+- /checkbots/
+- /tts/
+- /stt/
 
+### < 2.0.0
 - login
 - register
 - change-password
 - reset-password
-
-### 1.4.1
 - Add response format to audio speech endpoint
-
-### 1.4.0
 - /v1/prompts/
 - /v1/students/
 - /v1/subscriptions/
