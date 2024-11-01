@@ -8,6 +8,7 @@ use crate::checkbots;
 use crate::translation;
 use crate::stt;
 use crate::tts;
+use crate::bps;
 
 use actix_cors::Cors;
 use actix_files::Files;
@@ -42,6 +43,7 @@ impl Server {
                 .service(web::scope("/v1/translation").configure(translation::services))
                 .service(web::scope("/v1/speech-to-text").configure(stt::services))
                 .service(web::scope("/v1/text-to-speech").configure(tts::services))
+                .service(web::scope("/v1/bps").configure(bps::services))
         })
         .bind(Self::address())?
         .run()
