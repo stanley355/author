@@ -1,9 +1,9 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use crate::bps::request::{BpsRequestModelEnum, BpsRequestStartPathEnum};
 use crate::bps::request_trait::BpsRequestTrait;
 
-#[derive(Debug, Deserialize)]
-pub(in crate::bps::dynamic_data) struct NewDynamicDataRequestParam {
+#[derive(Debug, Serialize, Deserialize)]
+pub struct NewDynamicDataRequestParam {
     domain: String,
     var: u32,
     turvar: Option<String>,
@@ -12,8 +12,8 @@ pub(in crate::bps::dynamic_data) struct NewDynamicDataRequestParam {
     turth: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
-pub(in crate::bps::dynamic_data) struct NewDynamicDataRequest {
+#[derive(Debug, Serialize, Deserialize)]
+pub struct NewDynamicDataRequest {
     start_path: BpsRequestStartPathEnum,
     model: BpsRequestModelEnum,
     param: NewDynamicDataRequestParam
