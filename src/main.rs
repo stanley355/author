@@ -13,6 +13,7 @@ mod checkbots;
 mod translation;
 mod stt;
 mod tts;
+mod bps;
 
 // Flatten
 use server::Server;

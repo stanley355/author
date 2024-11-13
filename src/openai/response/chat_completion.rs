@@ -1,5 +1,5 @@
 use crate::openai::request::OpenAiChatCompletionRequestMessageParam;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 pub struct OpenAiChatCompletionResponse {
@@ -15,7 +15,7 @@ pub struct OpenAiChatCompletionResponse {
 }
 
 // #[allow(dead_code)]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct OpenAiChatCompletionResponseChoiceParameter {
     #[allow(dead_code)]
     index: i32,

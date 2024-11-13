@@ -7,7 +7,7 @@ use crate::db::PgPool;
 use crate::schema::users;
 
 #[derive(Debug, Queryable)]
-pub(super) struct User {
+pub struct User {
     pub id: uuid::Uuid,
     pub fullname: String,
     pub email: String,
@@ -21,7 +21,7 @@ pub(super) struct User {
 }
 
 impl User {
-    pub(super) fn find(pool: &web::Data<PgPool>, user_id: uuid::Uuid) -> QueryResult<User> {
+    pub fn find(pool: &web::Data<PgPool>, user_id: uuid::Uuid) -> QueryResult<User> {
         let mut conn = pool.get().unwrap();
         users::table
             .filter(users::id.eq(user_id))
