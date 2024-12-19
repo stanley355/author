@@ -28,8 +28,8 @@ impl User {
             .get_result::<User>(&mut conn)
     }
 
-    pub(super) fn find_by_email(pool: &web::Data<PgPool>, email: &str) -> QueryResult<User> {
-        let mut conn = pool.get().unwrap();
+    pub(super) fn find_by_email(pool: &web::Data<PgPool>, email: &str) -> QueryResult<User, diesel::ConnectionError> {
+        let mut conn = pool.get()?;
         users::table
             .filter(users::email.eq(email))
             .get_result::<User>(&mut conn)
